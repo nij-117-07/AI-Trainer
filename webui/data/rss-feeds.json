@@ -1,0 +1,12 @@
+[
+  {
+    "name": "hacker news",
+    "url": "https://feeds.feedburner.com/TheHackersNews",
+    "category": "General",
+    "enabled": true,
+    "refreshIntervalMinutes": 60,
+    "id": "cbf27e83-bf4a-4237-a623-e5686fd3ea08",
+    "createdAt": "2026-08-06T20:36:57.114Z",
+    "updatedAt": "2026-08-06T20:36:57.114Z"
+  }
+]

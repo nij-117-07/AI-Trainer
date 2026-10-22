@@ -1,0 +1,221 @@
+{
+  "roadmaps": [
+    {
+      "id": "38ddf180-f0f8-4380-a903-9fc1bb780bfe",
+      "owner": "admin",
+      "subject": "python",
+      "start_level": "Beginner",
+      "target_level": "Professional",
+      "mode": "detailed",
+      "persona_style": "industry expert",
+      "user_instructions": "",
+      "persona": "You are an industry expert in Python programming with over 15 years of professional experience in software development, data engineering, and automation. You have worked in fast-paced tech environments, building scalable applications, optimizing performance-critical systems, and leading teams in the development of production-grade Python solutions. Your expertise spans modern Python (3.8+), best practices in software design, and integration with cloud platforms, databases, and APIs.\n\nYour tone is professional, concise, and practical—focused on real-world application, performance, and maintainability. You emphasize clean, readable code, efficient algorithms, and industry-standard tools like pip, virtual environments, pytest, and CI/CD pipelines. You are comfortable discussing advanced topics such as concurrency (async/await), type hinting, decorators, metaclasses, and Pythonic design patterns.\n\nYou tailor your explanations to a professional audience, avoiding unnecessary theory unless it directly supports practical implementation. You provide real-world examples, code snippets, and actionable advice that can be applied immediately in a professional setting. You also stay current with the evolving Python ecosystem, including frameworks like FastAPI, Django, and tools like Pydantic, Celery, and Docker.\n\nYour goal is to help the learner master Python at a professional level—equipping them with the skills to build robust, scalable, and maintainable systems in real-world environments.",
+      "main_topics": [
+        {
+          "id": "982498d3-dc12-4e07-bb71-1cea016c4785",
+          "title": "Introduction to Python and Setup",
+          "done": false,
+          "milestone": "Create a fully configured Python development environment with a virtual environment, linting, formatting, and a sample project structure. Write a simple script that reads a configuration file, logs a message, and makes a test API request using requests. Commit the project to a GitHub repository with a README explaining the setup.",
+          "subtopics": [
+            {
+              "id": "1a8f503c-9473-42d3-b0de-f9177b2cf03e",
+              "title": "Understanding Python 3.8+ features and differences from Python 2",
+              "done": false
+            },
+            {
+              "id": "25ad2df5-3451-4274-a2ba-dccceeb99db9",
+              "title": "Installing Python via official installer or Homebrew (macOS) / pyenv (cross-platform)",
+              "done": false
+            },
+            {
+              "id": "7d329221-5839-42da-8113-f07f5fa10eff",
+              "title": "Setting up a virtual environment using venv (Python 3.3+) or conda",
+              "done": false
+            },
+            {
+              "id": "19ba0670-c6c2-4b5b-a2c6-bd2beece87cb",
+              "title": "Using pip to install and manage packages with requirements.txt",
+              "done": false
+            },
+            {
+              "id": "402b300f-30fd-43ff-a46e-860a41522da5",
+              "title": "Choosing and installing a modern IDE or code editor (e.g., VS Code with Python extension, PyCharm)",
+              "done": false
+            },
+            {
+              "id": "01f69c65-b489-43eb-ac68-3787ac878b3f",
+              "title": "Configuring linting and formatting tools (e.g., black, flake8, isort)",
+              "done": false
+            },
+            {
+              "id": "3931b190-0732-4e15-96fd-10e471808485",
+              "title": "Setting up a basic project structure for professional development",
+              "done": false
+            },
+            {
+              "id": "fe025486-8563-4ebf-876b-416398f56125",
+              "title": "Running Python scripts from the command line and understanding the interpreter",
+              "done": false
+            },
+            {
+              "id": "4a1fcd35-083d-4d70-bed0-c96da542d028",
+              "title": "Installing and using Jupyter Notebooks for exploratory coding",
+              "done": true
+            },
+            {
+              "id": "ebd35cff-220c-493d-87c6-7964bc5bcca3",
+              "title": "Understanding the Python Package Index (PyPI) and how to publish packages",
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "c39b5670-f555-4cec-baf8-55231ed40126",
+          "title": "Core Python Syntax and Data Types",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "84ae26bb-50a9-4528-9cab-0c2b874356e8",
+          "title": "Control Flow and Functions",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "d50138f0-1c23-4e4b-aff0-278b6cdbd89f",
+          "title": "Data Structures and Collections",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "57913598-6ced-4a88-87f7-04d767029a6e",
+          "title": "File I/O and Working with External Data",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "bd7390f9-bf52-43a5-8237-ecdb25a5ce64",
+          "title": "Error Handling and Debugging",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "c1296a61-2847-43c0-babd-09535ba895fe",
+          "title": "Object-Oriented Programming in Python",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "23c5926c-ea5a-45a1-9835-e78591e1af99",
+          "title": "Modules, Packages, and Virtual Environments",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "0e0d4acb-4d4e-4968-8387-2f767799ea0b",
+          "title": "Testing and Quality Assurance (pytest, unittest)",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "f36b3fc4-be0c-4a09-8ff5-c2a8c660b362",
+          "title": "Working with APIs and Web Requests",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "f0492d55-55ae-4b40-a0e4-eb6e42d18914",
+          "title": "Database Integration (SQL and NoSQL)",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "95ffb883-cdec-45c9-bf90-1b8a4267164b",
+          "title": "Advanced Python Features (Decorators, Generators, Context Managers)",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "785efeb9-f48b-4fe4-8fd0-aba742ac6db7",
+          "title": "Concurrency and Parallelism (Threading, Multiprocessing, asyncio)",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "42404fef-3323-4a76-9c75-31f5795889b8",
+          "title": "Type Hints and Static Analysis (mypy, Pyright)",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "703cf6b4-a750-4b30-94f0-716503947e0c",
+          "title": "Performance Optimization and Profiling",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "267d23ae-92e3-4c21-aeaa-e4f96c8fc35e",
+          "title": "Code Documentation and Best Practices",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "b4ac4474-3864-4aa8-ac19-2bb53beff712",
+          "title": "Version Control with Git and GitHub",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "8bef52a2-ae9c-4651-aabc-6d6ee0e495fb",
+          "title": "CI/CD Pipelines and Deployment (Docker, GitHub Actions)",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "9d0dd5ba-9db5-4b62-b52b-0d1d266aaacd",
+          "title": "Building and Distributing Python Packages",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "84830995-0a9f-4665-a29d-6b5cf05d0bf2",
+          "title": "Working with Cloud Platforms (AWS, GCP, Azure)",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "c75f5d1d-91c1-4422-95e7-b7e3897e4a71",
+          "title": "Python in Data Engineering and Automation",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "b0f2da95-d377-4314-b45d-d08d4da2996c",
+          "title": "Advanced Frameworks (FastAPI, Django, Flask)",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "128a6873-23be-4335-b1d8-aa455b32c40f",
+          "title": "Monitoring, Logging, and Observability",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "4eb18d96-0348-478d-a57a-348a223a1c47",
+          "title": "Security Best Practices in Python",
+          "done": false,
+          "subtopics": []
+        },
+        {
+          "id": "1256f108-d546-4f06-9ea0-24d3a76a49ba",
+          "title": "Professional Development and Real-World Project Execution",
+          "done": false,
+          "subtopics": []
+        }
+      ],
+      "createdAt": "2026-08-05T19:25:23.662Z",
+      "updatedAt": "2026-08-05T19:25:50.640Z"
+    }
+  ]
+}

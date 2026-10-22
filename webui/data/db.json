@@ -1,0 +1,773 @@
+[
+  {
+    "id": "linguistic",
+    "title": "Linguistic Hub",
+    "description": "AI-powered language tools: idiomatic expressions with meaning, cultural context, and real-world usage.",
+    "href": "/linguistic",
+    "category": "Education",
+    "tags": [
+      "linguistic",
+      "language",
+      "idioms",
+      "learning",
+      "education"
+    ]
+  },
+  {
+    "id": "idioms",
+    "title": "Idioms",
+    "description": "Learn an idiomatic expression in a target language with meaning, pronunciation, and a dialogue.",
+    "href": "/linguistic/idioms",
+    "category": "Education",
+    "tags": [
+      "linguistic",
+      "idioms",
+      "language",
+      "expressions",
+      "education"
+    ]
+  },
+  {
+    "id": "word-of-the-day",
+    "title": "Word of the Day",
+    "description": "Discover a rich word from a target language with pronunciation, morphology, and history.",
+    "href": "/linguistic/word-of-the-day",
+    "category": "Education",
+    "tags": [
+      "linguistic",
+      "word",
+      "language",
+      "vocabulary",
+      "education"
+    ]
+  },
+  {
+    "id": "translator",
+    "title": "Translator",
+    "description": "Contextual translation with a chosen tone, reference material, and cultural notes.",
+    "href": "/linguistic/translator",
+    "category": "Education",
+    "tags": [
+      "linguistic",
+      "translator",
+      "translation",
+      "language",
+      "education"
+    ]
+  },
+  {
+    "id": "simulator",
+    "title": "Simulator",
+    "description": "Behavioral simulations: put a persona in a scenario, deliver your line, and see how they think, act, and reply.",
+    "href": "/linguistic/simulator",
+    "category": "Education",
+    "tags": [
+      "linguistic",
+      "simulator",
+      "roleplay",
+      "conversation",
+      "education"
+    ]
+  },
+  {
+    "id": "sentence-of-the-day",
+    "title": "Sentence of the Day",
+    "description": "Discover the daily featured sentence in a target language with grammar, culture, and variations.",
+    "href": "/linguistic/sentence-of-the-day",
+    "category": "Education",
+    "tags": [
+      "linguistic",
+      "sentence",
+      "language",
+      "grammar",
+      "education"
+    ]
+  },
+  {
+    "id": "rewriter",
+    "title": "Rewriter",
+    "description": "Rewrite text to improve quality, adjust tone, or change structure while preserving the original intent.",
+    "href": "/linguistic/rewriter",
+    "category": "Education",
+    "tags": [
+      "linguistic",
+      "rewriter",
+      "writing",
+      "language",
+      "education"
+    ]
+  },
+  {
+    "id": "lesson",
+    "title": "Language Lesson",
+    "description": "Generate a scaffolded language lesson tuned to your CEFR level, learning focus, and theme.",
+    "href": "/linguistic/lesson",
+    "category": "Education",
+    "tags": [
+      "linguistic",
+      "lesson",
+      "language",
+      "learning",
+      "education"
+    ]
+  },
+  {
+    "id": "poet-engine",
+    "title": "Poet Engine",
+    "description": "Explain the 'Soul' of a word using AI-driven poetic philology — etymology, poetry, and metaphor.",
+    "href": "/linguistic/poet-engine",
+    "category": "Education",
+    "tags": [
+      "linguistic",
+      "poetry",
+      "language",
+      "words",
+      "education"
+    ]
+  },
+  {
+    "id": "language-tester",
+    "title": "Language Tester",
+    "description": "Generate personalized MCQs, fill-in-the-blank, translation challenges, and coached roleplays at your CEFR level.",
+    "href": "/linguistic/language-tester",
+    "category": "Education",
+    "tags": [
+      "linguistic",
+      "assessment",
+      "language",
+      "quiz",
+      "education"
+    ]
+  },
+  {
+    "id": "roleplay",
+    "title": "Roleplay",
+    "description": "Step into a scene with any persona you describe and hold an in-character conversation.",
+    "href": "/linguistic/roleplay",
+    "category": "Education",
+    "tags": [
+      "linguistic",
+      "roleplay",
+      "conversation",
+      "language",
+      "education"
+    ]
+  },
+  {
+    "id": "tools",
+    "title": "Tools Hub",
+    "description": "AI-powered productivity tools: convert images, write content, generate diagrams and charts, and check food labels.",
+    "href": "/tools",
+    "category": "Tools",
+    "tags": [
+      "tools",
+      "productivity",
+      "content",
+      "diagrams",
+      "charts",
+      "vision"
+    ]
+  },
+  {
+    "id": "vision-converter",
+    "title": "Vision Converter",
+    "description": "Convert an uploaded image into high-quality, well-structured Markdown.",
+    "href": "/tools/vision",
+    "category": "Tools",
+    "tags": [
+      "tools",
+      "vision",
+      "image",
+      "markdown",
+      "ocr"
+    ]
+  },
+  {
+    "id": "ingredients",
+    "title": "Ingredients Checker",
+    "description": "Snap a photo of a product's ingredients list for a nutritional health analysis.",
+    "href": "/tools/ingredients",
+    "category": "Tools",
+    "tags": [
+      "tools",
+      "ingredients",
+      "health",
+      "nutrition",
+      "food"
+    ]
+  },
+  {
+    "id": "social-posts",
+    "title": "Social Media Post Generator",
+    "description": "Generate platform-specific social posts with designer notes, matched to your brand voice.",
+    "href": "/tools/social-posts",
+    "category": "Tools",
+    "tags": [
+      "tools",
+      "social",
+      "content",
+      "marketing",
+      "posts"
+    ]
+  },
+  {
+    "id": "prompt-generator",
+    "title": "Prompt Generator",
+    "description": "Generate or refine a full LLM system persona with a reproducible seed.",
+    "href": "/tools/prompt-generator",
+    "category": "Tools",
+    "tags": [
+      "tools",
+      "prompt",
+      "persona",
+      "llm",
+      "writing"
+    ]
+  },
+  {
+    "id": "flexible-writer",
+    "title": "Flexible Writer",
+    "description": "Adopt any persona or rule set and transform your input data however you ask.",
+    "href": "/tools/flexible-writer",
+    "category": "Tools",
+    "tags": [
+      "tools",
+      "writer",
+      "writing",
+      "transform",
+      "persona"
+    ]
+  },
+  {
+    "id": "diagram",
+    "title": "Diagram Generator",
+    "description": "Generate or refine Mermaid and Draw.io diagram code from natural language.",
+    "href": "/tools/diagram",
+    "category": "Tools",
+    "tags": [
+      "tools",
+      "diagram",
+      "mermaid",
+      "drawio",
+      "visualization"
+    ]
+  },
+  {
+    "id": "creative-assets",
+    "title": "Creative Assets",
+    "description": "Generate names, hashtags, slogans, and SEO titles with explanations for each.",
+    "href": "/tools/creative-assets",
+    "category": "Tools",
+    "tags": [
+      "tools",
+      "creative",
+      "marketing",
+      "branding",
+      "content"
+    ]
+  },
+  {
+    "id": "charts",
+    "title": "Chart.js Generator",
+    "description": "Generate a Chart.js HTML/JS visualization from raw data and style instructions.",
+    "href": "/tools/charts",
+    "category": "Tools",
+    "tags": [
+      "tools",
+      "charts",
+      "chartjs",
+      "data",
+      "visualization"
+    ]
+  },
+  {
+    "id": "rss",
+    "title": "RSS Feed",
+    "description": "Configure RSS and Atom providers, then browse, search, and filter the latest articles.",
+    "href": "/tools/rss",
+    "category": "Tools",
+    "tags": [
+      "tools",
+      "rss",
+      "feed",
+      "news",
+      "reader"
+    ]
+  },
+  {
+    "id": "practice",
+    "title": "Practice Hub",
+    "description": "Generate practice questions, get expert answers, and grade your performance with AI feedback.",
+    "href": "/practice",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "assessment",
+      "questions",
+      "grading",
+      "education"
+    ]
+  },
+  {
+    "id": "testing-portal",
+    "title": "Testing Portal",
+    "description": "Generate MCQs and theoretical questions, get expert answers, and analyze existing questions.",
+    "href": "/practice/testing-portal",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "assessment",
+      "questions",
+      "mcq",
+      "interview"
+    ]
+  },
+  {
+    "id": "grader",
+    "title": "Performance Grader",
+    "description": "Grade a text or image answer against a target objective with a score and constructive feedback.",
+    "href": "/practice/grader",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "assessment",
+      "grading",
+      "feedback",
+      "education"
+    ]
+  },
+  {
+    "id": "bias-inoculator",
+    "title": "Cognitive Bias Inoculator",
+    "description": "Train against cognitive biases with stealthy System 1 vs System 2 scenarios.",
+    "href": "/practice/bias-inoculator",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "bias",
+      "reasoning",
+      "psychology",
+      "education"
+    ]
+  },
+  {
+    "id": "conceptual-bridge",
+    "title": "Conceptual Bridge Builder",
+    "description": "Connect two seemingly unrelated concepts through deep structural analogies.",
+    "href": "/practice/conceptual-bridge",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "analogy",
+      "reasoning",
+      "learning",
+      "education"
+    ]
+  },
+  {
+    "id": "puzzle",
+    "title": "Puzzle Generator",
+    "description": "Personalized cognitive puzzles — riddles, logic grids, sequences, wordplay, and ciphers.",
+    "href": "/practice/puzzle",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "puzzle",
+      "logic",
+      "reasoning",
+      "education"
+    ]
+  },
+  {
+    "id": "riddle",
+    "title": "Riddle Generator",
+    "description": "Adaptive riddles tuned to your topic and cognitive domain, with feedback on every answer.",
+    "href": "/practice/riddle",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "riddle",
+      "brain-teaser",
+      "reasoning",
+      "education"
+    ]
+  },
+  {
+    "id": "socratic",
+    "title": "Socratic Challenger",
+    "description": "Stress-test your opinions with falsification questions, edge cases, and logical fallacy checks.",
+    "href": "/practice/socratic",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "socratic",
+      "logic",
+      "philosophy",
+      "education"
+    ]
+  },
+  {
+    "id": "debate",
+    "title": "Debate Engine",
+    "description": "Build a debate persona, trade arguments with it, and get a judge's verdict.",
+    "href": "/practice/debate",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "debate",
+      "argumentation",
+      "rhetoric",
+      "education"
+    ]
+  },
+  {
+    "id": "clarity-trainer",
+    "title": "Clarity Trainer",
+    "description": "Practice crisp communication on real scenarios and get verbosity, clarity, and rewrite feedback.",
+    "href": "/practice/clarity-trainer",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "communication",
+      "writing",
+      "clarity",
+      "education"
+    ]
+  },
+  {
+    "id": "executive-eq",
+    "title": "Executive EQ Trainer",
+    "description": "Handle high-stakes executive meetings with NPCs, reading subtext and managing status.",
+    "href": "/practice/executive-eq",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "eq",
+      "leadership",
+      "communication",
+      "education"
+    ]
+  },
+  {
+    "id": "negotiation",
+    "title": "Negotiation Practice",
+    "description": "Bargain with an AI opponent that tracks its internal position, and get tactic-by-tactic feedback.",
+    "href": "/practice/negotiation",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "negotiation",
+      "communication",
+      "strategy",
+      "education"
+    ]
+  },
+  {
+    "id": "joke-coach",
+    "title": "Joke Coach",
+    "description": "Generate, evaluate, rewrite, classify, and practice jokes with crowd simulation feedback.",
+    "href": "/practice/joke-coach",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "comedy",
+      "writing",
+      "jokes",
+      "education"
+    ]
+  },
+  {
+    "id": "battleground",
+    "title": "Battleground Simulator",
+    "description": "Fight a strategic battle of wits against an AI opponent across rounds with HP and resources.",
+    "href": "/practice/battleground",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "strategy",
+      "simulation",
+      "game",
+      "education"
+    ]
+  },
+  {
+    "id": "foresight-trainer",
+    "title": "Foresight Trainer",
+    "description": "Step into immersive decision scenarios, make consequential choices, and grow your strategic thinking.",
+    "href": "/practice/foresight-trainer",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "foresight",
+      "decision",
+      "strategy",
+      "education"
+    ]
+  },
+  {
+    "id": "guess-game",
+    "title": "Guess Game",
+    "description": "Guess a hidden mystery item using increasingly revealing hints, with an AI coach on your side.",
+    "href": "/practice/guess-game",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "game",
+      "guessing",
+      "trivia",
+      "education"
+    ]
+  },
+  {
+    "id": "observation-trainer",
+    "title": "Observation Trainer",
+    "description": "Upload an image, report what you notice, and get scored on accuracy, relevance, and missed details.",
+    "href": "/practice/observation-trainer",
+    "category": "Practice",
+    "tags": [
+      "practice",
+      "observation",
+      "vision",
+      "training",
+      "education"
+    ]
+  },
+  {
+    "id": "learning",
+    "title": "Learning Hub",
+    "description": "AI-powered explainer tools: quick explanations, A-to-Z tutorials, Feynman simplifications, and more.",
+    "href": "/learning",
+    "category": "Education",
+    "tags": [
+      "learning",
+      "explainer",
+      "tutorial",
+      "study",
+      "education"
+    ]
+  },
+  {
+    "id": "roadmap",
+    "title": "Roadmap Planner",
+    "description": "Generate AI-powered learning roadmaps with main points, subpoints, milestones, and progress tracking.",
+    "href": "/learning/roadmap",
+    "category": "Education",
+    "tags": [
+      "roadmap",
+      "learning",
+      "planner",
+      "study",
+      "education"
+    ]
+  },
+  {
+    "id": "guides",
+    "title": "Learning Guides",
+    "description": "Guided tasks, daily study plans, project blueprints, and topic and project suggestions powered by AI.",
+    "href": "/learning/guides",
+    "category": "Education",
+    "tags": [
+      "learning",
+      "guides",
+      "tasks",
+      "planner",
+      "education"
+    ]
+  },
+  {
+    "id": "memory-helper",
+    "title": "Memory Mnemonics",
+    "description": "Transform complex data into structured mnemonics and a spaced retention plan.",
+    "href": "/learning/memory-helper",
+    "category": "Education",
+    "tags": [
+      "learning",
+      "memory",
+      "mnemonics",
+      "study",
+      "education"
+    ]
+  },
+  {
+    "id": "motivation",
+    "title": "Motivation & Reflection",
+    "description": "Personalized motivational quotes and deep journaling prompts tuned to your emotional state.",
+    "href": "/learning/motivation",
+    "category": "Education",
+    "tags": [
+      "learning",
+      "motivation",
+      "reflection",
+      "journal",
+      "education"
+    ]
+  },
+  {
+    "id": "projects",
+    "title": "Project Recommender",
+    "description": "Hands-on project ideas matched to your topic, scope, and difficulty level.",
+    "href": "/learning/projects",
+    "category": "Education",
+    "tags": [
+      "learning",
+      "projects",
+      "practice",
+      "build",
+      "education"
+    ]
+  },
+  {
+    "id": "skill-architect",
+    "title": "Skill Architect",
+    "description": "Deconstruct a domain into its root skills and a level-wise progression tree with proof of mastery.",
+    "href": "/learning/skill-architect",
+    "category": "Education",
+    "tags": [
+      "learning",
+      "skills",
+      "architecture",
+      "progression",
+      "education"
+    ]
+  },
+  {
+    "id": "tutor",
+    "title": "Adaptive Tutor",
+    "description": "Personalized explanations adapted to your level, learning style, and current scenario.",
+    "href": "/learning/tutor",
+    "category": "Education",
+    "tags": [
+      "learning",
+      "tutor",
+      "adaptive",
+      "explanation",
+      "education"
+    ]
+  },
+  {
+    "id": "tutor-chat",
+    "title": "Tutor Chat",
+    "description": "A topic-scoped tutor chatbot that explains concepts and breaks them down each turn.",
+    "href": "/learning/tutor-chat",
+    "category": "Education",
+    "tags": [
+      "learning",
+      "chatbot",
+      "tutor",
+      "conversation",
+      "education"
+    ]
+  },
+  {
+    "id": "analytics",
+    "title": "Analytics Dashboard",
+    "description": "View comprehensive metrics, user engagement statistics, and performance indicators.",
+    "href": "/dashboard/analytics",
+    "category": "Analytics",
+    "tags": [
+      "metrics",
+      "charts",
+      "reports",
+      "statistics",
+      "graphs"
+    ]
+  },
+  {
+    "id": "users",
+    "title": "User Management",
+    "description": "Manage user accounts, roles, permissions, and access control settings.",
+    "href": "/dashboard/users",
+    "category": "Management",
+    "tags": [
+      "users",
+      "permissions",
+      "admin",
+      "accounts",
+      "roles"
+    ]
+  },
+  {
+    "id": "settings",
+    "title": "System Settings",
+    "description": "Configure application preferences, integrations, and global system configurations.",
+    "href": "/dashboard/settings",
+    "category": "Configuration",
+    "tags": [
+      "config",
+      "preferences",
+      "system",
+      "setup",
+      "options"
+    ]
+  },
+  {
+    "id": "billing",
+    "title": "Billing & Subscription",
+    "description": "Manage payment methods, view invoices, and upgrade subscription plans.",
+    "href": "/dashboard/billing",
+    "category": "Finance",
+    "tags": [
+      "payments",
+      "invoices",
+      "subscription",
+      "pricing",
+      "billing"
+    ]
+  },
+  {
+    "id": "content",
+    "title": "Content Manager",
+    "description": "Create, edit, and publish content across your application and marketing channels.",
+    "href": "/dashboard/content",
+    "category": "Content",
+    "tags": [
+      "cms",
+      "posts",
+      "articles",
+      "media",
+      "blog"
+    ]
+  },
+  {
+    "id": "api-keys",
+    "title": "API Keys",
+    "description": "Generate and manage API keys for third-party integrations and developer access.",
+    "href": "/dashboard/api-keys",
+    "category": "Development",
+    "tags": [
+      "api",
+      "keys",
+      "integration",
+      "developers",
+      "webhooks"
+    ]
+  },
+  {
+    "id": "security",
+    "title": "Security Center",
+    "description": "Monitor security logs, configure 2FA, and manage audit trails.",
+    "href": "/dashboard/security",
+    "category": "Security",
+    "tags": [
+      "logs",
+      "audit",
+      "2fa",
+      "protection",
+      "privacy"
+    ]
+  },
+  {
+    "id": "admin",
+    "title": "Admin Panel",
+    "description": "Manage users, pages, billing, and system settings.",
+    "href": "/admin",
+    "category": "Administration",
+    "tags": [
+      "admin",
+      "management",
+      "settings",
+      "users",
+      "configuration"
+    ]
+  }
+]

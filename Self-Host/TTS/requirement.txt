@@ -1,0 +1,9 @@
+fastapi
+pydantic
+torch
+torchaudio
+numpy
+soundfile
+qwen-tts
+uvicorn
+kokoro

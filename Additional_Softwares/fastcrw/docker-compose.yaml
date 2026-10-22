@@ -1,0 +1,15 @@
+services:
+  fastcrw:
+    image: ghcr.io/us/crw:latest
+    container_name: fastcrw
+    ports:
+      - "3001:3000"
+    environment:
+      - PORT=3000
+      - LIGHTPANDA_DISABLE_TELEMETRY=true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    restart: unless-stopped

@@ -1,0 +1,34 @@
+# Secrets / local config
+.env
+.env.*
+!.env.example
+
+# Python caches & virtualenvs
+.venv
+venv
+__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Runtime data (mounted as a volume instead)
+Data/
+
+# VCS / tooling
+.git
+.gitignore
+.opencode
+.vscode
+.idea
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose*.yml
+docker-compose*.yaml
+
+# Docs & misc
+*.md
+pending/
