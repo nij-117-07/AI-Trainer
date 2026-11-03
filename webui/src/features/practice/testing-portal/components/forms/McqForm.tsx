@@ -20,6 +20,7 @@ import { mcqDifficultyLevelOptions, mcqQuestionTypeOptions } from "../../lib/opt
 import { splitPastQuestions } from "../../lib/pastQuestions";
 import { CustomSelectField } from "@/features/practice/components/fields/CustomSelectField";
 import { McqResult } from "../results/McqResult";
+import { PastQuestionsField } from "./PastQuestionsField";
 
 const STORAGE_KEY = "practice.testing-portal.mcq.v1";
 
@@ -141,12 +142,12 @@ export function McqForm() {
             {...persisted.form.register("custom_instructions")}
             error={errors.custom_instructions?.message}
           />
-          <TextareaField
-            label="Past Questions (optional)"
+          <PastQuestionsField
+            name="past_questions"
+            control={persisted.form.control}
+            registration={persisted.form.register("past_questions")}
             htmlFor="mcq_past"
-            placeholder="One question per line — previously generated questions to avoid repetition."
             disabled={busy}
-            {...persisted.form.register("past_questions")}
             error={errors.past_questions?.message}
           />
           <FormActions

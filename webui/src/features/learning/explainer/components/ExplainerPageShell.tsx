@@ -2,6 +2,9 @@
 /**
  * Two-column tool layout (per page_layout.md): sticky form sidebar on the
  * left, result/output panel on the right. Stacks to a single column on mobile.
+ * The sidebar's sticky offset defaults to just below the navbar and can be
+ * overridden per page via the `--sticky-top` CSS variable (e.g. pages that
+ * add their own sticky header under the navbar).
  */
 "use client";
 
@@ -36,7 +39,7 @@ export function ExplainerPageShell({
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
-        <div className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:self-start">
+        <div className="min-w-0 space-y-4 lg:sticky lg:top-[var(--sticky-top,calc(var(--navbar-height,4rem)_+_1.5rem))] lg:self-start">
           {form}
         </div>
         <div className="min-w-0">{result}</div>

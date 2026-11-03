@@ -26,6 +26,7 @@ import { theoreticalDifficultyLevelOptions, theoreticalQuestionTypeOptions } fro
 import { splitPastQuestions } from "../../lib/pastQuestions";
 import { CustomSelectField } from "@/features/practice/components/fields/CustomSelectField";
 import { TheoreticalResult } from "../results/TheoreticalResult";
+import { PastQuestionsField } from "./PastQuestionsField";
 
 const STORAGE_KEY = "practice.testing-portal.theoretical.v1";
 
@@ -156,12 +157,13 @@ export function TheoreticalForm() {
             {...persisted.form.register("custom_instructions")}
             error={errors.custom_instructions?.message}
           />
-          <TextareaField
-            label="Past Questions (optional)"
+          <PastQuestionsField
+            name="past_questions"
+            control={persisted.form.control}
+            registration={persisted.form.register("past_questions")}
             htmlFor="theo_past"
             placeholder="One question per line — previous questions to ensure variety."
             disabled={busy}
-            {...persisted.form.register("past_questions")}
             error={errors.past_questions?.message}
           />
           <FormActions
