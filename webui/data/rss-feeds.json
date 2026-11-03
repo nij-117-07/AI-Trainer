@@ -8,5 +8,85 @@
     "id": "cbf27e83-bf4a-4237-a623-e5686fd3ea08",
     "createdAt": "2026-08-06T20:36:57.114Z",
     "updatedAt": "2026-08-06T20:36:57.114Z"
+  },
+  {
+    "name": "UI/UX Design",
+    "url": "https://uxdesign.cc/feed",
+    "category": "UI/UX Design",
+    "enabled": true,
+    "refreshIntervalMinutes": 60,
+    "id": "a25f4a22-c019-4226-9751-d6a0c04f9535",
+    "createdAt": "2026-08-06T20:36:57.114Z",
+    "updatedAt": "2026-08-06T20:36:57.114Z"
+  },
+  {
+    "name": "Next.js Blog",
+    "url": "https://nextjs.org/feed.xml",
+    "category": "Next.js",
+    "enabled": true,
+    "refreshIntervalMinutes": 60,
+    "id": "f6a38005-681d-40c5-81ef-d96c603d166d",
+    "createdAt": "2026-08-06T20:36:57.114Z",
+    "updatedAt": "2026-08-06T20:36:57.114Z"
+  },
+  {
+    "name": "Next.js Releases",
+    "url": "https://github.com/vercel/next.js/releases.atom",
+    "category": "Next.js",
+    "enabled": true,
+    "refreshIntervalMinutes": 60,
+    "id": "e42d8303-c252-46a2-8d0c-5f08ed12171f",
+    "createdAt": "2026-08-06T20:36:57.114Z",
+    "updatedAt": "2026-08-06T20:36:57.114Z"
+  },
+  {
+    "name": "FXGuide",
+    "url": "https://www.fxguide.com/feed/",
+    "category": "VFX",
+    "enabled": true,
+    "refreshIntervalMinutes": 60,
+    "id": "7af52edc-ad7b-45de-8623-aaaa9488f8b8",
+    "createdAt": "2026-08-06T20:36:57.114Z",
+    "updatedAt": "2026-08-06T20:36:57.114Z"
+  },
+  {
+    "name": "The Art of VFX",
+    "url": "https://www.artofvfx.com/feed/",
+    "category": "VFX",
+    "enabled": true,
+    "refreshIntervalMinutes": 60,
+    "id": "b249e17d-21af-4c6c-b99e-de93764533ee",
+    "createdAt": "2026-08-06T20:36:57.114Z",
+    "updatedAt": "2026-08-06T20:36:57.114Z"
+  },
+  {
+    "name": "Pitchfork News",
+    "url": "https://pitchfork.com/feed/feed-news/rss",
+    "category": "Music",
+    "enabled": true,
+    "refreshIntervalMinutes": 60,
+    "id": "5ca22a2c-57af-46a7-962b-01bff6d4e6cf",
+    "createdAt": "2026-08-06T20:36:57.114Z",
+    "updatedAt": "2026-08-06T20:36:57.114Z"
+  },
+  {
+    "name": "NPR Music",
+    "url": "https://www.npr.org/rss/rss.php?id=1039",
+    "category": "Music",
+    "enabled": true,
+    "refreshIntervalMinutes": 60,
+    "id": "ed6f1ca5-be6c-4e2b-a4f4-14b3f060f9d0",
+    "createdAt": "2026-08-06T20:36:57.114Z",
+    "updatedAt": "2026-08-06T20:36:57.114Z"
+  },
+  {
+    "name": "Rolling Stone Music News",
+    "url": "https://www.rollingstone.com/music/music-news/feed/",
+    "category": "Music",
+    "enabled": true,
+    "refreshIntervalMinutes": 60,
+    "id": "64cd0690-b06f-4008-a96a-d7dd456c15f1",
+    "createdAt": "2026-08-06T20:36:57.114Z",
+    "updatedAt": "2026-08-06T20:36:57.114Z"
   }
 ]

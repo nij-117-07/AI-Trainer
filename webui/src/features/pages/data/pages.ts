@@ -176,6 +176,14 @@ export const pages: Page[] = [
     tags: ["tools", "charts", "chartjs", "data", "visualization"]
   },
   {
+    id: "markdown-viewer",
+    title: "Markdown Viewer",
+    description: "Edit Markdown and instantly preview the rendered output.",
+    href: "/tools/markdown-viewer",
+    category: "Tools",
+    tags: ["tools", "markdown", "viewer", "editor", "preview", "writing"]
+  },
+  {
     id: "practice",
     title: "Practice Hub",
     description: "Generate practice questions, get expert answers, and grade your performance with AI feedback.",
