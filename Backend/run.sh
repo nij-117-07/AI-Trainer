@@ -7,7 +7,7 @@
 # FastAPI/Uvicorn defaults
 HOST=${HOST:-"0.0.0.0"}
 PORT=${PORT:-"8000"}
-MODE=${MODE:-"prod"} # dev or prod
+MODE=${MODE:-"dev"} # dev or prod
 
 echo "------------------------------------------"
 echo "FastAPI Configuration: $MODE mode"
@@ -27,14 +27,14 @@ fi
 if [ "$MODE" = "prod" ]; then
     echo "🚀 Starting Uvicorn in Production mode..."
     # In production, we typically disable reload and use more workers
-    uv run uvicorn main:app \
+    uv run python -m uvicorn main:app \
         --host "$HOST" \
         --port "$PORT" \
         --workers 4
 else
     echo "🚀 Starting Uvicorn in Development mode (Reload enabled)..."
     # In dev, we enable --reload
-    uv run uvicorn main:app \
+    uv run python -m uvicorn main:app \
         --host "$HOST" \
         --port "$PORT" \
         --reload
