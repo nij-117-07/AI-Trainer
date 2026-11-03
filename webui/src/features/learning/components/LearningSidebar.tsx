@@ -1,19 +1,19 @@
 // src/features/learning/components/LearningSidebar.tsx
 /**
- * Left navigation for the Learning area. Lists every Explainer tool from the
- * shared registry and highlights the active route. Collapses to an icon rail
+ * Left navigation for the Learning area. Lists every Learning section as a
+ * single flat item and highlights the active route. Collapses to an icon rail
  * on desktop and a drawer on mobile via the shadcn Sidebar primitives.
  */
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -25,18 +25,35 @@ import {
 import { GraduationCap, LayoutGrid, MapPinned } from "lucide-react";
 import { conceptualBridgeTools } from "@/features/learning/lib/conceptual-bridge-tools";
 import { memoryHelperTools } from "@/features/learning/lib/memory-helper-tools";
-
 import { projectsTools } from "@/features/learning/lib/projects-tools";
 import { resourceSuggestorTools } from "@/features/learning/lib/resource-suggestor-tools";
 import { skillArchitectTools } from "@/features/learning/lib/skill-architect-tools";
 
+interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+}
 
+const navItems: NavItem[] = [
+  { label: "Explainer", href: "/learning/explainer", icon: LayoutGrid },
+  { label: "Guides", href: "/learning/guides", icon: LayoutGrid },
+  { label: "Roadmap", href: "/learning/roadmap", icon: MapPinned },
+  ...memoryHelperTools.map((tool) => ({ label: tool.shortTitle, href: tool.href, icon: tool.icon })),
+  { label: "Motivation", href: "/learning/motivation", icon: LayoutGrid },
+  ...projectsTools.map((tool) => ({ label: tool.shortTitle, href: tool.href, icon: tool.icon })),
+  ...resourceSuggestorTools.map((tool) => ({ label: tool.shortTitle, href: tool.href, icon: tool.icon })),
+  ...skillArchitectTools.map((tool) => ({ label: tool.shortTitle, href: tool.href, icon: tool.icon })),
+  { label: "Tutor", href: "/learning/tutor", icon: LayoutGrid },
+  ...conceptualBridgeTools.map((tool) => ({ label: tool.shortTitle, href: tool.href, icon: tool.icon })),
+];
+
+function isRouteActive(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function LearningSidebar() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const activeExplainerTool = searchParams.get("tool");
-  const explainerActive = pathname === "/learning/explainer";
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -54,179 +71,18 @@ export function LearningSidebar() {
       <SidebarSeparator />
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Explainer</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={explainerActive && !activeExplainerTool}
-                  tooltip="All tools"
-                >
-                  <Link href="/learning/explainer">
-                    <LayoutGrid />
-                    <span>All Tools</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              {/* Explainer sub-tools are selected via the in-page horizontal tab bar. */}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Guides</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/learning/guides" || pathname.startsWith("/learning/guides/")}
-                  tooltip="All guides"
-                >
-                  <Link href="/learning/guides">
-                    <LayoutGrid />
-                    <span>All Guides</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Roadmap</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/learning/roadmap" || pathname.startsWith("/learning/roadmap/")}
-                  tooltip="Roadmap Planner"
-                >
-                  <Link href="/learning/roadmap">
-                    <MapPinned />
-                    <span>Roadmap Planner</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Memory</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {memoryHelperTools.map((tool) => (
-                <SidebarMenuItem key={tool.id}>
-                  <SidebarMenuButton asChild isActive={pathname === tool.href} tooltip={tool.shortTitle}>
-                    <Link href={tool.href}>
-                      <tool.icon />
-                      <span>{tool.shortTitle}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Motivation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/learning/motivation" || pathname.startsWith("/learning/motivation/")}
-                  tooltip="All motivation"
-                >
-                  <Link href="/learning/motivation">
-                    <LayoutGrid />
-                    <span>All Motivation</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Projects</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {projectsTools.map((tool) => (
-                <SidebarMenuItem key={tool.id}>
-                  <SidebarMenuButton asChild isActive={pathname === tool.href} tooltip={tool.shortTitle}>
-                    <Link href={tool.href}>
-                      <tool.icon />
-                      <span>{tool.shortTitle}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Resources</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {resourceSuggestorTools.map((tool) => (
-                <SidebarMenuItem key={tool.id}>
-                  <SidebarMenuButton asChild isActive={pathname === tool.href} tooltip={tool.shortTitle}>
-                    <Link href={tool.href}>
-                      <tool.icon />
-                      <span>{tool.shortTitle}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Skill Architect</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {skillArchitectTools.map((tool) => (
-                <SidebarMenuItem key={tool.id}>
-                  <SidebarMenuButton asChild isActive={pathname === tool.href} tooltip={tool.shortTitle}>
-                    <Link href={tool.href}>
-                      <tool.icon />
-                      <span>{tool.shortTitle}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Tutor</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/learning/tutor" || pathname.startsWith("/learning/tutor/")}
-                  tooltip="All tutor"
-                >
-                  <Link href="/learning/tutor">
-                    <LayoutGrid />
-                    <span>All Tutor</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Conceptual Bridge</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {conceptualBridgeTools.map((tool) => (
-                <SidebarMenuItem key={tool.id}>
-                  <SidebarMenuButton asChild isActive={pathname === tool.href} tooltip={tool.shortTitle}>
-                    <Link href={tool.href}>
-                      <tool.icon />
-                      <span>{tool.shortTitle}</span>
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isRouteActive(pathname, item.href)}
+                    tooltip={item.label}
+                  >
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
