@@ -28,7 +28,7 @@ export async function Navbar() {
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center gap-1.5 font-bold text-xl tracking-tight shrink-0">
             <span className="text-primary">AI</span>
-            <span className="text-foreground">Studio</span>
+            <span className="text-foreground">Trainer</span>
           </Link>
           <PageTitle />
         </div>

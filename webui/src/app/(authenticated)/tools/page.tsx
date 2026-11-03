@@ -11,6 +11,7 @@ import { creativeAssetsTools } from "@/features/tools/lib/creative-assets-tools"
 import { chartsTools } from "@/features/tools/lib/charts-tools";
 import { rssTools } from "@/features/tools/rss/lib/rss-tools";
 import { aiDetectorTools } from "@/features/tools/lib/ai-detector-tools";
+import { webSearchTools } from "@/features/tools/lib/web-search-tools";
 
 export const metadata: Metadata = {
   title: "Tools Hub",
@@ -46,6 +47,13 @@ export default function ToolsPage() {
         <ToolsCardGrid
           tools={[...socialPostsTools, ...creativeAssetsTools, ...flexibleWriterTools, ...promptGeneratorTools, ...aiDetectorTools]}
         />
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Search</h2>
+        </div>
+        <ToolsCardGrid tools={webSearchTools} />
       </section>
 
       <section className="space-y-4">
