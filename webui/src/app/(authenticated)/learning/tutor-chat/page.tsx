@@ -1,26 +1,15 @@
-import { Suspense } from "react";
-import { Metadata } from "next";
-import { SetPageTitle } from "@/features/navigation/components/SetPageTitle";
-import { listSessionsAction } from "@/features/learning/tutor-chat/actions/sessions";
-import { TutorChatPage } from "@/features/learning/tutor-chat/components/pages/TutorChatPage";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+interface TutorChatRedirectPageProps {
+  searchParams: Promise<{ session?: string }>;
+}
 
-export const metadata: Metadata = {
-  title: "Tutor Chat | Learning",
-  description: "A topic-scoped tutor chatbot that explains concepts and breaks them down each turn.",
-};
-
-export default async function TutorChatRoutePage() {
-  const sessions = await listSessionsAction();
-
-  return (
-    <>
-      <SetPageTitle title="Tutor Chat" />
-      <Suspense fallback={null}>
-        <TutorChatPage initialSessions={sessions} />
-      </Suspense>
-    </>
-  );
+export default async function TutorChatRedirectPage({
+  searchParams,
+}: TutorChatRedirectPageProps) {
+  const params = await searchParams;
+  const target = params?.session
+    ? `/learning/tutor?tool=chat&session=${encodeURIComponent(params.session)}`
+    : "/learning/tutor?tool=chat";
+  redirect(target);
 }

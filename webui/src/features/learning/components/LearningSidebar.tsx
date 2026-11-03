@@ -24,15 +24,13 @@ import {
 } from "@/components/ui/sidebar";
 import { GraduationCap, LayoutGrid, MapPinned } from "lucide-react";
 import { conceptualBridgeTools } from "@/features/learning/lib/conceptual-bridge-tools";
-import { explainerTools } from "@/features/learning/lib/explainer-tools";
-import { guidesTools } from "@/features/learning/lib/guides-tools";
 import { memoryHelperTools } from "@/features/learning/lib/memory-helper-tools";
-import { motivationTools } from "@/features/learning/lib/motivation-tools";
+
 import { projectsTools } from "@/features/learning/lib/projects-tools";
 import { resourceSuggestorTools } from "@/features/learning/lib/resource-suggestor-tools";
 import { skillArchitectTools } from "@/features/learning/lib/skill-architect-tools";
-import { tutorChatTools } from "@/features/learning/lib/tutor-chat-tools";
-import { tutorTools } from "@/features/learning/lib/tutor-tools";
+
+
 
 export function LearningSidebar() {
   const pathname = usePathname();
@@ -71,19 +69,7 @@ export function LearningSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {explainerTools.map((tool) => {
-                const isActive = explainerActive && activeExplainerTool === tool.id;
-                return (
-                  <SidebarMenuItem key={tool.id}>
-                    <SidebarMenuButton asChild isActive={isActive} tooltip={tool.shortTitle}>
-                      <Link href={tool.href}>
-                        <tool.icon />
-                        <span>{tool.shortTitle}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
+              {/* Explainer sub-tools are selected via the in-page horizontal tab bar. */}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -92,26 +78,17 @@ export function LearningSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/learning/guides"} tooltip="All guides">
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === "/learning/guides" || pathname.startsWith("/learning/guides/")}
+                  tooltip="All guides"
+                >
                   <Link href="/learning/guides">
                     <LayoutGrid />
                     <span>All Guides</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {guidesTools.map((tool) => {
-                const isActive = pathname === tool.href;
-                return (
-                  <SidebarMenuItem key={tool.id}>
-                    <SidebarMenuButton asChild isActive={isActive} tooltip={tool.shortTitle}>
-                      <Link href={tool.href}>
-                        <tool.icon />
-                        <span>{tool.shortTitle}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -156,23 +133,17 @@ export function LearningSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/learning/motivation"} tooltip="All tools">
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === "/learning/motivation" || pathname.startsWith("/learning/motivation/")}
+                  tooltip="All motivation"
+                >
                   <Link href="/learning/motivation">
                     <LayoutGrid />
-                    <span>All Tools</span>
+                    <span>All Motivation</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {motivationTools.map((tool) => (
-                <SidebarMenuItem key={tool.id}>
-                  <SidebarMenuButton asChild isActive={pathname === tool.href} tooltip={tool.shortTitle}>
-                    <Link href={tool.href}>
-                      <tool.icon />
-                      <span>{tool.shortTitle}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -232,40 +203,17 @@ export function LearningSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/learning/tutor"} tooltip="All tools">
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === "/learning/tutor" || pathname.startsWith("/learning/tutor/")}
+                  tooltip="All tutor"
+                >
                   <Link href="/learning/tutor">
                     <LayoutGrid />
-                    <span>All Tools</span>
+                    <span>All Tutor</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {tutorTools.map((tool) => (
-                <SidebarMenuItem key={tool.id}>
-                  <SidebarMenuButton asChild isActive={pathname === tool.href} tooltip={tool.shortTitle}>
-                    <Link href={tool.href}>
-                      <tool.icon />
-                      <span>{tool.shortTitle}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Tutor Chat</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {tutorChatTools.map((tool) => (
-                <SidebarMenuItem key={tool.id}>
-                  <SidebarMenuButton asChild isActive={pathname === tool.href} tooltip={tool.shortTitle}>
-                    <Link href={tool.href}>
-                      <tool.icon />
-                      <span>{tool.shortTitle}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -21,11 +21,11 @@ export function TutorChatPage({ initialSessions }: TutorChatPageProps) {
   const sessionId = searchParams.get("session");
 
   const openSession = (id: string) => {
-    router.replace(`/learning/tutor-chat?session=${id}`);
+    router.replace(`/learning/tutor?tool=chat&session=${id}`);
   };
 
   const goToList = () => {
-    router.replace("/learning/tutor-chat");
+    router.replace("/learning/tutor?tool=chat");
   };
 
   if (sessionId) {

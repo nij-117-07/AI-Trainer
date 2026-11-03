@@ -1,17 +1,5 @@
-import { Metadata } from "next";
-import { SetPageTitle } from "@/features/navigation/components/SetPageTitle";
-import { PromptManagerPage } from "@/features/learning/tutor/components/pages/PromptManagerPage";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Prompt Templates | Learning",
-  description: "Manage the tutor persona system prompts stored by the Adaptive Tutor service.",
-};
-
-export default function TutorPromptsRoutePage() {
-  return (
-    <>
-      <SetPageTitle title="Prompt Templates" />
-      <PromptManagerPage />
-    </>
-  );
+export default function TutorPromptsRedirectPage() {
+  redirect("/learning/tutor?tool=prompts");
 }
