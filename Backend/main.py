@@ -8,6 +8,7 @@ from assessment.router import assessment_router
 from learning.router import learning_router
 from linguistic.router import linguistic_router
 from practice.router import practice_router
+from swe.router import swe_router
 from tools.router import tools_router
 
 logging.basicConfig(
@@ -68,6 +69,7 @@ app.include_router(learning_router)
 app.include_router(linguistic_router)
 app.include_router(assessment_router)
 app.include_router(tools_router)
+app.include_router(swe_router)
 
 @app.get("/health")
 async def health_check():
