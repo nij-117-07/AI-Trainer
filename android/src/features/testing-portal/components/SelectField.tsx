@@ -24,9 +24,9 @@ interface SelectFieldProps {
 export function SelectField({ label, options, value, onChange, customPlaceholder, allowCustom = true }: SelectFieldProps) {
   const colors = useThemeColors();
   const [open, setOpen] = useState(false);
-  const [customMode, setCustomMode] = useState(
-    () => value !== "" && !options.some((option) => option.value === value),
-  );
+  const [customSelected, setCustomSelected] = useState(false);
+  const isPreset = options.some((option) => option.value === value);
+  const customMode = !isPreset && (customSelected || value !== "");
 
   const selectedLabel = customMode
     ? "Custom"
@@ -35,11 +35,11 @@ export function SelectField({ label, options, value, onChange, customPlaceholder
   function pick(choice: string) {
     setOpen(false);
     if (choice === CUSTOM) {
-      setCustomMode(true);
+      setCustomSelected(true);
       onChange("");
       return;
     }
-    setCustomMode(false);
+    setCustomSelected(false);
     onChange(choice);
   }
 

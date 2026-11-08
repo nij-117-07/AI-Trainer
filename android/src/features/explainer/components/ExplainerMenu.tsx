@@ -1,0 +1,154 @@
+// src/features/explainer/components/ExplainerMenu.tsx
+/**
+ * Explainer landing page: one small box per tool. Tapping a box opens that tool.
+ */
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { useRouter } from "expo-router";
+import {
+  BookOpenText,
+  Compass,
+  GraduationCap,
+  Lightbulb,
+  ListTree,
+  Puzzle,
+  Route,
+  type LucideIcon,
+} from "lucide-react-native";
+import { breakpoints, radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { ToolScreen } from "@/features/testing-portal/components/ToolScreen";
+
+interface ExplainerTool {
+  key: string;
+  title: string;
+  description: string;
+  route: string;
+  icon: LucideIcon;
+  tone: Tone;
+}
+
+const TOOLS: ExplainerTool[] = [
+  {
+    key: "explain",
+    title: "Quick Explain",
+    description: "A structured explanation of any topic, tuned to your level, with a one-line takeaway.",
+    route: "/learning/explainer/explain",
+    icon: Lightbulb,
+    tone: "amber",
+  },
+  {
+    key: "atoz",
+    title: "A-to-Z Tutorial",
+    description: "A full, markdown-formatted tutorial that covers your topic from A to Z.",
+    route: "/learning/explainer/atoz",
+    icon: BookOpenText,
+    tone: "sky",
+  },
+  {
+    key: "atozpointer",
+    title: "Knowledge Roadmap",
+    description: "A summary and an expandable roadmap of concepts, with a practical takeaway.",
+    route: "/learning/explainer/atozpointer",
+    icon: ListTree,
+    tone: "emerald",
+  },
+  {
+    key: "feynman",
+    title: "Feynman",
+    description: "Simplify jargon-heavy ideas with metaphors, pitched to an age you choose.",
+    route: "/learning/explainer/feynman",
+    icon: Puzzle,
+    tone: "rose",
+  },
+  {
+    key: "orchestrate",
+    title: "Journey",
+    description: "Stream a chapter plan, then each chapter's deep dive, as they are written.",
+    route: "/learning/explainer/orchestrate",
+    icon: Compass,
+    tone: "sky",
+  },
+  {
+    key: "socratic",
+    title: "Socratic Mentor",
+    description: "Discovery questions with hints that guide you to the crux without giving answers.",
+    route: "/learning/explainer/socratic",
+    icon: GraduationCap,
+    tone: "rose",
+  },
+  {
+    key: "curriculum",
+    title: "Curriculum Path",
+    description: "A personal learning plan that builds on what you know and targets today's crux.",
+    route: "/learning/explainer/curriculum",
+    icon: Route,
+    tone: "emerald",
+  },
+];
+
+export function ExplainerMenu() {
+  const colors = useThemeColors();
+  const router = useRouter();
+  const { width } = useWindowDimensions();
+  const boxWidth = width >= breakpoints.tablet ? "48.5%" : "100%";
+
+  return (
+    <ToolScreen title="Explainer Tools">
+      <View style={styles.grid}>
+        {TOOLS.map((tool) => {
+          const Icon = tool.icon;
+          const tone = colors.tone[tool.tone];
+          return (
+            <Pressable
+              key={tool.key}
+              onPress={() => router.push(tool.route as never)}
+              accessibilityRole="button"
+              accessibilityLabel={`Open ${tool.title}`}
+              style={({ pressed }) => [
+                styles.box,
+                { width: boxWidth, backgroundColor: tone.bg, borderColor: tone.border },
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <View style={[styles.iconTile, { backgroundColor: colors.card, borderColor: tone.border }]}>
+                <Icon size={20} color={tone.fg} />
+              </View>
+              <Text style={[styles.title, { color: colors.foreground }]}>{tool.title}</Text>
+              <Text style={[styles.description, { color: colors.mutedForeground }]}>{tool.description}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </ToolScreen>
+  );
+}
+
+const styles = StyleSheet.create({
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: spacing.lg,
+  },
+  box: {
+    borderWidth: 1,
+    borderRadius: radius["2xl"],
+    padding: spacing.xl,
+    gap: spacing.md,
+  },
+  iconTile: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  description: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+});

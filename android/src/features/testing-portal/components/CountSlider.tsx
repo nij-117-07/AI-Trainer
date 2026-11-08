@@ -7,19 +7,20 @@ import { Field } from "./FormControls";
 
 interface CountSliderProps {
   label: string;
+  min?: number;
   max: number;
   value: number;
   onChange: (value: number) => void;
 }
 
-export function CountSlider({ label, max, value, onChange }: CountSliderProps) {
+export function CountSlider({ label, min = 1, max, value, onChange }: CountSliderProps) {
   const colors = useThemeColors();
   return (
     <Field label={label}>
       <View style={styles.row}>
         <Slider
           style={styles.slider}
-          minimumValue={1}
+          minimumValue={min}
           maximumValue={max}
           step={1}
           value={value}

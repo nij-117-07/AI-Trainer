@@ -6,8 +6,36 @@
 import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { ChevronRight, ClipboardList, Settings } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { ChevronRight, ClipboardList, GraduationCap, Settings, type LucideIcon } from "lucide-react-native";
+import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+
+interface AppCard {
+  key: string;
+  title: string;
+  description: string;
+  route: string;
+  icon: LucideIcon;
+  tone: Tone;
+}
+
+const APPS: AppCard[] = [
+  {
+    key: "testing-portal",
+    title: "Testing Portal",
+    description: "Generate MCQs and theoretical questions, write expert answers, and solve MCQs with your AI model.",
+    route: "/practice/testing-portal",
+    icon: ClipboardList,
+    tone: "rose",
+  },
+  {
+    key: "explainer",
+    title: "Explainer Tools",
+    description: "Explain topics, write A-to-Z tutorials and roadmaps, simplify ideas, and plan your learning.",
+    route: "/learning/explainer",
+    icon: GraduationCap,
+    tone: "sky",
+  },
+];
 
 export function DashboardScreen() {
   const colors = useThemeColors();
@@ -40,27 +68,32 @@ export function DashboardScreen() {
             <ClipboardList size={20} color={colors.mutedForeground} />
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Applications</Text>
           </View>
-          <Pressable
-            onPress={() => router.push("/practice/testing-portal")}
-            accessibilityRole="button"
-            accessibilityLabel="Open Testing Portal"
-            style={({ pressed }) => [
-              styles.appCard,
-              { backgroundColor: colors.card, borderColor: colors.border },
-              pressed && { backgroundColor: colors.muted },
-            ]}
-          >
-            <View style={[styles.appIcon, { backgroundColor: colors.tone.rose.bg, borderColor: colors.tone.rose.border }]}>
-              <ClipboardList size={20} color={colors.tone.rose.fg} />
-            </View>
-            <View style={styles.appBody}>
-              <Text style={[styles.appTitle, { color: colors.foreground }]}>Testing Portal</Text>
-              <Text style={[styles.appText, { color: colors.mutedForeground }]}>
-                Generate MCQs and theoretical questions, write expert answers, and solve MCQs with your AI model.
-              </Text>
-            </View>
-            <ChevronRight size={20} color={colors.mutedForeground} />
-          </Pressable>
+          {APPS.map((app) => {
+            const Icon = app.icon;
+            const tone = colors.tone[app.tone];
+            return (
+              <Pressable
+                key={app.key}
+                onPress={() => router.push(app.route as never)}
+                accessibilityRole="button"
+                accessibilityLabel={`Open ${app.title}`}
+                style={({ pressed }) => [
+                  styles.appCard,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                  pressed && { backgroundColor: colors.muted },
+                ]}
+              >
+                <View style={[styles.appIcon, { backgroundColor: tone.bg, borderColor: tone.border }]}>
+                  <Icon size={20} color={tone.fg} />
+                </View>
+                <View style={styles.appBody}>
+                  <Text style={[styles.appTitle, { color: colors.foreground }]}>{app.title}</Text>
+                  <Text style={[styles.appText, { color: colors.mutedForeground }]}>{app.description}</Text>
+                </View>
+                <ChevronRight size={20} color={colors.mutedForeground} />
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>
