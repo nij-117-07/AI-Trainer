@@ -15,9 +15,17 @@ interface ImagePickerFieldProps {
   value: ImageInput | null;
   onChange: (image: ImageInput | null) => void;
   disabled?: boolean;
+  label?: string;
+  hint?: string;
 }
 
-export function ImagePickerField({ value, onChange, disabled = false }: ImagePickerFieldProps) {
+export function ImagePickerField({
+  value,
+  onChange,
+  disabled = false,
+  label = "Answer image (optional)",
+  hint = "PNG, JPG, or WEBP: a handwritten answer, diagram, or screenshot.",
+}: ImagePickerFieldProps) {
   const colors = useThemeColors();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +50,7 @@ export function ImagePickerField({ value, onChange, disabled = false }: ImagePic
   }
 
   return (
-    <Field label="Answer image (optional)" hint="PNG, JPG, or WEBP: a handwritten answer, diagram, or screenshot.">
+    <Field label={label} hint={hint}>
       {value ? (
         <View style={[styles.preview, { borderColor: colors.border }]}>
           <Image source={{ uri: value.uri }} style={styles.image} resizeMode="contain" accessibilityLabel="Attached answer image" />

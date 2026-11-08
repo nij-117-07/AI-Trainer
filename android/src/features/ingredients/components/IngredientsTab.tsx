@@ -43,7 +43,13 @@ export function IngredientsTab() {
   return (
     <Section>
       <Panel>
-        <ImagePickerField value={image} onChange={setImage} disabled={request.pending} />
+        <ImagePickerField
+          value={image}
+          onChange={setImage}
+          disabled={request.pending}
+          label="Ingredients photo"
+          hint="PNG, JPG, or WEBP: a clear photo of the ingredients list."
+        />
         <TextField
           label="Manual text (optional)"
           placeholder="e.g. water, sugar, citric acid"
