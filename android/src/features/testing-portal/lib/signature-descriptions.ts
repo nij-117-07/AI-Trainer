@@ -117,3 +117,37 @@ export const SOLVER_DESCRIPTIONS = {
     reasoning: "A brief explanation of the correct answer and logic.",
   },
 };
+
+/** From Backend/assessment/grader/services.py (HybridUserResponseGrader). */
+export const GRADER_DESCRIPTIONS = {
+  instruction:
+    "You are an expert Evaluator. You will grade a user's submission which may consist of text, an image (handwriting, diagram, screenshot), or both. Your task is to synthesize all provided inputs, compare them against the target objective, and provide a structured evaluation.",
+  inputs: {
+    // scenario
+    scenario: "The context of the task.",
+    // question_asked
+    questionAsked: "The specific question the user is answering.",
+    // target_objective
+    targetObjective: "The goal the user needs to achieve.",
+    // expected_level
+    expectedLevel: "Required depth.",
+    // user_answer_text
+    userAnswerText: "The textual part of the user's response.",
+    // user_answer_image
+    userAnswerImage: "The visual part of the user's response.",
+  },
+  outputs: {
+    // combined_analysis
+    combinedAnalysis: "A synthesized summary of both the text and image inputs provided by the user.",
+    // score
+    score: "Score from 0.0 to 10.0.",
+    // strengths
+    strengths: "Positive aspects of the submission.",
+    // weaknesses
+    weaknesses: "Gaps or errors found in text or image.",
+    // detailed_feedback
+    detailedFeedback: "Constructive advice for improvement.",
+    // is_target_met
+    isTargetMet: "Whether the objective was achieved.",
+  },
+};

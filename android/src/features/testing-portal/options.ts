@@ -51,6 +51,12 @@ export const responseFormatOptions: ChoiceItem<ResponseFormat>[] = [
   { value: "technical_whitepaper", label: "Technical whitepaper" },
 ];
 
+export const expectedLevelOptions: ChoiceItem[] = [
+  { value: "beginner", label: "Beginner" },
+  { value: "intermediate", label: "Intermediate" },
+  { value: "expert", label: "Expert" },
+];
+
 export function countOptions(max: number): ChoiceItem<number>[] {
   return Array.from({ length: max }, (_, index) => ({ value: index + 1, label: String(index + 1) }));
 }

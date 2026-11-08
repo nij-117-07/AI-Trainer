@@ -6,6 +6,7 @@
 import { f } from "@ax-llm/ax";
 import {
   ANSWER_GENERATOR_DESCRIPTIONS,
+  GRADER_DESCRIPTIONS,
   MCQ_GENERATOR_DESCRIPTIONS,
   SOLVER_DESCRIPTIONS,
   THEORETICAL_GENERATOR_DESCRIPTIONS,
@@ -15,6 +16,7 @@ const mcq = MCQ_GENERATOR_DESCRIPTIONS;
 const theoretical = THEORETICAL_GENERATOR_DESCRIPTIONS;
 const answer = ANSWER_GENERATOR_DESCRIPTIONS;
 const solver = SOLVER_DESCRIPTIONS;
+const grader = GRADER_DESCRIPTIONS;
 
 export const mcqSignature = f()
   .description(mcq.instruction)
@@ -96,4 +98,20 @@ export const solverSignature = f()
   .input("context", f.string(solver.inputs.context).optional())
   .output("correctOption", f.class(["A", "B", "C", "D"], solver.outputs.correctOption))
   .output("reasoning", f.string(solver.outputs.reasoning))
+  .build();
+
+export const graderSignature = f()
+  .description(grader.instruction)
+  .input("scenario", f.string(grader.inputs.scenario))
+  .input("questionAsked", f.string(grader.inputs.questionAsked))
+  .input("targetObjective", f.string(grader.inputs.targetObjective))
+  .input("expectedLevel", f.string(grader.inputs.expectedLevel))
+  .input("userAnswerText", f.string(grader.inputs.userAnswerText).optional())
+  .input("userAnswerImage", f.image(grader.inputs.userAnswerImage).optional())
+  .output("combinedAnalysis", f.string(grader.outputs.combinedAnalysis))
+  .output("score", f.number(grader.outputs.score).min(0).max(10))
+  .output("strengths", f.string(grader.outputs.strengths).array())
+  .output("weaknesses", f.string(grader.outputs.weaknesses).array())
+  .output("detailedFeedback", f.string(grader.outputs.detailedFeedback))
+  .output("isTargetMet", f.boolean(grader.outputs.isTargetMet))
   .build();

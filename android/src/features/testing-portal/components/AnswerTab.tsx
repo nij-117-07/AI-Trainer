@@ -1,15 +1,20 @@
 // src/features/testing-portal/components/AnswerTab.tsx
+/**
+ * Expert answer. Settings collapse once an answer is shown. "Reset" clears the form and the answer.
+ */
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { BookOpen } from "lucide-react-native";
+import { BookOpen, RefreshCcw } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "../hooks/useRequest";
 import { generateAnswer } from "../lib/generators";
 import { difficultyOptions, responseFormatOptions } from "../options";
-import type { AnswerFormValues } from "../types";
-import { ActionButton, ChoiceChips, ErrorText, Field, Panel, TextField } from "./FormControls";
+import type { AnswerFormValues, ResponseFormat } from "../types";
+import { ActionButton, ErrorText, Panel, TextField } from "./FormControls";
+import { SelectField } from "./SelectField";
 import { Section } from "./Section";
+import { SettingsToggle } from "./SettingsToggle";
 
 const DEFAULTS: AnswerFormValues = {
   question: "",
@@ -23,67 +28,108 @@ export function AnswerTab() {
   const colors = useThemeColors();
   const { settings } = useAiSettings();
   const [form, setForm] = useState<AnswerFormValues>(DEFAULTS);
+  const [showSettings, setShowSettings] = useState(true);
   const generate = useRequest(generateAnswer);
 
   function update<K extends keyof AnswerFormValues>(key: K, value: AnswerFormValues[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  async function handleGenerate() {
+    const result = await generate.run(settings, form);
+    if (result) setShowSettings(false);
+  }
+
+  function reset() {
+    setForm(DEFAULTS);
+    generate.reset();
+    setShowSettings(true);
+  }
+
+  const formatLabel = responseFormatOptions.find((option) => option.value === form.responseFormat)?.label ?? "";
+  const questionPreview = form.question.trim() || "No question yet";
+  const summary = `${questionPreview} · ${form.difficulty} · ${formatLabel}`;
+  const answer = generate.data;
+
   return (
     <Section>
-      <Panel>
-        <TextField
-          label="Question"
-          placeholder="Enter the theoretical or technical question"
-          value={form.question}
-          onChangeText={(text) => update("question", text)}
-          maxLength={2000}
-          multiline
-        />
-        <TextField
-          label="Context"
-          placeholder="e.g. Job Interview"
-          value={form.context}
-          onChangeText={(text) => update("context", text)}
-          maxLength={200}
-        />
-        <Field label="Difficulty">
-          <ChoiceChips options={difficultyOptions} value={form.difficulty} onChange={(v) => update("difficulty", v)} />
-        </Field>
-        <Field label="Response format">
-          <ChoiceChips options={responseFormatOptions} value={form.responseFormat} onChange={(v) => update("responseFormat", v)} />
-        </Field>
-        <TextField
-          label="Custom instructions"
-          placeholder="Optional"
-          value={form.customInstructions}
-          onChangeText={(text) => update("customInstructions", text)}
-          maxLength={1000}
-          multiline
-        />
-        <ActionButton label="Generate answer" icon={BookOpen} loading={generate.pending} onPress={() => generate.run(settings, form)} />
-        <ErrorText message={generate.error} />
-      </Panel>
+      <SettingsToggle
+        title="Settings"
+        summary={summary}
+        expanded={showSettings}
+        onToggle={() => setShowSettings((value) => !value)}
+      />
 
-      {generate.data && (
+      {showSettings && (
         <Panel>
-          <Text style={[styles.heading, { color: colors.foreground }]}>Expert answer</Text>
-          <Text style={[styles.body, { color: colors.foreground }]} selectable>
-            {generate.data.answerText}
-          </Text>
-          {generate.data.keyConceptsCovered.length > 0 && (
-            <View style={[styles.concepts, { borderTopColor: colors.border }]}>
-              <Text style={[styles.label, { color: colors.mutedForeground }]}>Key concepts</Text>
-              <View style={styles.chips}>
-                {generate.data.keyConceptsCovered.map((concept, index) => (
-                  <View key={`${concept}-${index}`} style={[styles.chip, { backgroundColor: colors.tone.amber.bg, borderColor: colors.tone.amber.border }]}>
-                    <Text style={[styles.chipText, { color: colors.tone.amber.fg }]}>{concept}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
+          <TextField
+            label="Question"
+            placeholder="Enter the theoretical or technical question"
+            value={form.question}
+            onChangeText={(text) => update("question", text)}
+            maxLength={2000}
+            multiline
+          />
+          <TextField
+            label="Context"
+            placeholder="e.g. Job Interview"
+            value={form.context}
+            onChangeText={(text) => update("context", text)}
+            maxLength={200}
+          />
+          <SelectField
+            label="Difficulty"
+            options={difficultyOptions}
+            value={form.difficulty}
+            onChange={(value) => update("difficulty", value)}
+            customPlaceholder="Type your own difficulty"
+          />
+          <SelectField
+            label="Response format"
+            options={responseFormatOptions}
+            value={form.responseFormat}
+            onChange={(value) => update("responseFormat", value as ResponseFormat)}
+            allowCustom={false}
+          />
+          <TextField
+            label="Custom instructions"
+            placeholder="Optional"
+            value={form.customInstructions}
+            onChangeText={(text) => update("customInstructions", text)}
+            maxLength={1000}
+            multiline
+          />
+          <ActionButton label="Generate answer" icon={BookOpen} loading={generate.pending} onPress={handleGenerate} />
         </Panel>
+      )}
+
+      <ErrorText message={generate.error} />
+
+      {answer && (
+        <>
+          <Panel>
+            <Text style={[styles.heading, { color: colors.foreground }]}>Expert answer</Text>
+            <Text style={[styles.body, { color: colors.foreground }]} selectable>
+              {answer.answerText}
+            </Text>
+            {answer.keyConceptsCovered.length > 0 && (
+              <View style={[styles.concepts, { borderTopColor: colors.border }]}>
+                <Text style={[styles.label, { color: colors.mutedForeground }]}>Key concepts</Text>
+                <View style={styles.chips}>
+                  {answer.keyConceptsCovered.map((concept, index) => (
+                    <View
+                      key={`${concept}-${index}`}
+                      style={[styles.chip, { backgroundColor: colors.tone.amber.bg, borderColor: colors.tone.amber.border }]}
+                    >
+                      <Text style={[styles.chipText, { color: colors.tone.amber.fg }]}>{concept}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </Panel>
+          <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={reset} />
+        </>
       )}
     </Section>
   );

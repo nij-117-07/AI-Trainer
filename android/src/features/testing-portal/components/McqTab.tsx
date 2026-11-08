@@ -1,19 +1,25 @@
 // src/features/testing-portal/components/McqTab.tsx
+/**
+ * MCQ generator. Settings collapse once questions exist so the quiz stays on screen.
+ * "Generate more" appends to the list and sends the existing questions as past questions.
+ * "Reset" clears the questions, the past list, and the form.
+ */
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import Slider from "@react-native-community/slider";
-import { Sparkles } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { mcqDifficultyLevelOptions, mcqQuestionTypeOptions } from "../options";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
+import { Sparkles } from "lucide-react-native";
 import { useRequest } from "../hooks/useRequest";
 import { generateMcqs } from "../lib/generators";
 import { PAST_QUESTIONS_LIMIT } from "../lib/past-questions";
-import { mcqDifficultyLevelOptions, mcqQuestionTypeOptions } from "../options";
-import type { McqFormValues } from "../types";
-import { ActionButton, ErrorText, Field, Panel, TextField } from "./FormControls";
+import type { McqFormValues, McqItem } from "../types";
+import { ActionButton, ErrorText, Panel, TextField } from "./FormControls";
+import { BatchActions } from "./BatchActions";
+import { CountSlider } from "./CountSlider";
 import { McqQuiz } from "./McqQuiz";
+import { PastQuestionsPanel } from "./PastQuestionsPanel";
 import { SelectField } from "./SelectField";
 import { Section } from "./Section";
+import { SettingsToggle } from "./SettingsToggle";
 
 const MAX_QUESTIONS = 10;
 
@@ -28,11 +34,11 @@ const DEFAULTS: McqFormValues = {
 };
 
 export function McqTab() {
-  const colors = useThemeColors();
   const { settings } = useAiSettings();
   const [form, setForm] = useState<McqFormValues>(DEFAULTS);
+  const [questions, setQuestions] = useState<McqItem[]>([]);
   const [history, setHistory] = useState<string[]>([]);
-  const [quizKey, setQuizKey] = useState(0);
+  const [showSettings, setShowSettings] = useState(true);
   const generate = useRequest(generateMcqs);
 
   function update<K extends keyof McqFormValues>(key: K, value: McqFormValues[K]) {
@@ -42,128 +48,97 @@ export function McqTab() {
   async function handleGenerate() {
     const result = await generate.run(settings, { ...form, pastQuestions: history.join("\n") });
     if (!result) return;
+    setQuestions((prev) => [...prev, ...result]);
     setHistory((prev) => [...prev, ...result.map((question) => question.questionText)].slice(-PAST_QUESTIONS_LIMIT));
-    setQuizKey((key) => key + 1);
+    setShowSettings(false);
   }
+
+  function reset() {
+    setForm(DEFAULTS);
+    setQuestions([]);
+    setHistory([]);
+    setShowSettings(true);
+  }
+
+  const hasQuestions = questions.length > 0;
+  const summary = `${form.topic.trim() || "No topic"} · ${form.questionType} · ${form.difficultyLevel} · ${form.numQuestions} per batch`;
 
   return (
     <Section>
-      <Panel>
-        <TextField
-          label="Topic"
-          placeholder="e.g. Python concurrency"
-          value={form.topic}
-          onChangeText={(text) => update("topic", text)}
-          maxLength={200}
-        />
-        <TextField
-          label="Context setting"
-          placeholder="e.g. Senior Backend Engineer Interview"
-          value={form.contextSetting}
-          onChangeText={(text) => update("contextSetting", text)}
-          maxLength={200}
-        />
-        <SelectField
-          label="Question type"
-          options={mcqQuestionTypeOptions}
-          value={form.questionType}
-          onChange={(value) => update("questionType", value)}
-          customPlaceholder="Type your own question type"
-        />
-        <SelectField
-          label="Difficulty"
-          options={mcqDifficultyLevelOptions}
-          value={form.difficultyLevel}
-          onChange={(value) => update("difficultyLevel", value)}
-          customPlaceholder="Type your own difficulty"
-        />
-        <Field label="Number of questions">
-          <View style={styles.sliderRow}>
-            <Slider
-              style={styles.slider}
-              minimumValue={1}
-              maximumValue={MAX_QUESTIONS}
-              step={1}
-              value={form.numQuestions}
-              onValueChange={(value) => update("numQuestions", Math.round(value))}
-              minimumTrackTintColor={colors.primary}
-              maximumTrackTintColor={colors.border}
-              thumbTintColor={colors.primary}
+      <SettingsToggle
+        title="Settings"
+        summary={summary}
+        expanded={showSettings}
+        onToggle={() => setShowSettings((value) => !value)}
+      />
+
+      {showSettings && (
+        <>
+          <Panel>
+            <TextField
+              label="Topic"
+              placeholder="e.g. Python concurrency"
+              value={form.topic}
+              onChangeText={(text) => update("topic", text)}
+              maxLength={200}
             />
-            <Text style={[styles.sliderValue, { color: colors.foreground }]}>{form.numQuestions}</Text>
-          </View>
-        </Field>
-        <TextField
-          label="Custom instructions"
-          placeholder="Optional"
-          value={form.customInstructions}
-          onChangeText={(text) => update("customInstructions", text)}
-          maxLength={1000}
-          multiline
+            <TextField
+              label="Context setting"
+              placeholder="e.g. Senior Backend Engineer Interview"
+              value={form.contextSetting}
+              onChangeText={(text) => update("contextSetting", text)}
+              maxLength={200}
+            />
+            <SelectField
+              label="Question type"
+              options={mcqQuestionTypeOptions}
+              value={form.questionType}
+              onChange={(value) => update("questionType", value)}
+              customPlaceholder="Type your own question type"
+            />
+            <SelectField
+              label="Difficulty"
+              options={mcqDifficultyLevelOptions}
+              value={form.difficultyLevel}
+              onChange={(value) => update("difficultyLevel", value)}
+              customPlaceholder="Type your own difficulty"
+            />
+            <CountSlider
+              label="Number of questions"
+              max={MAX_QUESTIONS}
+              value={form.numQuestions}
+              onChange={(value) => update("numQuestions", value)}
+            />
+            <TextField
+              label="Custom instructions"
+              placeholder="Optional"
+              value={form.customInstructions}
+              onChangeText={(text) => update("customInstructions", text)}
+              maxLength={1000}
+              multiline
+            />
+            {!hasQuestions && (
+              <ActionButton label="Generate MCQs" icon={Sparkles} loading={generate.pending} onPress={handleGenerate} />
+            )}
+          </Panel>
+
+          <PastQuestionsPanel items={history} />
+        </>
+      )}
+
+      <ErrorText message={generate.error} />
+
+      {hasQuestions && (
+        <BatchActions
+          count={questions.length}
+          noun="question"
+          pending={generate.pending}
+          onGenerateMore={handleGenerate}
+          onReset={reset}
         />
-        <ActionButton label="Generate MCQs" icon={Sparkles} loading={generate.pending} onPress={handleGenerate} />
-        <ErrorText message={generate.error} />
-      </Panel>
+      )}
 
-      <Panel>
-        <Field
-          label={`Past questions (${history.length} of ${PAST_QUESTIONS_LIMIT})`}
-          hint="Questions you generate are sent with the next request so the model avoids repeats."
-        >
-          {history.length === 0 ? (
-            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No questions generated yet.</Text>
-          ) : (
-            <View style={styles.history}>
-              {history.map((question, index) => (
-                <Text
-                  key={`${index}-${question}`}
-                  numberOfLines={2}
-                  style={[styles.historyItem, { color: colors.foreground, borderColor: colors.border }]}
-                >
-                  {index + 1}. {question}
-                </Text>
-              ))}
-            </View>
-          )}
-        </Field>
-        {history.length > 0 && (
-          <ActionButton label="Clear past questions" variant="outline" onPress={() => setHistory([])} />
-        )}
-      </Panel>
-
-      {generate.data && <McqQuiz key={quizKey} questions={generate.data} contextSetting={form.contextSetting} />}
+      {hasQuestions && <McqQuiz questions={questions} contextSetting={form.contextSetting} />}
     </Section>
   );
 }
-
-const styles = StyleSheet.create({
-  sliderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  slider: {
-    flex: 1,
-    height: 40,
-  },
-  sliderValue: {
-    minWidth: 28,
-    textAlign: "center",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  emptyText: {
-    fontSize: 14,
-  },
-  history: {
-    gap: spacing.sm,
-  },
-  historyItem: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-});

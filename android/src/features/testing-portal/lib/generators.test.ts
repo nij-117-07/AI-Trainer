@@ -1,5 +1,5 @@
 // src/features/testing-portal/lib/generators.test.ts
-import { generateMcqs, solveMcq } from "./generators";
+import { generateMcqs, gradeAnswer, solveMcq } from "./generators";
 import { AiNotConfiguredError, createLlm } from "./llm";
 import type { AiSettings } from "@/features/ai-settings/types";
 
@@ -63,6 +63,23 @@ describe("generators", () => {
         options: { A: "a", B: "b", C: "c", D: "d" },
       })
     ).rejects.toThrow("Question is required.");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses to grade without a written answer or an image", async () => {
+    const fetchMock = jest.fn();
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    await expect(
+      gradeAnswer(configured, {
+        scenario: "Interview",
+        questionAsked: "Explain caching.",
+        targetObjective: "Mentions invalidation",
+        expectedLevel: "advanced",
+        userAnswerText: "   ",
+        image: null,
+      })
+    ).rejects.toThrow("Write an answer or attach an image before grading.");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

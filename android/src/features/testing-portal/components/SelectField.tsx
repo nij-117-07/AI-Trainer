@@ -18,9 +18,10 @@ interface SelectFieldProps {
   value: string;
   onChange: (value: string) => void;
   customPlaceholder?: string;
+  allowCustom?: boolean;
 }
 
-export function SelectField({ label, options, value, onChange, customPlaceholder }: SelectFieldProps) {
+export function SelectField({ label, options, value, onChange, customPlaceholder, allowCustom = true }: SelectFieldProps) {
   const colors = useThemeColors();
   const [open, setOpen] = useState(false);
   const [customMode, setCustomMode] = useState(
@@ -86,7 +87,7 @@ export function SelectField({ label, options, value, onChange, customPlaceholder
                   />
                 );
               })}
-              <OptionRow label="Custom…" selected={customMode} onPress={() => pick(CUSTOM)} />
+              {allowCustom && <OptionRow label="Custom…" selected={customMode} onPress={() => pick(CUSTOM)} />}
             </ScrollView>
           </Pressable>
         </Pressable>

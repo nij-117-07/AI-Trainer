@@ -4,7 +4,7 @@
  */
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
-import { BookOpen, Brain, ListChecks, Target, type LucideIcon } from "lucide-react-native";
+import { BookOpen, Brain, Gauge, ListChecks, Target, type LucideIcon } from "lucide-react-native";
 import { breakpoints, radius, spacing, useThemeColors, type Tone } from "@/theme";
 import { ToolScreen } from "./ToolScreen";
 
@@ -49,6 +49,14 @@ const TOOLS: PortalTool[] = [
     route: "/practice/testing-portal/solver",
     icon: Target,
     tone: "emerald",
+  },
+  {
+    key: "grader",
+    title: "Performance Grader",
+    description: "Grade a written answer or image against a target objective and see your score.",
+    route: "/practice/testing-portal/grader",
+    icon: Gauge,
+    tone: "sky",
   },
 ];
 

@@ -26,5 +26,10 @@ export function useRequest<TArgs extends unknown[], TResult>(task: (...args: TAr
     [task]
   );
 
-  return { pending, data, error, run };
+  const reset = useCallback(() => {
+    setData(null);
+    setError(null);
+  }, []);
+
+  return { pending, data, error, run, reset };
 }

@@ -1,15 +1,38 @@
 // src/features/testing-portal/components/TheoreticalTab.tsx
+/**
+ * Theoretical questions. Same flow as the MCQ tab: settings collapse after the first batch,
+ * "Generate more" appends, and "Reset" clears everything. Questions show one at a time by
+ * default, or as a full list. Each question can be answered (text and/or image), graded by
+ * AI, or answered by AI.
+ */
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import { Sparkles } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "../hooks/useRequest";
 import { generateTheoretical } from "../lib/generators";
-import { countOptions, theoreticalDifficultyLevelOptions, theoreticalQuestionTypeOptions } from "../options";
-import type { TheoreticalFormValues } from "../types";
-import { ActionButton, ChoiceChips, ErrorText, Field, Panel, TextField } from "./FormControls";
+import { PAST_QUESTIONS_LIMIT } from "../lib/past-questions";
+import { theoreticalDifficultyLevelOptions, theoreticalQuestionTypeOptions } from "../options";
+import type { TheoreticalFormValues, TheoreticalItem } from "../types";
+import { ActionButton, ChoiceChips, ErrorText, Panel, TextField } from "./FormControls";
+import { BatchActions } from "./BatchActions";
+import { CountSlider } from "./CountSlider";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { PastQuestionsPanel } from "./PastQuestionsPanel";
+import { SelectField } from "./SelectField";
 import { Section } from "./Section";
+import { SettingsToggle } from "./SettingsToggle";
+import { StepNavigator } from "./StepNavigator";
+import { TheoreticalQuestionCard } from "./TheoreticalQuestionCard";
+
+const MAX_QUESTIONS = 5;
+
+type ViewMode = "list" | "step";
+
+const VIEW_MODES: { value: ViewMode; label: string }[] = [
+  { value: "step", label: "One by one" },
+  { value: "list", label: "List" },
+];
 
 const DEFAULTS: TheoreticalFormValues = {
   topic: "",
@@ -23,138 +46,148 @@ const DEFAULTS: TheoreticalFormValues = {
 };
 
 export function TheoreticalTab() {
-  const colors = useThemeColors();
   const { settings } = useAiSettings();
   const [form, setForm] = useState<TheoreticalFormValues>(DEFAULTS);
+  const [questions, setQuestions] = useState<TheoreticalItem[]>([]);
+  const [history, setHistory] = useState<string[]>([]);
+  const [showSettings, setShowSettings] = useState(true);
+  const [mode, setMode] = useState<ViewMode>("step");
+  const [activeIndex, setActiveIndex] = useState(0);
   const generate = useRequest(generateTheoretical);
 
   function update<K extends keyof TheoreticalFormValues>(key: K, value: TheoreticalFormValues[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  async function handleGenerate() {
+    const result = await generate.run(settings, { ...form, pastQuestions: history.join("\n") });
+    if (!result) return;
+    setQuestions((prev) => [...prev, ...result]);
+    setHistory((prev) => [...prev, ...result.map((item) => item.questionText)].slice(-PAST_QUESTIONS_LIMIT));
+    setShowSettings(false);
+  }
+
+  function reset() {
+    setForm(DEFAULTS);
+    setQuestions([]);
+    setHistory([]);
+    setActiveIndex(0);
+    setShowSettings(true);
+  }
+
+  const hasQuestions = questions.length > 0;
+  const isStep = mode === "step";
+  const summary = `${form.topic.trim() || "No topic"} · ${form.questionType} · ${form.difficultyLevel} · ${form.numQuestions} per batch`;
+
   return (
     <Section>
-      <Panel>
-        <TextField
-          label="Topic"
-          placeholder="e.g. Microservices"
-          value={form.topic}
-          onChangeText={(text) => update("topic", text)}
-          maxLength={200}
-        />
-        <TextField
-          label="Context setting"
-          placeholder="e.g. High-Tech Enterprise Interview"
-          value={form.contextSetting}
-          onChangeText={(text) => update("contextSetting", text)}
-          maxLength={200}
-        />
-        <Field label="Question type">
-          <ChoiceChips options={theoreticalQuestionTypeOptions} value={form.questionType} onChange={(v) => update("questionType", v)} />
-        </Field>
-        <Field label="Difficulty">
-          <ChoiceChips options={theoreticalDifficultyLevelOptions} value={form.difficultyLevel} onChange={(v) => update("difficultyLevel", v)} />
-        </Field>
-        <Field label="Number of questions">
-          <ChoiceChips options={countOptions(5)} value={form.numQuestions} onChange={(v) => update("numQuestions", v)} />
-        </Field>
-        <TextField
-          label="Source context"
-          hint="Optional text or data the questions should be based on."
-          value={form.sourceContext}
-          onChangeText={(text) => update("sourceContext", text)}
-          maxLength={5000}
-          multiline
-        />
-        <TextField
-          label="Custom instructions"
-          placeholder="Optional"
-          value={form.customInstructions}
-          onChangeText={(text) => update("customInstructions", text)}
-          maxLength={1000}
-          multiline
-        />
-        <TextField
-          label="Past questions"
-          hint="One per line. Used to keep the new questions varied."
-          value={form.pastQuestions}
-          onChangeText={(text) => update("pastQuestions", text)}
-          maxLength={5000}
-          multiline
-        />
-        <ActionButton label="Generate questions" icon={Sparkles} loading={generate.pending} onPress={() => generate.run(settings, form)} />
-        <ErrorText message={generate.error} />
-      </Panel>
+      <SettingsToggle
+        title="Settings"
+        summary={summary}
+        expanded={showSettings}
+        onToggle={() => setShowSettings((value) => !value)}
+      />
 
-      {generate.data?.map((item, index) => (
-        <View key={index} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.cardHeader}>
-            <View style={[styles.badge, { backgroundColor: colors.tone.rose.bg, borderColor: colors.tone.rose.border }]}>
-              <Text style={[styles.badgeText, { color: colors.tone.rose.fg }]}>{item.focusArea}</Text>
-            </View>
-            <Text style={[styles.index, { color: colors.mutedForeground }]}>Question {index + 1}</Text>
-          </View>
-          <Text style={[styles.questionText, { color: colors.foreground }]} selectable>
-            {item.questionText}
-          </Text>
-          <View style={[styles.criteria, { borderTopColor: colors.border }]}>
-            <Text style={[styles.criteriaLabel, { color: colors.mutedForeground }]}>Evaluation criteria</Text>
-            <Text style={[styles.criteriaText, { color: colors.foreground }]} selectable>
-              {item.evaluationCriteria}
-            </Text>
-          </View>
+      {showSettings && (
+        <>
+          <Panel>
+            <TextField
+              label="Topic"
+              placeholder="e.g. Microservices"
+              value={form.topic}
+              onChangeText={(text) => update("topic", text)}
+              maxLength={200}
+            />
+            <TextField
+              label="Context setting"
+              placeholder="e.g. High-Tech Enterprise Interview"
+              value={form.contextSetting}
+              onChangeText={(text) => update("contextSetting", text)}
+              maxLength={200}
+            />
+            <SelectField
+              label="Question type"
+              options={theoreticalQuestionTypeOptions}
+              value={form.questionType}
+              onChange={(value) => update("questionType", value)}
+              customPlaceholder="Type your own question type"
+            />
+            <SelectField
+              label="Difficulty"
+              options={theoreticalDifficultyLevelOptions}
+              value={form.difficultyLevel}
+              onChange={(value) => update("difficultyLevel", value)}
+              customPlaceholder="Type your own difficulty"
+            />
+            <CountSlider
+              label="Number of questions"
+              max={MAX_QUESTIONS}
+              value={form.numQuestions}
+              onChange={(value) => update("numQuestions", value)}
+            />
+            <TextField
+              label="Source context"
+              hint="Optional text or data the questions should be based on."
+              value={form.sourceContext}
+              onChangeText={(text) => update("sourceContext", text)}
+              maxLength={5000}
+              multiline
+            />
+            <TextField
+              label="Custom instructions"
+              placeholder="Optional"
+              value={form.customInstructions}
+              onChangeText={(text) => update("customInstructions", text)}
+              maxLength={1000}
+              multiline
+            />
+            {!hasQuestions && (
+              <ActionButton label="Generate questions" icon={Sparkles} loading={generate.pending} onPress={handleGenerate} />
+            )}
+          </Panel>
+
+          <PastQuestionsPanel items={history} />
+        </>
+      )}
+
+      <ErrorText message={generate.error} />
+
+      {hasQuestions && (
+        <>
+          <BatchActions
+            count={questions.length}
+            noun="question"
+            pending={generate.pending}
+            onGenerateMore={handleGenerate}
+            onReset={reset}
+          />
+          <Panel>
+            <ChoiceChips options={VIEW_MODES} value={mode} onChange={setMode} wrap={false} />
+          </Panel>
+        </>
+      )}
+
+      {hasQuestions && isStep && (
+        <StepNavigator
+          index={activeIndex}
+          total={questions.length}
+          onPrevious={() => setActiveIndex((index) => Math.max(0, index - 1))}
+          onNext={() => setActiveIndex((index) => Math.min(questions.length - 1, index + 1))}
+        />
+      )}
+
+      {questions.map((item, index) => (
+        <View key={index} style={{ display: !isStep || index === activeIndex ? "flex" : "none" }}>
+          <ErrorBoundary label={`Question ${index + 1}`}>
+            <TheoreticalQuestionCard
+              index={index}
+              question={item}
+              contextSetting={form.contextSetting}
+              difficultyLevel={form.difficultyLevel}
+            />
+          </ErrorBoundary>
         </View>
       ))}
     </Section>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderRadius: radius["2xl"],
-    padding: spacing.xl,
-    gap: spacing.md,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
-  badge: {
-    borderWidth: 1,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  index: {
-    fontSize: 13,
-  },
-  questionText: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: "500",
-  },
-  criteria: {
-    borderTopWidth: 1,
-    paddingTop: spacing.md,
-    gap: spacing.xs,
-  },
-  criteriaLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  criteriaText: {
-    fontSize: 14,
-    lineHeight: 21,
-  },
-});

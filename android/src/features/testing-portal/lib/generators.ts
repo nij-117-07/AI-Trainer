@@ -7,10 +7,12 @@ import { ax } from "@ax-llm/ax";
 import type { AiSettings } from "@/features/ai-settings/types";
 import { createLlm } from "./llm";
 import { recentPastQuestions } from "./past-questions";
-import { answerSignature, mcqSignature, solverSignature, theoreticalSignature } from "./signatures";
+import { answerSignature, graderSignature, mcqSignature, solverSignature, theoreticalSignature } from "./signatures";
 import type {
   AnswerFormValues,
   AnswerResult,
+  GradingResult,
+  ImageInput,
   McqFormValues,
   McqItem,
   SolverFormValues,
@@ -71,11 +73,11 @@ export async function generateTheoretical(
     {
       variationSeed: variationSeed(),
       topic: requireText(values.topic, "Topic", 200),
-      questionType: values.questionType,
+      questionType: requireText(values.questionType, "Question type", 100),
       sourceContext: optionalText(values.sourceContext, 5000),
       pastQuestions: optionalPastQuestions(values.pastQuestions),
       numQuestions: values.numQuestions,
-      difficultyLevel: values.difficultyLevel,
+      difficultyLevel: requireText(values.difficultyLevel, "Difficulty", 100),
       contextSetting: requireText(values.contextSetting, "Context setting", 200),
       customInstructions: optionalText(values.customInstructions, 1000),
     },
@@ -120,5 +122,42 @@ export async function solveMcq(settings: AiSettings, values: SolverFormValues): 
   return {
     correctOption: result.correctOption,
     reasoning: result.reasoning,
+  };
+}
+
+export interface GradeInput {
+  scenario: string;
+  questionAsked: string;
+  targetObjective: string;
+  expectedLevel: string;
+  userAnswerText: string;
+  image: ImageInput | null;
+}
+
+export async function gradeAnswer(settings: AiSettings, values: GradeInput): Promise<GradingResult> {
+  const answerText = values.userAnswerText.trim();
+  if (!answerText && !values.image) {
+    throw new Error("Write an answer or attach an image before grading.");
+  }
+  const llm = createLlm(settings);
+  const result = await ax(graderSignature).forward(
+    llm,
+    {
+      scenario: requireText(values.scenario, "Context", 200),
+      questionAsked: requireText(values.questionAsked, "Question", 2000),
+      targetObjective: requireText(values.targetObjective, "Evaluation criteria", 2000),
+      expectedLevel: requireText(values.expectedLevel, "Difficulty", 100),
+      userAnswerText: answerText || undefined,
+      userAnswerImage: values.image ? { mimeType: values.image.mimeType, data: values.image.base64 } : undefined,
+    },
+    { modelConfig: { temperature: 0.2 } },
+  );
+  return {
+    combinedAnalysis: result.combinedAnalysis ?? "",
+    score: Number(result.score ?? 0),
+    strengths: result.strengths ?? [],
+    weaknesses: result.weaknesses ?? [],
+    detailedFeedback: result.detailedFeedback ?? "",
+    isTargetMet: Boolean(result.isTargetMet),
   };
 }

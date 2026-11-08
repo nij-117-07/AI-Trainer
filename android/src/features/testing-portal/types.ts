@@ -62,3 +62,19 @@ export interface SolverResult {
   correctOption: OptionKey;
   reasoning: string;
 }
+
+/** A picked image, base64-encoded so it can be sent to the model. */
+export interface ImageInput {
+  uri: string;
+  mimeType: string;
+  base64: string;
+}
+
+export interface GradingResult {
+  combinedAnalysis: string;
+  score: number;
+  strengths: string[];
+  weaknesses: string[];
+  detailedFeedback: string;
+  isTargetMet: boolean;
+}
