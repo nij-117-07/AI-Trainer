@@ -1,0 +1,25 @@
+// src/features/markdown-viewer/lib/sample.ts
+/** Starter document shown on first open and by the Sample action. Uses only syntax the viewer renders. */
+export const SAMPLE_MARKDOWN = [
+  "# Markdown Viewer",
+  "",
+  "Edit **Markdown** above and see the rendered result below.",
+  "",
+  "## Features",
+  "",
+  "- Live preview as you type",
+  "- Bold, *italic*, and `inline code`",
+  "- Quotes, lists, and fenced code blocks",
+  "",
+  "> Quoted text appears with a coloured bar.",
+  "",
+  "1. Edit the draft",
+  "2. Check the preview",
+  "3. Share the result",
+  "",
+  "```ts",
+  'const greeting = "Hello, Markdown!";',
+  "console.log(greeting);",
+  "```",
+  "",
+].join("\n");
