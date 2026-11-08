@@ -6,9 +6,16 @@
 import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { ChevronRight, ClipboardList, Settings } from "lucide-react-native";
+import { ChevronRight, ClipboardList, GraduationCap, Languages, Settings, Wrench, type LucideIcon } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { APPS } from "../data/apps";
+import { APPS, APP_GROUPS, type AppGroup } from "../data/apps";
+
+const GROUP_ICONS: Record<AppGroup, LucideIcon> = {
+  learning: GraduationCap,
+  language: Languages,
+  practice: ClipboardList,
+  tools: Wrench,
+};
 
 export function DashboardScreen() {
   const colors = useThemeColors();
@@ -36,38 +43,45 @@ export function DashboardScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.section} accessibilityLabel="Applications">
-          <View style={styles.sectionHeader}>
-            <ClipboardList size={20} color={colors.mutedForeground} />
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Applications</Text>
-          </View>
-          {APPS.map((app) => {
-            const Icon = app.icon;
-            const tone = colors.tone[app.tone];
-            return (
-              <Pressable
-                key={app.key}
-                onPress={() => router.push(app.route as never)}
-                accessibilityRole="button"
-                accessibilityLabel={`Open ${app.title}`}
-                style={({ pressed }) => [
-                  styles.appCard,
-                  { backgroundColor: colors.card, borderColor: colors.border },
-                  pressed && { backgroundColor: colors.muted },
-                ]}
-              >
-                <View style={[styles.appIcon, { backgroundColor: tone.bg, borderColor: tone.border }]}>
-                  <Icon size={20} color={tone.fg} />
-                </View>
-                <View style={styles.appBody}>
-                  <Text style={[styles.appTitle, { color: colors.foreground }]}>{app.title}</Text>
-                  <Text style={[styles.appText, { color: colors.mutedForeground }]}>{app.description}</Text>
-                </View>
-                <ChevronRight size={20} color={colors.mutedForeground} />
-              </Pressable>
-            );
-          })}
-        </View>
+        {APP_GROUPS.map((group) => {
+          const GroupIcon = GROUP_ICONS[group.key];
+          const apps = APPS.filter((app) => app.group === group.key);
+          if (apps.length === 0) return null;
+          return (
+            <View key={group.key} style={styles.section} accessibilityLabel={group.title}>
+              <View style={styles.sectionHeader}>
+                <GroupIcon size={20} color={colors.mutedForeground} />
+                <Text style={[styles.sectionTitle, { color: colors.foreground }]}>{group.title}</Text>
+              </View>
+              {apps.map((app) => {
+                const Icon = app.icon;
+                const tone = colors.tone[app.tone];
+                return (
+                  <Pressable
+                    key={app.key}
+                    onPress={() => router.push(app.route as never)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open ${app.title}`}
+                    style={({ pressed }) => [
+                      styles.appCard,
+                      { backgroundColor: colors.card, borderColor: colors.border },
+                      pressed && { backgroundColor: colors.muted },
+                    ]}
+                  >
+                    <View style={[styles.appIcon, { backgroundColor: tone.bg, borderColor: tone.border }]}>
+                      <Icon size={20} color={tone.fg} />
+                    </View>
+                    <View style={styles.appBody}>
+                      <Text style={[styles.appTitle, { color: colors.foreground }]}>{app.title}</Text>
+                      <Text style={[styles.appText, { color: colors.mutedForeground }]}>{app.description}</Text>
+                    </View>
+                    <ChevronRight size={20} color={colors.mutedForeground} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          );
+        })}
       </ScrollView>
     </SafeAreaView>
   );

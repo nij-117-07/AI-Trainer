@@ -1,5 +1,5 @@
 // src/features/dashboard/data/apps.ts
-/** Every application shown on the dashboard. Each one opens its own route. */
+/** Every application shown on the dashboard, grouped into sections. Each one opens its own route. */
 import {
   Apple,
   BarChart3,
@@ -21,6 +21,7 @@ import {
   Handshake,
   HeartHandshake,
   HelpCircle,
+  Languages,
   Laugh,
   Library,
   Link2,
@@ -32,6 +33,7 @@ import {
   Palette,
   PenTool,
   Puzzle,
+  Wrench,
   Rss,
   Scale,
   ScanSearch,
@@ -44,14 +46,24 @@ import {
 } from "lucide-react-native";
 import type { Tone } from "@/theme";
 
+export type AppGroup = "learning" | "language" | "practice" | "tools";
+
 export interface AppCard {
   key: string;
   title: string;
   description: string;
   route: string;
   icon: LucideIcon;
+  group: AppGroup;
   tone: Tone;
 }
+
+export const APP_GROUPS: { key: AppGroup; title: string }[] = [
+  { key: "learning", title: "Learning" },
+  { key: "language", title: "Language Learner" },
+  { key: "practice", title: "Practice" },
+  { key: "tools", title: "Tools" },
+];
 
 export const APPS: AppCard[] = [
   {
@@ -60,6 +72,7 @@ export const APPS: AppCard[] = [
     description: "Generate MCQs and theoretical questions, write expert answers, and solve MCQs with your AI model.",
     route: "/practice/testing-portal",
     icon: ClipboardList,
+    group: "practice",
     tone: "rose",
   },
   {
@@ -68,6 +81,7 @@ export const APPS: AppCard[] = [
     description: "Explain topics, write A-to-Z tutorials and roadmaps, simplify ideas, and plan your learning.",
     route: "/learning/explainer",
     icon: GraduationCap,
+    group: "learning",
     tone: "sky",
   },
   {
@@ -76,6 +90,7 @@ export const APPS: AppCard[] = [
     description: "Daily study plans, topic and project suggestions, project blueprints, and guided tasks.",
     route: "/learning/guides",
     icon: Signpost,
+    group: "learning",
     tone: "emerald",
   },
   {
@@ -84,6 +99,7 @@ export const APPS: AppCard[] = [
     description: "Build learning roadmaps with main points, subpoints, and progress tracking.",
     route: "/learning/roadmap",
     icon: MapPinned,
+    group: "learning",
     tone: "amber",
   },
   {
@@ -92,6 +108,7 @@ export const APPS: AppCard[] = [
     description: "Turn a goal into a skill tree and track each skill as you learn it.",
     route: "/learning/skill-architect",
     icon: Network,
+    group: "learning",
     tone: "emerald",
   },
   {
@@ -100,6 +117,7 @@ export const APPS: AppCard[] = [
     description: "Ask a tutor for explanations in the teaching style you choose, with saved prompt templates.",
     route: "/learning/tutor",
     icon: Bot,
+    group: "learning",
     tone: "sky",
   },
   {
@@ -108,6 +126,7 @@ export const APPS: AppCard[] = [
     description: "Chat sessions with a tutor that keeps the thread and breaks down each answer.",
     route: "/learning/tutor-chat",
     icon: MessagesSquare,
+    group: "learning",
     tone: "sky",
   },
   {
@@ -116,6 +135,7 @@ export const APPS: AppCard[] = [
     description: "Turn material into memory aids such as mnemonics, anchors, and recall cues.",
     route: "/learning/memory-helper",
     icon: Brain,
+    group: "learning",
     tone: "rose",
   },
   {
@@ -124,6 +144,7 @@ export const APPS: AppCard[] = [
     description: "Get a quote for the moment and reflect on your progress with guided prompts.",
     route: "/learning/motivation",
     icon: Flame,
+    group: "learning",
     tone: "amber",
   },
   {
@@ -132,6 +153,7 @@ export const APPS: AppCard[] = [
     description: "Get project ideas matched to your skills, interests, and time.",
     route: "/learning/projects",
     icon: FolderKanban,
+    group: "learning",
     tone: "emerald",
   },
   {
@@ -140,6 +162,7 @@ export const APPS: AppCard[] = [
     description: "Find books, courses, and articles that fit the topic and your level.",
     route: "/learning/resource-suggestor",
     icon: Library,
+    group: "learning",
     tone: "sky",
   },
   {
@@ -148,6 +171,7 @@ export const APPS: AppCard[] = [
     description: "Connect a new idea to something you already know, with a bridge explanation and check questions.",
     route: "/learning/conceptual-bridge",
     icon: Link2,
+    group: "learning",
     tone: "rose",
   },
   {
@@ -156,6 +180,7 @@ export const APPS: AppCard[] = [
     description: "Practise a conversation with a character you define, who stays in role.",
     route: "/learning/roleplay-chatbot",
     icon: Drama,
+    group: "learning",
     tone: "amber",
   },
   {
@@ -164,6 +189,7 @@ export const APPS: AppCard[] = [
     description: "Turn an uploaded image into well-structured Markdown.",
     route: "/tools/vision",
     icon: FileImage,
+    group: "tools",
     tone: "sky",
   },
   {
@@ -172,6 +198,7 @@ export const APPS: AppCard[] = [
     description: "Photograph a product's ingredients list for a nutritional health analysis.",
     route: "/tools/ingredients",
     icon: Apple,
+    group: "tools",
     tone: "emerald",
   },
   {
@@ -180,6 +207,7 @@ export const APPS: AppCard[] = [
     description: "Platform-specific social posts with designer notes, matched to your brand voice.",
     route: "/tools/social-posts",
     icon: Megaphone,
+    group: "tools",
     tone: "sky",
   },
   {
@@ -188,6 +216,7 @@ export const APPS: AppCard[] = [
     description: "Names, hashtags, slogans, and SEO titles, each with an explanation.",
     route: "/tools/creative-assets",
     icon: Palette,
+    group: "tools",
     tone: "rose",
   },
   {
@@ -196,6 +225,7 @@ export const APPS: AppCard[] = [
     description: "Adopt any persona or rule set and transform your input data however you ask.",
     route: "/tools/flexible-writer",
     icon: PenTool,
+    group: "tools",
     tone: "sky",
   },
   {
@@ -204,6 +234,7 @@ export const APPS: AppCard[] = [
     description: "Generate or refine a full LLM system persona with a reproducible seed.",
     route: "/tools/prompt-generator",
     icon: Sparkles,
+    group: "tools",
     tone: "emerald",
   },
   {
@@ -212,6 +243,7 @@ export const APPS: AppCard[] = [
     description: "Generate or refine Mermaid and Draw.io diagrams from plain language.",
     route: "/tools/diagram",
     icon: GitBranch,
+    group: "tools",
     tone: "sky",
   },
   {
@@ -220,6 +252,7 @@ export const APPS: AppCard[] = [
     description: "Create a Chart.js visualization from raw data and style instructions.",
     route: "/tools/charts",
     icon: BarChart3,
+    group: "tools",
     tone: "amber",
   },
   {
@@ -228,6 +261,7 @@ export const APPS: AppCard[] = [
     description: "Detect AI-written text, humanize it, then re-check the result.",
     route: "/tools/ai-detector",
     icon: ScanSearch,
+    group: "tools",
     tone: "emerald",
   },
   {
@@ -236,6 +270,7 @@ export const APPS: AppCard[] = [
     description: "Edit Markdown and preview the rendered output as you type.",
     route: "/tools/markdown-viewer",
     icon: FileText,
+    group: "tools",
     tone: "sky",
   },
   {
@@ -244,6 +279,7 @@ export const APPS: AppCard[] = [
     description: "Search the web without an API key and get clean links, titles, and snippets.",
     route: "/tools/web-search",
     icon: Globe,
+    group: "tools",
     tone: "sky",
   },
   {
@@ -252,6 +288,7 @@ export const APPS: AppCard[] = [
     description: "Manage feed sources and read the latest items in one place.",
     route: "/tools/rss",
     icon: Rss,
+    group: "tools",
     tone: "amber",
   },
   {
@@ -260,6 +297,7 @@ export const APPS: AppCard[] = [
     description: "Sharpen strategy by facing AI opponents across generated scenarios and tactics.",
     route: "/practice/battleground",
     icon: Swords,
+    group: "practice",
     tone: "rose",
   },
   {
@@ -268,6 +306,7 @@ export const APPS: AppCard[] = [
     description: "Spot the cognitive biases in your reasoning and practise counter-arguments.",
     route: "/practice/bias-inoculator",
     icon: ShieldCheck,
+    group: "practice",
     tone: "sky",
   },
   {
@@ -276,6 +315,7 @@ export const APPS: AppCard[] = [
     description: "Analyse your messages, get critical coaching, and rewrite them more concisely.",
     route: "/practice/clarity-trainer",
     icon: MessageCircleQuestion,
+    group: "practice",
     tone: "emerald",
   },
   {
@@ -284,6 +324,7 @@ export const APPS: AppCard[] = [
     description: "Argue against an AI persona and get a judge's verdict on your points.",
     route: "/practice/debate",
     icon: Scale,
+    group: "practice",
     tone: "amber",
   },
   {
@@ -292,6 +333,7 @@ export const APPS: AppCard[] = [
     description: "Practise high-stakes leadership conversations and get emotional-intelligence feedback.",
     route: "/practice/executive-eq",
     icon: HeartHandshake,
+    group: "practice",
     tone: "rose",
   },
   {
@@ -300,6 +342,7 @@ export const APPS: AppCard[] = [
     description: "Work through evolving situations, weigh options, and see the consequences unfold.",
     route: "/practice/foresight-trainer",
     icon: Telescope,
+    group: "practice",
     tone: "sky",
   },
   {
@@ -308,6 +351,7 @@ export const APPS: AppCard[] = [
     description: "Grade a text or image answer against a target objective with a score and feedback.",
     route: "/practice/grader",
     icon: ClipboardCheck,
+    group: "practice",
     tone: "emerald",
   },
   {
@@ -316,6 +360,7 @@ export const APPS: AppCard[] = [
     description: "Ask questions and narrow down a hidden answer with AI hints.",
     route: "/practice/guess-game",
     icon: Dice5,
+    group: "practice",
     tone: "amber",
   },
   {
@@ -324,6 +369,7 @@ export const APPS: AppCard[] = [
     description: "Rehearse interview questions and get a review of each answer.",
     route: "/practice/interview",
     icon: Briefcase,
+    group: "practice",
     tone: "sky",
   },
   {
@@ -332,6 +378,7 @@ export const APPS: AppCard[] = [
     description: "Write, rate, and improve jokes with a coach and a simulated crowd.",
     route: "/practice/joke-coach",
     icon: Laugh,
+    group: "practice",
     tone: "amber",
   },
   {
@@ -340,6 +387,7 @@ export const APPS: AppCard[] = [
     description: "Negotiate against an AI counterpart and get feedback on each move.",
     route: "/practice/negotiation",
     icon: Handshake,
+    group: "practice",
     tone: "emerald",
   },
   {
@@ -348,6 +396,7 @@ export const APPS: AppCard[] = [
     description: "Describe an image from memory, then check how much you noticed.",
     route: "/practice/observation-trainer",
     icon: Camera,
+    group: "practice",
     tone: "rose",
   },
   {
@@ -356,6 +405,7 @@ export const APPS: AppCard[] = [
     description: "Solve adaptive logic puzzles that adjust to your level.",
     route: "/practice/puzzle",
     icon: Puzzle,
+    group: "practice",
     tone: "sky",
   },
   {
@@ -364,6 +414,7 @@ export const APPS: AppCard[] = [
     description: "Solve riddles that adapt to your progress, with guesses until solved.",
     route: "/practice/riddle",
     icon: HelpCircle,
+    group: "practice",
     tone: "emerald",
   },
   {
@@ -372,6 +423,16 @@ export const APPS: AppCard[] = [
     description: "Defend your ideas against probing questions that test your reasoning.",
     route: "/practice/socratic",
     icon: MessageCircleQuestion,
+    group: "practice",
     tone: "amber",
+  },
+  {
+    key: "language-learner",
+    title: "Language Learner",
+    description: "Idioms, word and sentence of the day, translation, rewriting, lessons, poetry, language tests, simulations, and roleplay.",
+    route: "/language-learner",
+    icon: Languages,
+    group: "language",
+    tone: "sky",
   },
 ];
