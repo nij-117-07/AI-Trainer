@@ -49,9 +49,9 @@ export async function generateMcqs(settings: AiSettings, values: McqFormValues):
     {
       variationSeed: variationSeed(),
       topic: requireText(values.topic, "Topic", 200),
-      questionType: values.questionType,
+      questionType: requireText(values.questionType, "Question type", 100),
       numQuestions: values.numQuestions,
-      difficultyLevel: values.difficultyLevel,
+      difficultyLevel: requireText(values.difficultyLevel, "Difficulty", 100),
       contextSetting: requireText(values.contextSetting, "Context setting", 200),
       pastQuestions: optionalPastQuestions(values.pastQuestions),
       customInstructions: optionalText(values.customInstructions, 1000),

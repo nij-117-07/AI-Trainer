@@ -1,21 +1,17 @@
 // src/features/dashboard/components/DashboardScreen.tsx
 /**
- * Dashboard starter: header bar, welcome card, and hub grid. Mirrors the webui dashboard
- * (webui/src/app/(authenticated)/dashboard/page.tsx). Hubs are placeholders until their pages are added.
+ * Dashboard: header bar and the applications list. Mirrors the webui dashboard
+ * (webui/src/app/(authenticated)/dashboard/page.tsx).
  */
-import { ScrollView, StyleSheet, Text, View, Pressable, useWindowDimensions } from "react-native";
+import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { ChevronRight, ClipboardList, LayoutGrid, Settings, Sparkles } from "lucide-react-native";
-import { breakpoints, radius, spacing, useThemeColors } from "@/theme";
-import { HUBS } from "../data/hubs";
-import { HubCard } from "./HubCard";
+import { ChevronRight, ClipboardList, Settings } from "lucide-react-native";
+import { radius, spacing, useThemeColors } from "@/theme";
 
 export function DashboardScreen() {
   const colors = useThemeColors();
   const router = useRouter();
-  const { width } = useWindowDimensions();
-  const hubWidth = width >= breakpoints.tablet ? "48.5%" : "100%";
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
@@ -39,31 +35,6 @@ export function DashboardScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={[styles.welcome, { backgroundColor: colors.hero, borderColor: colors.hero }]}>
-          <View pointerEvents="none" style={[styles.glow, styles.glowTop, { backgroundColor: colors.heroForeground }]} />
-          <View pointerEvents="none" style={[styles.glow, styles.glowBottom, { backgroundColor: colors.heroForeground }]} />
-          <View style={styles.eyebrow}>
-            <Sparkles size={16} color={colors.heroForeground} />
-            <Text style={[styles.eyebrowText, { color: colors.heroForeground }]}>Welcome back</Text>
-          </View>
-          <Text style={[styles.welcomeTitle, { color: colors.heroForeground }]}>What are we learning today?</Text>
-          <Text style={[styles.welcomeText, { color: colors.heroForeground, opacity: 0.88 }]}>
-            Pick a hub to explore AI-powered tools for learning, practice, language, and productivity.
-          </Text>
-        </View>
-
-        <View style={styles.section} accessibilityLabel="Application Hubs">
-          <View style={styles.sectionHeader}>
-            <LayoutGrid size={20} color={colors.mutedForeground} />
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Explore hubs</Text>
-          </View>
-          <View style={styles.grid}>
-            {HUBS.map((hub) => (
-              <HubCard key={hub.key} hub={hub} width={hubWidth} />
-            ))}
-          </View>
-        </View>
-
         <View style={styles.section} accessibilityLabel="Applications">
           <View style={styles.sectionHeader}>
             <ClipboardList size={20} color={colors.mutedForeground} />
@@ -126,51 +97,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing["2xl"],
     gap: spacing["2xl"],
   },
-  welcome: {
-    borderWidth: 1,
-    borderRadius: radius["2xl"],
-    padding: spacing.xl,
-    paddingVertical: 40,
-    overflow: "hidden",
-    gap: spacing.sm,
-  },
-  glow: {
-    position: "absolute",
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    opacity: 0.14,
-  },
-  glowTop: {
-    top: -90,
-    right: -90,
-  },
-  glowBottom: {
-    bottom: -110,
-    left: -60,
-    opacity: 0.09,
-  },
-  eyebrow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  eyebrowText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  welcomeTitle: {
-    marginTop: spacing.sm,
-    fontSize: 30,
-    fontWeight: "700",
-    letterSpacing: -0.5,
-    lineHeight: 36,
-  },
-  welcomeText: {
-    marginTop: spacing.sm,
-    fontSize: 15,
-    lineHeight: 23,
-  },
   section: {
     gap: spacing.lg,
   },
@@ -182,12 +108,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: spacing.lg,
   },
   appCard: {
     flexDirection: "row",

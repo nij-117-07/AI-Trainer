@@ -1,14 +1,21 @@
 // src/features/testing-portal/components/McqTab.tsx
 import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import Slider from "@react-native-community/slider";
 import { Sparkles } from "lucide-react-native";
+import { spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "../hooks/useRequest";
 import { generateMcqs } from "../lib/generators";
-import { countOptions, mcqDifficultyLevelOptions, mcqQuestionTypeOptions } from "../options";
+import { PAST_QUESTIONS_LIMIT } from "../lib/past-questions";
+import { mcqDifficultyLevelOptions, mcqQuestionTypeOptions } from "../options";
 import type { McqFormValues } from "../types";
-import { ActionButton, ChoiceChips, ErrorText, Field, Panel, TextField } from "./FormControls";
+import { ActionButton, ErrorText, Field, Panel, TextField } from "./FormControls";
 import { McqQuiz } from "./McqQuiz";
+import { SelectField } from "./SelectField";
 import { Section } from "./Section";
+
+const MAX_QUESTIONS = 10;
 
 const DEFAULTS: McqFormValues = {
   topic: "",
@@ -21,8 +28,10 @@ const DEFAULTS: McqFormValues = {
 };
 
 export function McqTab() {
+  const colors = useThemeColors();
   const { settings } = useAiSettings();
   const [form, setForm] = useState<McqFormValues>(DEFAULTS);
+  const [history, setHistory] = useState<string[]>([]);
   const [quizKey, setQuizKey] = useState(0);
   const generate = useRequest(generateMcqs);
 
@@ -31,8 +40,10 @@ export function McqTab() {
   }
 
   async function handleGenerate() {
-    const result = await generate.run(settings, form);
-    if (result) setQuizKey((key) => key + 1);
+    const result = await generate.run(settings, { ...form, pastQuestions: history.join("\n") });
+    if (!result) return;
+    setHistory((prev) => [...prev, ...result.map((question) => question.questionText)].slice(-PAST_QUESTIONS_LIMIT));
+    setQuizKey((key) => key + 1);
   }
 
   return (
@@ -52,14 +63,35 @@ export function McqTab() {
           onChangeText={(text) => update("contextSetting", text)}
           maxLength={200}
         />
-        <Field label="Question type">
-          <ChoiceChips options={mcqQuestionTypeOptions} value={form.questionType} onChange={(v) => update("questionType", v)} />
-        </Field>
-        <Field label="Difficulty">
-          <ChoiceChips options={mcqDifficultyLevelOptions} value={form.difficultyLevel} onChange={(v) => update("difficultyLevel", v)} />
-        </Field>
+        <SelectField
+          label="Question type"
+          options={mcqQuestionTypeOptions}
+          value={form.questionType}
+          onChange={(value) => update("questionType", value)}
+          customPlaceholder="Type your own question type"
+        />
+        <SelectField
+          label="Difficulty"
+          options={mcqDifficultyLevelOptions}
+          value={form.difficultyLevel}
+          onChange={(value) => update("difficultyLevel", value)}
+          customPlaceholder="Type your own difficulty"
+        />
         <Field label="Number of questions">
-          <ChoiceChips options={countOptions(10)} value={form.numQuestions} onChange={(v) => update("numQuestions", v)} />
+          <View style={styles.sliderRow}>
+            <Slider
+              style={styles.slider}
+              minimumValue={1}
+              maximumValue={MAX_QUESTIONS}
+              step={1}
+              value={form.numQuestions}
+              onValueChange={(value) => update("numQuestions", Math.round(value))}
+              minimumTrackTintColor={colors.primary}
+              maximumTrackTintColor={colors.border}
+              thumbTintColor={colors.primary}
+            />
+            <Text style={[styles.sliderValue, { color: colors.foreground }]}>{form.numQuestions}</Text>
+          </View>
         </Field>
         <TextField
           label="Custom instructions"
@@ -69,19 +101,69 @@ export function McqTab() {
           maxLength={1000}
           multiline
         />
-        <TextField
-          label="Past questions"
-          hint="One per line. Used to avoid repeats; only the most recent few are sent."
-          value={form.pastQuestions}
-          onChangeText={(text) => update("pastQuestions", text)}
-          maxLength={5000}
-          multiline
-        />
         <ActionButton label="Generate MCQs" icon={Sparkles} loading={generate.pending} onPress={handleGenerate} />
         <ErrorText message={generate.error} />
+      </Panel>
+
+      <Panel>
+        <Field
+          label={`Past questions (${history.length} of ${PAST_QUESTIONS_LIMIT})`}
+          hint="Questions you generate are sent with the next request so the model avoids repeats."
+        >
+          {history.length === 0 ? (
+            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No questions generated yet.</Text>
+          ) : (
+            <View style={styles.history}>
+              {history.map((question, index) => (
+                <Text
+                  key={`${index}-${question}`}
+                  numberOfLines={2}
+                  style={[styles.historyItem, { color: colors.foreground, borderColor: colors.border }]}
+                >
+                  {index + 1}. {question}
+                </Text>
+              ))}
+            </View>
+          )}
+        </Field>
+        {history.length > 0 && (
+          <ActionButton label="Clear past questions" variant="outline" onPress={() => setHistory([])} />
+        )}
       </Panel>
 
       {generate.data && <McqQuiz key={quizKey} questions={generate.data} contextSetting={form.contextSetting} />}
     </Section>
   );
 }
+
+const styles = StyleSheet.create({
+  sliderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  slider: {
+    flex: 1,
+    height: 40,
+  },
+  sliderValue: {
+    minWidth: 28,
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  emptyText: {
+    fontSize: 14,
+  },
+  history: {
+    gap: spacing.sm,
+  },
+  historyItem: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+});

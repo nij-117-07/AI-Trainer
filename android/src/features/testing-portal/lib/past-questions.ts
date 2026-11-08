@@ -1,6 +1,6 @@
 // src/features/testing-portal/lib/past-questions.ts
-/** Matches PAST_QUESTIONS_LIMIT in Backend/core/config.py. */
-export const PAST_QUESTIONS_LIMIT = 5;
+/** How many recent questions are sent as past questions. The webui backend defaults to 5. */
+export const PAST_QUESTIONS_LIMIT = 10;
 
 /** Splits the "past questions" text block into the most recent entries, one per line. */
 export function recentPastQuestions(value: string): string[] {
