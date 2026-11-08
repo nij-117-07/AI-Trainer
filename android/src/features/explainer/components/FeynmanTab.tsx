@@ -3,16 +3,16 @@
 import { useState } from "react";
 import { MessageCircleHeart, Puzzle, RefreshCcw, Sparkles } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, Panel, TextField } from "@/features/testing-portal/components/FormControls";
-import { CountSlider } from "@/features/testing-portal/components/CountSlider";
-import { Section } from "@/features/testing-portal/components/Section";
-import { useRequest } from "@/features/testing-portal/hooks/useRequest";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { CountSlider } from "@/components/tool/CountSlider";
+import { Section } from "@/components/tool/Section";
+import { useRequest } from "@/hooks/useRequest";
 import { simplifyTopic } from "../lib/generators";
 import type { FeynmanFormValues } from "../types";
-import { MarkdownText } from "./MarkdownText";
-import { ResultCallout } from "./ResultCallout";
-import { SectionTitle } from "./SectionTitle";
-import { TagList } from "./TagList";
+import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ResultCallout } from "@/components/tool/ResultCallout";
+import { SectionTitle } from "@/components/tool/SectionTitle";
+import { TagList } from "@/components/tool/TagList";
 
 const DEFAULTS: FeynmanFormValues = {
   complexTopic: "Quantum Entanglement",

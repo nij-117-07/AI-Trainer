@@ -5,12 +5,12 @@
 import { useState } from "react";
 import { RefreshCcw, Target } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { useRequest } from "../hooks/useRequest";
+import { useRequest } from "@/hooks/useRequest";
 import { solveMcq } from "../lib/generators";
 import { OPTION_KEYS, type Options, type SolverFormValues } from "../types";
-import { ActionButton, ErrorText, Panel, TextField } from "./FormControls";
-import { Section } from "./Section";
-import { SettingsToggle } from "./SettingsToggle";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { Section } from "@/components/tool/Section";
+import { SettingsToggle } from "@/components/tool/SettingsToggle";
 import { SolverResultCard } from "./SolverResultCard";
 
 const EMPTY_OPTIONS: Options = { A: "", B: "", C: "", D: "" };

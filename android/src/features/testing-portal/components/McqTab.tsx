@@ -8,18 +8,18 @@ import { useState } from "react";
 import { mcqDifficultyLevelOptions, mcqQuestionTypeOptions } from "../options";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { Sparkles } from "lucide-react-native";
-import { useRequest } from "../hooks/useRequest";
+import { useRequest } from "@/hooks/useRequest";
 import { generateMcqs } from "../lib/generators";
 import { PAST_QUESTIONS_LIMIT } from "../lib/past-questions";
 import type { McqFormValues, McqItem } from "../types";
-import { ActionButton, ErrorText, Panel, TextField } from "./FormControls";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { BatchActions } from "./BatchActions";
-import { CountSlider } from "./CountSlider";
+import { CountSlider } from "@/components/tool/CountSlider";
 import { McqQuiz } from "./McqQuiz";
 import { PastQuestionsPanel } from "./PastQuestionsPanel";
-import { SelectField } from "./SelectField";
-import { Section } from "./Section";
-import { SettingsToggle } from "./SettingsToggle";
+import { SelectField } from "@/components/tool/SelectField";
+import { Section } from "@/components/tool/Section";
+import { SettingsToggle } from "@/components/tool/SettingsToggle";
 
 const MAX_QUESTIONS = 10;
 

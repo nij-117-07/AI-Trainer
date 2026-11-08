@@ -3,7 +3,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { PAST_QUESTIONS_LIMIT } from "../lib/past-questions";
-import { Field, Panel } from "./FormControls";
+import { Field, Panel } from "@/components/tool/FormControls";
 
 export function PastQuestionsPanel({ items }: { items: string[] }) {
   const colors = useThemeColors();

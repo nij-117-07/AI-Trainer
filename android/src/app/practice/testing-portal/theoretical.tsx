@@ -1,6 +1,6 @@
 // src/app/practice/testing-portal/theoretical.tsx
 import { TheoreticalTab } from "@/features/testing-portal/components/TheoreticalTab";
-import { ToolScreen } from "@/features/testing-portal/components/ToolScreen";
+import { ToolScreen } from "@/components/tool/ToolScreen";
 
 export default function TheoreticalRoute() {
   return (

@@ -63,12 +63,7 @@ export interface SolverResult {
   reasoning: string;
 }
 
-/** A picked image, base64-encoded so it can be sent to the model. */
-export interface ImageInput {
-  uri: string;
-  mimeType: string;
-  base64: string;
-}
+export type { ImageInput } from "@/lib/image";
 
 export interface GradingResult {
   combinedAnalysis: string;

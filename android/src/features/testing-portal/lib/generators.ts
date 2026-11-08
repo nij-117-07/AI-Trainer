@@ -5,7 +5,7 @@
  */
 import { ax } from "@ax-llm/ax";
 import type { AiSettings } from "@/features/ai-settings/types";
-import { createLlm } from "./llm";
+import { createLlm } from "@/features/ai-settings/lib/llm";
 import { recentPastQuestions } from "./past-questions";
 import { answerSignature, graderSignature, mcqSignature, solverSignature, theoreticalSignature } from "./signatures";
 import type {

@@ -1,6 +1,6 @@
 // src/features/testing-portal/lib/generators.test.ts
 import { generateMcqs, gradeAnswer, solveMcq } from "./generators";
-import { AiNotConfiguredError, createLlm } from "./llm";
+import { AiNotConfiguredError, createLlm } from "@/features/ai-settings/lib/llm";
 import type { AiSettings } from "@/features/ai-settings/types";
 
 const configured: AiSettings = {

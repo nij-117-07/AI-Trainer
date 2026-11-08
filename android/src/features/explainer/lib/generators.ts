@@ -6,7 +6,7 @@
  */
 import { ax } from "@ax-llm/ax";
 import type { AiSettings } from "@/features/ai-settings/types";
-import { createLlm } from "@/features/testing-portal/lib/llm";
+import { createLlm } from "@/features/ai-settings/lib/llm";
 import type {
   CurriculumFormValues,
   CurriculumResult,

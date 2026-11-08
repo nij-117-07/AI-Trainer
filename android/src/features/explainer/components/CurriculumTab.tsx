@@ -5,16 +5,16 @@ import { StyleSheet, Text, View } from "react-native";
 import { Compass, Lightbulb, RefreshCcw, Route, ScrollText, Sparkles } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, Panel, TextField } from "@/features/testing-portal/components/FormControls";
-import { SelectField } from "@/features/testing-portal/components/SelectField";
-import { Section } from "@/features/testing-portal/components/Section";
-import { useRequest } from "@/features/testing-portal/hooks/useRequest";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { SelectField } from "@/components/tool/SelectField";
+import { Section } from "@/components/tool/Section";
+import { useRequest } from "@/hooks/useRequest";
 import { buildCurriculum } from "../lib/generators";
 import { userLevelOptions } from "../options";
 import type { CurriculumFormValues } from "../types";
-import { MarkdownText } from "./MarkdownText";
-import { ResultCallout } from "./ResultCallout";
-import { SectionTitle } from "./SectionTitle";
+import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ResultCallout } from "@/components/tool/ResultCallout";
+import { SectionTitle } from "@/components/tool/SectionTitle";
 
 const DEFAULTS: CurriculumFormValues = {
   topic: "Asynchronous Python (asyncio)",

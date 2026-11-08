@@ -7,10 +7,10 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CircleCheck, CircleX, ShieldCheck } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { useRequest } from "../hooks/useRequest";
+import { useRequest } from "@/hooks/useRequest";
 import { solveMcq } from "../lib/generators";
 import { OPTION_KEYS, type McqItem, type OptionKey } from "../types";
-import { ActionButton, ErrorText, Panel } from "./FormControls";
+import { ActionButton, ErrorText, Panel } from "@/components/tool/FormControls";
 import { SolverResultCard } from "./SolverResultCard";
 
 interface McqQuestionCardProps {

@@ -7,14 +7,14 @@ import { StyleSheet, Text, View } from "react-native";
 import { BookOpen, RefreshCcw } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { useRequest } from "../hooks/useRequest";
+import { useRequest } from "@/hooks/useRequest";
 import { generateAnswer } from "../lib/generators";
 import { difficultyOptions, responseFormatOptions } from "../options";
 import type { AnswerFormValues, ResponseFormat } from "../types";
-import { ActionButton, ErrorText, Panel, TextField } from "./FormControls";
-import { SelectField } from "./SelectField";
-import { Section } from "./Section";
-import { SettingsToggle } from "./SettingsToggle";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { SelectField } from "@/components/tool/SelectField";
+import { Section } from "@/components/tool/Section";
+import { SettingsToggle } from "@/components/tool/SettingsToggle";
 
 const DEFAULTS: AnswerFormValues = {
   question: "",

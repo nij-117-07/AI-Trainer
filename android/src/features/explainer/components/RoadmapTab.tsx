@@ -5,16 +5,16 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { BookOpen, ChevronDown, ChevronUp, Lightbulb, ListTree, RefreshCcw, Sparkles } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, Panel, TextField } from "@/features/testing-portal/components/FormControls";
-import { SelectField } from "@/features/testing-portal/components/SelectField";
-import { Section } from "@/features/testing-portal/components/Section";
-import { useRequest } from "@/features/testing-portal/hooks/useRequest";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { SelectField } from "@/components/tool/SelectField";
+import { Section } from "@/components/tool/Section";
+import { useRequest } from "@/hooks/useRequest";
 import { generateRoadmap } from "../lib/generators";
 import { expertiseLevelOptions, roadmapStyleOptions } from "../options";
 import type { RoadmapFormValues } from "../types";
-import { MarkdownText } from "./MarkdownText";
-import { ResultCallout } from "./ResultCallout";
-import { SectionTitle } from "./SectionTitle";
+import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ResultCallout } from "@/components/tool/ResultCallout";
+import { SectionTitle } from "@/components/tool/SectionTitle";
 
 const DEFAULTS: RoadmapFormValues = {
   topic: "UI vs UX differences",

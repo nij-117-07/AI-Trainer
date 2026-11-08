@@ -8,12 +8,12 @@ import { StyleSheet, Text, View } from "react-native";
 import { BookOpen, ShieldCheck } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { useRequest } from "../hooks/useRequest";
+import { useRequest } from "@/hooks/useRequest";
 import { gradeAnswer, generateAnswer } from "../lib/generators";
 import type { ImageInput, TheoreticalItem } from "../types";
-import { ActionButton, ErrorText, Panel, TextField } from "./FormControls";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { GraderFeedback } from "./GraderFeedback";
-import { ImagePickerField } from "./ImagePickerField";
+import { ImagePickerField } from "@/components/tool/ImagePickerField";
 
 interface TheoreticalQuestionCardProps {
   index: number;

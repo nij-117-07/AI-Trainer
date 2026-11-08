@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react-native";
 import { breakpoints, radius, spacing, useThemeColors, type Tone } from "@/theme";
-import { ToolScreen } from "@/features/testing-portal/components/ToolScreen";
+import { ToolScreen } from "@/components/tool/ToolScreen";
 
 interface ExplainerTool {
   key: string;

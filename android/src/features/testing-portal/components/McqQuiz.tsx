@@ -8,7 +8,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ChevronLeft, ChevronRight, RefreshCcw, Trophy } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import type { McqItem, OptionKey } from "../types";
-import { ActionButton, ChoiceChips, Panel } from "./FormControls";
+import { ActionButton, ChoiceChips, Panel } from "@/components/tool/FormControls";
 import { McqQuestionCard } from "./McqQuestionCard";
 
 type ViewMode = "list" | "step";

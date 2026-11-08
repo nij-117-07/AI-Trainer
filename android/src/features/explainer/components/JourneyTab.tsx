@@ -8,14 +8,14 @@ import { StyleSheet, Text, View } from "react-native";
 import { Check, CircleDot, Compass, Loader2, MapPin, RefreshCcw, Square } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, Panel, TextField } from "@/features/testing-portal/components/FormControls";
-import { Section } from "@/features/testing-portal/components/Section";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { Section } from "@/components/tool/Section";
 import { runJourney } from "../lib/generators";
 import type { JourneyChapter, JourneyFormValues, JourneyPlan } from "../types";
-import { MarkdownText } from "./MarkdownText";
-import { ResultCallout } from "./ResultCallout";
-import { SectionTitle } from "./SectionTitle";
-import { TagList } from "./TagList";
+import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ResultCallout } from "@/components/tool/ResultCallout";
+import { SectionTitle } from "@/components/tool/SectionTitle";
+import { TagList } from "@/components/tool/TagList";
 
 type JourneyStatus = "idle" | "streaming" | "done" | "stopped" | "error";
 

@@ -1,6 +1,6 @@
 // src/app/learning/explainer/curriculum.tsx
 import { CurriculumTab } from "@/features/explainer/components/CurriculumTab";
-import { ToolScreen } from "@/features/testing-portal/components/ToolScreen";
+import { ToolScreen } from "@/components/tool/ToolScreen";
 
 export default function CurriculumRoute() {
   return (

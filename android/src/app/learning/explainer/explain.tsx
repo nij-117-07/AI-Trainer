@@ -1,6 +1,6 @@
 // src/app/learning/explainer/explain.tsx
 import { ExplainTab } from "@/features/explainer/components/ExplainTab";
-import { ToolScreen } from "@/features/testing-portal/components/ToolScreen";
+import { ToolScreen } from "@/components/tool/ToolScreen";
 
 export default function ExplainRoute() {
   return (

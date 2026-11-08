@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-na
 import { useRouter } from "expo-router";
 import { BookOpen, Brain, Gauge, ListChecks, Target, type LucideIcon } from "lucide-react-native";
 import { breakpoints, radius, spacing, useThemeColors, type Tone } from "@/theme";
-import { ToolScreen } from "./ToolScreen";
+import { ToolScreen } from "@/components/tool/ToolScreen";
 
 interface PortalTool {
   key: string;

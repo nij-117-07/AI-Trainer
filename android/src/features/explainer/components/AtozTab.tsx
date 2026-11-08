@@ -3,15 +3,15 @@
 import { useState } from "react";
 import { BookOpenText, RefreshCcw, Sparkles } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, Panel, TextField } from "@/features/testing-portal/components/FormControls";
-import { SelectField } from "@/features/testing-portal/components/SelectField";
-import { Section } from "@/features/testing-portal/components/Section";
-import { useRequest } from "@/features/testing-portal/hooks/useRequest";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { SelectField } from "@/components/tool/SelectField";
+import { Section } from "@/components/tool/Section";
+import { useRequest } from "@/hooks/useRequest";
 import { generateTutorial } from "../lib/generators";
 import { explanationStyleOptions, expertiseLevelOptions } from "../options";
 import type { TutorialFormValues } from "../types";
-import { MarkdownText } from "./MarkdownText";
-import { SectionTitle } from "./SectionTitle";
+import { MarkdownText } from "@/components/tool/MarkdownText";
+import { SectionTitle } from "@/components/tool/SectionTitle";
 
 const DEFAULTS: TutorialFormValues = {
   topic: "FastAPI Architecture",

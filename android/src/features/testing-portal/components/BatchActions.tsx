@@ -3,7 +3,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Plus, RefreshCcw } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
-import { ActionButton, Panel } from "./FormControls";
+import { ActionButton, Panel } from "@/components/tool/FormControls";
 
 interface BatchActionsProps {
   count: number;

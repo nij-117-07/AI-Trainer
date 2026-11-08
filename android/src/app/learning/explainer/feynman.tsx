@@ -1,6 +1,6 @@
 // src/app/learning/explainer/feynman.tsx
 import { FeynmanTab } from "@/features/explainer/components/FeynmanTab";
-import { ToolScreen } from "@/features/testing-portal/components/ToolScreen";
+import { ToolScreen } from "@/components/tool/ToolScreen";
 
 export default function FeynmanRoute() {
   return (

@@ -6,16 +6,16 @@
 import { useState } from "react";
 import { RefreshCcw, ShieldCheck } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { useRequest } from "../hooks/useRequest";
+import { useRequest } from "@/hooks/useRequest";
 import { gradeAnswer } from "../lib/generators";
 import { expectedLevelOptions } from "../options";
 import type { ImageInput } from "../types";
-import { ActionButton, ErrorText, Panel, TextField } from "./FormControls";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { GraderFeedback } from "./GraderFeedback";
-import { ImagePickerField } from "./ImagePickerField";
-import { SelectField } from "./SelectField";
-import { Section } from "./Section";
-import { SettingsToggle } from "./SettingsToggle";
+import { ImagePickerField } from "@/components/tool/ImagePickerField";
+import { SelectField } from "@/components/tool/SelectField";
+import { Section } from "@/components/tool/Section";
+import { SettingsToggle } from "@/components/tool/SettingsToggle";
 
 const DEFAULTS = {
   scenario: "Handle a difficult customer complaint",

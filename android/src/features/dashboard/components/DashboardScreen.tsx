@@ -6,36 +6,9 @@
 import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { ChevronRight, ClipboardList, GraduationCap, Settings, type LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
-
-interface AppCard {
-  key: string;
-  title: string;
-  description: string;
-  route: string;
-  icon: LucideIcon;
-  tone: Tone;
-}
-
-const APPS: AppCard[] = [
-  {
-    key: "testing-portal",
-    title: "Testing Portal",
-    description: "Generate MCQs and theoretical questions, write expert answers, and solve MCQs with your AI model.",
-    route: "/practice/testing-portal",
-    icon: ClipboardList,
-    tone: "rose",
-  },
-  {
-    key: "explainer",
-    title: "Explainer Tools",
-    description: "Explain topics, write A-to-Z tutorials and roadmaps, simplify ideas, and plan your learning.",
-    route: "/learning/explainer",
-    icon: GraduationCap,
-    tone: "sky",
-  },
-];
+import { ChevronRight, ClipboardList, Settings } from "lucide-react-native";
+import { radius, spacing, useThemeColors } from "@/theme";
+import { APPS } from "../data/apps";
 
 export function DashboardScreen() {
   const colors = useThemeColors();
