@@ -26,6 +26,7 @@ import {
   Laugh,
   Library,
   Link2,
+  ListTodo,
   MapPinned,
   Megaphone,
   Mic,
@@ -355,6 +356,15 @@ export const APPS: AppCard[] = [
     icon: Mic,
     group: "tools",
     tone: "rose",
+  },
+  {
+    key: "tasks",
+    title: "Task Manager",
+    description: "Track tasks with due dates and priorities. Work through Inbox, Today, and Upcoming, then review what you completed.",
+    route: "/tools/tasks",
+    icon: ListTodo,
+    group: "tools",
+    tone: "emerald",
   },
   {
     key: "rss",
