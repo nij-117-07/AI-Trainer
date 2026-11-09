@@ -12,6 +12,7 @@ import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { isAiConfigured } from "@/features/ai-settings/lib/llm";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { useGoBack } from "@/lib/navigation";
 
 interface ToolScreenProps {
   title: string;
@@ -21,6 +22,7 @@ interface ToolScreenProps {
 export function ToolScreen({ title, children }: ToolScreenProps) {
   const colors = useThemeColors();
   const router = useRouter();
+  const goBack = useGoBack();
   const { settings, loaded } = useAiSettings();
   const configured = isAiConfigured(settings);
 
@@ -28,7 +30,7 @@ export function ToolScreen({ title, children }: ToolScreenProps) {
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           accessibilityRole="button"
           accessibilityLabel="Go back"
           style={({ pressed }) => [styles.iconButton, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}

@@ -7,9 +7,9 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 import { ArrowLeft, Eye, EyeOff, Mic, Save, Volume2 } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { useGoBack } from "@/lib/navigation";
 import { AppearanceSettings } from "@/features/theme-settings/components/AppearanceSettings";
 import { SelectField } from "@/components/tool/SelectField";
 import { useAiSettings } from "../providers/AiSettingsProvider";
@@ -21,7 +21,7 @@ const URL_PATTERN = /^https?:\/\/\S+$/i;
 
 export function AiSettingsScreen() {
   const colors = useThemeColors();
-  const router = useRouter();
+  const goBack = useGoBack();
   const { settings, loaded, saveSettings } = useAiSettings();
 
   const [form, setForm] = useState<AiSettings>(settings);
@@ -83,7 +83,7 @@ export function AiSettingsScreen() {
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           accessibilityRole="button"
           accessibilityLabel="Go back"
           style={({ pressed }) => [styles.iconButton, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
