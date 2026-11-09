@@ -33,6 +33,7 @@ import {
   MessageCircleQuestion,
   MessagesSquare,
   Network,
+  NotebookPen,
   Palette,
   PenTool,
   Puzzle,
@@ -365,6 +366,15 @@ export const APPS: AppCard[] = [
     icon: ListTodo,
     group: "tools",
     tone: "emerald",
+  },
+  {
+    key: "brain-dump",
+    title: "Brain Dump & Notes",
+    description: "Get everything on your mind into one box, then search, tag with #hashtags, pin, and edit your notes.",
+    route: "/tools/brain-dump",
+    icon: NotebookPen,
+    group: "tools",
+    tone: "sky",
   },
   {
     key: "rss",
