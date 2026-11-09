@@ -1,11 +1,12 @@
 // src/features/testing-portal/components/TheoreticalQuestionCard.tsx
 /**
- * One theoretical question with an answer box (text and/or image), "Grade my answer", and
- * "Answer with AI" for an expert answer. Mirrors the webui question card.
+ * One theoretical question with an answer box (text, voice, and/or image), "Grade my answer",
+ * then "Try again" or "Next question". The model answer is offered only after grading, so the
+ * learner attempts the question first. Mirrors the webui question card.
  */
 import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { BookOpen, Mic, ShieldCheck, Square } from "lucide-react-native";
+import { ArrowRight, BookOpen, Mic, RotateCcw, ShieldCheck, Square } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useVoiceInput } from "@/features/chatbot/hooks/useVoiceInput";
@@ -17,14 +18,23 @@ import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/For
 import { GraderFeedback } from "./GraderFeedback";
 import { ImagePickerField } from "@/components/tool/ImagePickerField";
 
+const MAX_ANSWER_CHARS = 5000;
+
 interface TheoreticalQuestionCardProps {
   index: number;
   question: TheoreticalItem;
   contextSetting: string;
   difficultyLevel: string;
+  onNext?: () => void;
 }
 
-export function TheoreticalQuestionCard({ index, question, contextSetting, difficultyLevel }: TheoreticalQuestionCardProps) {
+export function TheoreticalQuestionCard({
+  index,
+  question,
+  contextSetting,
+  difficultyLevel,
+  onNext,
+}: TheoreticalQuestionCardProps) {
   const colors = useThemeColors();
   const { settings } = useAiSettings();
   const [answer, setAnswer] = useState("");
@@ -32,6 +42,7 @@ export function TheoreticalQuestionCard({ index, question, contextSetting, diffi
   const grade = useRequest(gradeAnswer);
   const expert = useRequest(generateAnswer);
   const voice = useVoiceInput((text) => setAnswer((prev) => appendTranscript(prev, text)));
+  const hasAnswer = answer.trim().length > 0 || image !== null;
 
   function handleGrade() {
     return grade.run(settings, {
@@ -53,6 +64,15 @@ export function TheoreticalQuestionCard({ index, question, contextSetting, diffi
       customInstructions: "",
     });
   }
+
+  function voiceStatus(): string {
+    if (voice.recording) return `Recording ${formatElapsed(voice.elapsedMs)}. Tap the red button to finish.`;
+    if (voice.transcribing) return "Transcribing your voice…";
+    if (!voice.ready) return "Add the voice model in AI settings to answer by voice.";
+    return "Answer by voice";
+  }
+
+  const voiceLocked = voice.transcribing || grade.pending;
 
   return (
     <Panel>
@@ -77,24 +97,25 @@ export function TheoreticalQuestionCard({ index, question, contextSetting, diffi
         <TextField
           label="Your answer"
           placeholder="Write your answer here, then grade it against the objective."
+          hint={`${answer.length} / ${MAX_ANSWER_CHARS}`}
           value={answer}
           onChangeText={setAnswer}
-          maxLength={5000}
+          maxLength={MAX_ANSWER_CHARS}
           multiline
           editable={!grade.pending}
         />
         <View style={styles.voiceRow}>
           <Pressable
             onPress={() => void voice.toggle()}
-            disabled={voice.transcribing || grade.pending}
+            disabled={voiceLocked}
             accessibilityRole="button"
             accessibilityLabel={voice.recording ? "Stop recording" : "Start voice answer"}
-            accessibilityState={{ busy: voice.transcribing, selected: voice.recording, disabled: grade.pending }}
+            accessibilityState={{ busy: voice.transcribing, selected: voice.recording, disabled: voiceLocked }}
             style={({ pressed }) => [
               styles.micButton,
               { backgroundColor: voice.recording ? colors.destructive : colors.muted },
               pressed && styles.pressed,
-              (voice.transcribing || grade.pending) && styles.disabled,
+              voiceLocked && styles.disabled,
             ]}
           >
             {voice.transcribing ? (
@@ -106,13 +127,7 @@ export function TheoreticalQuestionCard({ index, question, contextSetting, diffi
             )}
           </Pressable>
           <Text style={[styles.voiceStatus, { color: voice.recording ? colors.destructive : colors.mutedForeground }]}>
-            {voice.recording
-              ? `Recording ${formatElapsed(voice.elapsedMs)}. Tap the red button to finish.`
-              : voice.transcribing
-                ? "Transcribing your voice…"
-                : voice.ready
-                  ? "Tap the mic to add your answer by voice."
-                  : "Add the voice model in AI settings to answer by voice."}
+            {voiceStatus()}
           </Text>
         </View>
         <ErrorText message={voice.error} />
@@ -120,43 +135,58 @@ export function TheoreticalQuestionCard({ index, question, contextSetting, diffi
         <ActionButton
           label={grade.pending ? "Grading…" : "Grade my answer"}
           icon={ShieldCheck}
-          variant="outline"
           loading={grade.pending}
+          disabled={!hasAnswer}
           onPress={handleGrade}
         />
         <ErrorText message={grade.error} />
         {grade.data && <GraderFeedback result={grade.data} />}
       </View>
 
-      <View style={[styles.section, { borderTopColor: colors.border }]}>
-        <ActionButton
-          label={expert.pending ? "Generating expert answer…" : "Answer with AI"}
-          icon={BookOpen}
-          variant="outline"
-          loading={expert.pending}
-          onPress={handleExpertAnswer}
-        />
-        <ErrorText message={expert.error} />
-        {expert.data && (
-          <View style={[styles.expert, { backgroundColor: colors.background, borderColor: colors.border }]}>
-            <Text selectable style={[styles.body, { color: colors.foreground }]}>
-              {expert.data.answerText}
-            </Text>
-            {expert.data.keyConceptsCovered.length > 0 && (
-              <View style={styles.chips}>
-                {expert.data.keyConceptsCovered.map((concept, conceptIndex) => (
-                  <View
-                    key={`${concept}-${conceptIndex}`}
-                    style={[styles.chip, { backgroundColor: colors.tone.amber.bg, borderColor: colors.tone.amber.border }]}
-                  >
-                    <Text style={[styles.chipText, { color: colors.tone.amber.fg }]}>{concept}</Text>
-                  </View>
-                ))}
+      {grade.data && (
+        <View style={[styles.section, { borderTopColor: colors.border }]}>
+          <View style={styles.actionRow}>
+            <View style={styles.flex}>
+              <ActionButton label="Try again" icon={RotateCcw} variant="outline" onPress={grade.reset} />
+            </View>
+            {onNext && (
+              <View style={styles.flex}>
+                <ActionButton label="Next question" icon={ArrowRight} onPress={onNext} />
               </View>
             )}
           </View>
-        )}
-      </View>
+
+          {!expert.data && (
+            <ActionButton
+              label={expert.pending ? "Generating model answer…" : "Show model answer"}
+              icon={BookOpen}
+              variant="outline"
+              loading={expert.pending}
+              onPress={handleExpertAnswer}
+            />
+          )}
+          <ErrorText message={expert.error} />
+          {expert.data && (
+            <View style={[styles.expert, { backgroundColor: colors.background, borderColor: colors.border }]}>
+              <Text selectable style={[styles.body, { color: colors.foreground }]}>
+                {expert.data.answerText}
+              </Text>
+              {expert.data.keyConceptsCovered.length > 0 && (
+                <View style={styles.chips}>
+                  {expert.data.keyConceptsCovered.map((concept, conceptIndex) => (
+                    <View
+                      key={`${concept}-${conceptIndex}`}
+                      style={[styles.chip, { backgroundColor: colors.tone.amber.bg, borderColor: colors.tone.amber.border }]}
+                    >
+                      <Text style={[styles.chipText, { color: colors.tone.amber.fg }]}>{concept}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      )}
     </Panel>
   );
 }
@@ -215,8 +245,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   micButton: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     borderRadius: radius.full,
     alignItems: "center",
     justifyContent: "center",
@@ -225,6 +255,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     lineHeight: 18,
+  },
+  actionRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  flex: {
+    flex: 1,
   },
   pressed: {
     opacity: 0.85,

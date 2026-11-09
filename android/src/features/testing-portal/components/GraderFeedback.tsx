@@ -25,7 +25,10 @@ export function GraderFeedback({ result }: { result: GradingResult }) {
   const tone = met ? colors.tone.emerald : colors.tone.amber;
 
   return (
-    <View style={[styles.box, { backgroundColor: colors.background, borderColor: colors.border }]}>
+    <View
+      accessibilityLiveRegion="polite"
+      style={[styles.box, { backgroundColor: colors.background, borderColor: colors.border }]}
+    >
       <View style={styles.header}>
         <Text style={[styles.score, { color: colors.foreground }]}>
           {result.score.toFixed(1)}

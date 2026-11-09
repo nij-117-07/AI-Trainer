@@ -98,26 +98,28 @@ interface ActionButtonProps {
   onPress: () => void;
   loading?: boolean;
   variant?: "primary" | "outline";
+  disabled?: boolean;
 }
 
-export function ActionButton({ label, icon: Icon, onPress, loading = false, variant = "primary" }: ActionButtonProps) {
+export function ActionButton({ label, icon: Icon, onPress, loading = false, variant = "primary", disabled = false }: ActionButtonProps) {
   const colors = useThemeColors();
   const filled = variant === "primary";
   const foreground = filled ? colors.primaryForeground : colors.foreground;
+  const inactive = loading || disabled;
   return (
     <Pressable
       onPress={onPress}
-      disabled={loading}
+      disabled={inactive}
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ busy: loading, disabled: loading }}
+      accessibilityState={{ busy: loading, disabled: inactive }}
       style={({ pressed }) => [
         styles.button,
         filled
           ? { backgroundColor: colors.primary }
           : { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card },
         pressed && styles.pressed,
-        loading && styles.disabled,
+        inactive && styles.disabled,
       ]}
     >
       {loading ? (
@@ -180,6 +182,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    minHeight: 44,
+    justifyContent: "center",
   },
   chipText: {
     fontSize: 14,
