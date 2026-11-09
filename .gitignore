@@ -219,3 +219,5 @@ __marimo__/
 .streamlit/secrets.toml
 Data/
 .Data/
+!android/src/features/language-learner/data/
+!android/src/features/dashboard/data/
