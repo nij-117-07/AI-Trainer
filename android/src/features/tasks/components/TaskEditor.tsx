@@ -1,17 +1,28 @@
 // src/features/tasks/components/TaskEditor.tsx
-/** Edit one task: title, notes, due date, priority, project, labels, repeat, reminder, and subtasks. */
+/**
+ * Edit one task. Changes are saved with the Save button in the top bar. Going back with unsaved
+ * changes asks first.
+ */
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ArrowLeft, Check, Plus, RotateCcw, Save, Trash2, X } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ChoiceChips, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
+import { confirmAction } from "@/features/chatbot/lib/confirm";
+import { dateKey, parseDateKey } from "../lib/dates";
 import { newId } from "../lib/ids";
 import { requestReminderPermission } from "../lib/notifications";
 import { dueDateOptions, PRIORITY_OPTIONS } from "../lib/tasks";
 import { RECURRENCE_OPTIONS } from "../lib/recurrence";
-import { formatReminderInput, parseReminderInput, presetReminderInput } from "../lib/reminders";
+import {
+  formatReminderDate,
+  formatReminderInput,
+  parseReminderInput,
+  presetReminderInput,
+} from "../lib/reminders";
 import type { Label, Project, Recurrence, Subtask, Task, TaskPatch, TaskPriority } from "../types";
+import { DateTimeField } from "./DateTimeField";
 import { ToggleChip } from "./ToggleChip";
 
 interface Draft {
@@ -58,9 +69,11 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
   const [newSubtask, setNewSubtask] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const dirty = JSON.stringify(draft) !== JSON.stringify(baseline);
+  const parsedReminder = parseReminderInput(draft.reminderText, new Date(), { allowPast: true });
+  const reminderDate = parsedReminder.ok && parsedReminder.iso ? new Date(parsedReminder.iso) : null;
+  const dueDateValue = draft.dueDate ? parseDateKey(draft.dueDate) : null;
 
   function update(patch: Partial<Draft>) {
     setDraft((prev) => ({ ...prev, ...patch }));
@@ -100,6 +113,18 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
     setBaseline(draft);
   }
 
+  function goBack() {
+    if (!dirty) {
+      onBack();
+      return;
+    }
+    confirmAction("Discard changes?", "Your edits to this task have not been saved.", onBack, "Discard");
+  }
+
+  function confirmDelete() {
+    confirmAction("Delete task?", "This task and its subtasks will be removed.", onDelete);
+  }
+
   function addSubtask() {
     const text = newSubtask.trim();
     if (!text) return;
@@ -129,17 +154,40 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
 
   return (
     <Section>
-      <Pressable
-        onPress={onBack}
-        accessibilityRole="button"
-        accessibilityLabel="Back to tasks"
-        style={({ pressed }) => [styles.backRow, pressed && { opacity: 0.7 }]}
-      >
-        <ArrowLeft size={18} color={colors.foreground} />
-        <Text style={[styles.backText, { color: colors.foreground }]}>All tasks</Text>
-      </Pressable>
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={goBack}
+          accessibilityRole="button"
+          accessibilityLabel="Back to tasks"
+          style={({ pressed }) => [styles.backRow, pressed && { opacity: 0.7 }]}
+        >
+          <ArrowLeft size={18} color={colors.foreground} />
+          <Text style={[styles.backText, { color: colors.foreground }]}>All tasks</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => void save()}
+          disabled={!dirty}
+          accessibilityRole="button"
+          accessibilityLabel={dirty ? "Save changes" : "All changes saved"}
+          accessibilityState={{ disabled: !dirty }}
+          style={({ pressed }) => [
+            styles.saveButton,
+            { backgroundColor: dirty ? colors.primary : colors.muted },
+            pressed && dirty && { opacity: 0.85 },
+          ]}
+        >
+          <Save size={16} color={dirty ? colors.primaryForeground : colors.mutedForeground} />
+          <Text style={[styles.saveText, { color: dirty ? colors.primaryForeground : colors.mutedForeground }]}>
+            {dirty ? "Save" : "Saved"}
+          </Text>
+        </Pressable>
+      </View>
+
+      <ErrorText message={error} />
+      {notice ? <Text style={[styles.hint, { color: colors.mutedForeground }]}>{notice}</Text> : null}
 
       <Panel>
+        <Text style={[styles.heading, { color: colors.mutedForeground }]}>Details</Text>
         <TextField label="Title" value={draft.title} onChangeText={(value) => update({ title: value })} maxLength={200} />
         <TextField
           label="Notes"
@@ -150,9 +198,6 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
           style={styles.notes}
           placeholder="Add details"
         />
-
-        <Text style={[styles.label, { color: colors.foreground }]}>Due date</Text>
-        <ChoiceChips options={dueDateOptions(new Date())} value={draft.dueDate ?? "none"} onChange={(value) => update({ dueDate: value === "none" ? null : value })} />
 
         <Text style={[styles.label, { color: colors.foreground }]}>Priority</Text>
         <ChoiceChips options={PRIORITY_OPTIONS} value={draft.priority} onChange={(value) => update({ priority: value })} />
@@ -183,21 +228,37 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
             </View>
           </>
         ) : null}
+      </Panel>
+
+      <Panel>
+        <Text style={[styles.heading, { color: colors.mutedForeground }]}>Schedule</Text>
+        <Text style={[styles.label, { color: colors.foreground }]}>Due date</Text>
+        <ChoiceChips
+          options={dueDateOptions(new Date())}
+          value={draft.dueDate ?? "none"}
+          onChange={(value) => update({ dueDate: value === "none" ? null : value })}
+        />
+        <DateTimeField
+          label="Pick a date"
+          mode="date"
+          value={dueDateValue}
+          placeholder="Choose any day"
+          onChange={(date) => update({ dueDate: date ? dateKey(date) : null })}
+        />
 
         <Text style={[styles.label, { color: colors.foreground }]}>Repeat</Text>
         <ChoiceChips options={RECURRENCE_OPTIONS} value={draft.recurrence} onChange={(value) => update({ recurrence: value })} />
         {draft.recurrence !== "none" && !draft.dueDate ? (
           <Text style={[styles.hint, { color: colors.mutedForeground }]}>Set a due date so the task knows when to repeat.</Text>
         ) : null}
-      </Panel>
 
-      <Panel>
-        <TextField
+        <DateTimeField
           label="Remind me at"
-          hint="Format: YYYY-MM-DD HH:MM, in your local time. Reminders work on the Android app."
-          value={draft.reminderText}
-          onChangeText={(value) => update({ reminderText: value })}
-          placeholder="2026-11-10 09:00"
+          hint="Reminders work on the Android app."
+          mode="datetime"
+          value={reminderDate}
+          placeholder="Choose a date and time"
+          onChange={(date) => update({ reminderText: date ? formatReminderDate(date) : "" })}
         />
         <View style={styles.chipRow}>
           <ToggleChip label="In 1 hour" onPress={() => update({ reminderText: presetReminderInput("hour", new Date()) })} />
@@ -207,7 +268,7 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
       </Panel>
 
       <Panel>
-        <Text style={[styles.label, { color: colors.foreground }]}>Subtasks</Text>
+        <Text style={[styles.heading, { color: colors.mutedForeground }]}>Subtasks</Text>
         {draft.subtasks.length === 0 ? (
           <Text style={[styles.hint, { color: colors.mutedForeground }]}>No subtasks yet.</Text>
         ) : null}
@@ -247,13 +308,7 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
           onSubmitEditing={addSubtask}
           maxLength={200}
         />
-        <ActionButton label="Add subtask" icon={Plus} variant="outline" onPress={addSubtask} />
-      </Panel>
-
-      <Panel>
-        <ErrorText message={error} />
-        {notice ? <Text style={[styles.hint, { color: colors.mutedForeground }]}>{notice}</Text> : null}
-        <ActionButton label={dirty ? "Save changes" : "Saved"} icon={Save} onPress={() => void save()} />
+        <ActionButton label="Add" icon={Plus} variant="outline" onPress={addSubtask} />
       </Panel>
 
       <Panel>
@@ -266,32 +321,46 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
             onBack();
           }}
         />
-        {confirmDelete ? (
-          <View style={styles.actionRow}>
-            <View style={styles.flex}>
-              <ActionButton label="Yes, delete task" icon={Trash2} onPress={onDelete} />
-            </View>
-            <View style={styles.flex}>
-              <ActionButton label="Cancel" variant="outline" onPress={() => setConfirmDelete(false)} />
-            </View>
-          </View>
-        ) : (
-          <ActionButton label="Delete task" icon={Trash2} variant="outline" onPress={() => setConfirmDelete(true)} />
-        )}
+        <ActionButton label="Delete task" icon={Trash2} variant="outline" onPress={confirmDelete} />
       </Panel>
     </Section>
   );
 }
 
 const styles = StyleSheet.create({
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
   backRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
+    minHeight: 40,
   },
   backText: {
     fontSize: 15,
     fontWeight: "600",
+  },
+  saveButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: 40,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.full,
+  },
+  saveText: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  heading: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
   },
   notes: {
     minHeight: 100,
@@ -328,12 +397,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     alignItems: "center",
     justifyContent: "center",
-  },
-  actionRow: {
-    flexDirection: "row",
-    gap: spacing.md,
-  },
-  flex: {
-    flex: 1,
   },
 });

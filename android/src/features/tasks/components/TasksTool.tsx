@@ -1,172 +1,219 @@
 // src/features/tasks/components/TasksTool.tsx
 /**
- * Task manager: add tasks with a due date, priority, and project. Filter by view, project, or label,
- * open a task to edit subtasks, repeats, and reminders, and manage projects and labels.
- * Everything stays on the device.
+ * Task list. Shows the views with counts, an optional filter by project and label, and the tasks in
+ * the chosen view. New tasks are added from the screen footer (TaskComposer).
  */
 import { useState } from "react";
-import { StyleSheet, Text } from "react-native";
-import { Tags } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
-import { ActionButton, ChoiceChips, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { CalendarDays, Check, Inbox, Sun, Tags } from "lucide-react-native";
+import type { LucideIcon } from "lucide-react-native";
+import { radius, spacing, useThemeColors } from "@/theme";
+import { ActionButton, ChoiceChips, Panel } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
-import { useReminderSync } from "../hooks/useReminderSync";
-import { useTasks } from "../hooks/useTasks";
-import { dateKey } from "../lib/dates";
-import { createTask, dueDateOptions, filterTasks, PRIORITY_OPTIONS, VIEW_LABELS } from "../lib/tasks";
-import type { TaskPriority, TaskView } from "../types";
-import { ManageLists } from "./ManageLists";
-import { TaskEditor } from "./TaskEditor";
+import { SettingsToggle } from "@/components/tool/SettingsToggle";
+import type { useTasks } from "../hooks/useTasks";
+import { filterTasks, VIEW_LABELS } from "../lib/tasks";
+import type { TaskView } from "../types";
 import { TaskRow } from "./TaskRow";
+
+type TaskStore = ReturnType<typeof useTasks>;
 
 const VIEWS: TaskView[] = ["inbox", "today", "upcoming", "completed"];
 
-const EMPTY_TEXT: Record<TaskView, string> = {
-  inbox: "Your inbox is empty. Add a task above.",
-  today: "Nothing due today. Enjoy the free time.",
-  upcoming: "No upcoming tasks with a date.",
-  completed: "Nothing completed yet.",
+const VIEW_ICONS: Record<TaskView, LucideIcon> = {
+  inbox: Inbox,
+  today: Sun,
+  upcoming: CalendarDays,
+  completed: Check,
 };
 
-export function TasksTool() {
-  const colors = useThemeColors();
-  const store = useTasks();
-  useReminderSync(store.tasks, store.loaded);
+const EMPTY_TEXT: Record<TaskView, string> = {
+  inbox: "Your inbox is clear. Type a task below to add one.",
+  today: "Nothing due today. Enjoy the free time.",
+  upcoming: "No upcoming tasks. Give a task a date to see it here.",
+  completed: "Completed tasks will show up here.",
+};
 
-  const [screen, setScreen] = useState<"list" | "manage">("list");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+interface TasksToolProps {
+  store: TaskStore;
+  today: string;
+  onOpen: (id: string) => void;
+  onManage: () => void;
+}
+
+export function TasksTool({ store, today, onOpen, onManage }: TasksToolProps) {
+  const colors = useThemeColors();
   const [view, setView] = useState<TaskView>("inbox");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<string | null>(null);
   const [labelFilter, setLabelFilter] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState<string | null>(null);
-  const [priority, setPriority] = useState<TaskPriority>(4);
-  const [quickProject, setQuickProject] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  const now = new Date();
-  const today = dateKey(now);
-  const selected = store.tasks.find((task) => task.id === selectedId) ?? null;
   const projectNames = new Map(store.projects.map((project) => [project.id, project.name]));
   const labelNames = new Map(store.labels.map((label) => [label.id, label.name]));
-
-  if (screen === "manage") {
-    return <ManageLists store={store} onBack={() => setScreen("list")} />;
-  }
-
-  if (selected) {
-    return (
-      <TaskEditor
-        key={selected.id}
-        task={selected}
-        projects={store.projects}
-        labels={store.labels}
-        today={today}
-        onBack={() => setSelectedId(null)}
-        onSave={(patch) => store.updateTask(selected.id, patch)}
-        onToggle={() => store.toggleTask(selected.id)}
-        onDelete={() => {
-          store.removeTask(selected.id);
-          setSelectedId(null);
-        }}
-      />
-    );
-  }
-
   const activeProject = store.projects.some((project) => project.id === projectFilter) ? projectFilter : null;
   const activeLabel = store.labels.some((label) => label.id === labelFilter) ? labelFilter : null;
-  const activeQuickProject = store.projects.some((project) => project.id === quickProject) ? quickProject : null;
+  const scope = { projectId: activeProject, labelId: activeLabel };
 
-  function add() {
-    const text = title.trim();
-    if (!text) {
-      setError("Type a task name first.");
-      return;
-    }
-    store.addTask(createTask({ title: text, dueDate, priority, projectId: activeQuickProject, now: new Date() }));
-    setTitle("");
-    setError(null);
-  }
-
-  const visible = filterTasks(store.tasks, { view, projectId: activeProject, labelId: activeLabel }, today);
-  const emptyText = store.loaded
-    ? activeProject || activeLabel
-      ? "No tasks match this filter."
-      : EMPTY_TEXT[view]
-    : "Loading tasks…";
+  const countFor = (item: TaskView) =>
+    store.loaded ? filterTasks(store.tasks, { view: item, ...scope }, today).length : 0;
+  const visible = filterTasks(store.tasks, { view, ...scope }, today);
+  const filterSummary =
+    [activeProject ? projectNames.get(activeProject) : null, activeLabel ? `#${labelNames.get(activeLabel)}` : null]
+      .filter(Boolean)
+      .join(" · ") || "No filters";
+  const emptyText = !store.loaded
+    ? "Loading tasks…"
+    : activeProject || activeLabel
+      ? "No tasks match these filters."
+      : EMPTY_TEXT[view];
 
   return (
     <Section>
-      <Panel>
-        <TextField
-          label="New task"
-          value={title}
-          onChangeText={(value) => {
-            setTitle(value);
-            setError(null);
-          }}
-          onSubmitEditing={add}
-          placeholder="What needs doing?"
-          maxLength={200}
-        />
-        <ChoiceChips options={dueDateOptions(now)} value={dueDate ?? "none"} onChange={(value) => setDueDate(value === "none" ? null : value)} />
-        <ChoiceChips options={PRIORITY_OPTIONS} value={priority} onChange={setPriority} />
-        {store.projects.length > 0 ? (
-          <ChoiceChips
-            options={[{ value: "none", label: "No project" }, ...store.projects.map((p) => ({ value: p.id, label: p.name }))]}
-            value={activeQuickProject ?? "none"}
-            onChange={(value) => setQuickProject(value === "none" ? null : value)}
-          />
-        ) : null}
-        <ErrorText message={error} />
-        <ActionButton label="Add task" onPress={add} />
-      </Panel>
+      <View style={[styles.segments, { backgroundColor: colors.muted }]}>
+        {VIEWS.map((item) => {
+          const selected = item === view;
+          const color = selected ? colors.foreground : colors.mutedForeground;
+          return (
+            <Pressable
+              key={item}
+              onPress={() => setView(item)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected }}
+              accessibilityLabel={`${VIEW_LABELS[item]}, ${countFor(item)} tasks`}
+              style={[styles.segment, selected && { backgroundColor: colors.card, borderColor: colors.border }]}
+            >
+              <Text style={[styles.segmentCount, { color }]}>{countFor(item)}</Text>
+              <Text numberOfLines={1} style={[styles.segmentLabel, { color }]}>
+                {VIEW_LABELS[item]}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
-      <ChoiceChips
-        options={VIEWS.map((value) => ({ value, label: VIEW_LABELS[value] }))}
-        value={view}
-        onChange={setView}
+      <SettingsToggle
+        title="Filter & organize"
+        summary={filterSummary}
+        expanded={filtersOpen}
+        onToggle={() => setFiltersOpen((open) => !open)}
       />
 
-      {store.projects.length > 0 ? (
-        <ChoiceChips
-          options={[{ value: "all", label: "All projects" }, ...store.projects.map((p) => ({ value: p.id, label: p.name }))]}
-          value={activeProject ?? "all"}
-          onChange={(value) => setProjectFilter(value === "all" ? null : value)}
-        />
+      {filtersOpen ? (
+        <Panel>
+          {store.projects.length > 0 ? (
+            <View style={styles.group}>
+              <Text style={[styles.heading, { color: colors.foreground }]}>Project</Text>
+              <ChoiceChips
+                options={[{ value: "all", label: "All" }, ...store.projects.map((p) => ({ value: p.id, label: p.name }))]}
+                value={activeProject ?? "all"}
+                onChange={(value) => setProjectFilter(value === "all" ? null : value)}
+              />
+            </View>
+          ) : null}
+
+          {store.labels.length > 0 ? (
+            <View style={styles.group}>
+              <Text style={[styles.heading, { color: colors.foreground }]}>Label</Text>
+              <ChoiceChips
+                options={[{ value: "any", label: "Any" }, ...store.labels.map((l) => ({ value: l.id, label: `#${l.name}` }))]}
+                value={activeLabel ?? "any"}
+                onChange={(value) => setLabelFilter(value === "any" ? null : value)}
+              />
+            </View>
+          ) : null}
+
+          <ActionButton label="Manage projects & labels" icon={Tags} variant="outline" onPress={onManage} />
+        </Panel>
       ) : null}
 
-      {store.labels.length > 0 ? (
-        <ChoiceChips
-          options={[{ value: "any", label: "Any label" }, ...store.labels.map((l) => ({ value: l.id, label: `#${l.name}` }))]}
-          value={activeLabel ?? "any"}
-          onChange={(value) => setLabelFilter(value === "any" ? null : value)}
-        />
-      ) : null}
-
-      <ActionButton label="Projects & labels" icon={Tags} variant="outline" onPress={() => setScreen("manage")} />
-
-      {visible.length === 0 ? <Text style={[styles.hint, { color: colors.mutedForeground }]}>{emptyText}</Text> : null}
-
-      {visible.map((task) => (
-        <TaskRow
-          key={task.id}
-          task={task}
-          today={today}
-          projectName={task.projectId ? projectNames.get(task.projectId) ?? null : null}
-          labelNames={task.labelIds.map((id) => labelNames.get(id)).filter((name): name is string => Boolean(name))}
-          onOpen={() => setSelectedId(task.id)}
-          onToggle={() => store.toggleTask(task.id)}
-        />
-      ))}
+      {visible.length === 0 ? (
+        <EmptyState icon={VIEW_ICONS[view]} text={emptyText} />
+      ) : (
+        <View style={[styles.list, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {visible.map((task, index) => (
+            <View key={task.id} style={index > 0 ? [styles.divider, { borderTopColor: colors.border }] : undefined}>
+              <TaskRow
+                task={task}
+                today={today}
+                projectName={task.projectId ? projectNames.get(task.projectId) ?? null : null}
+                labelNames={task.labelIds.map((id) => labelNames.get(id)).filter((name): name is string => Boolean(name))}
+                onOpen={() => onOpen(task.id)}
+                onToggle={() => store.toggleTask(task.id)}
+              />
+            </View>
+          ))}
+        </View>
+      )}
     </Section>
   );
 }
 
+function EmptyState({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
+  const colors = useThemeColors();
+  return (
+    <View style={styles.empty}>
+      <View style={[styles.emptyIcon, { backgroundColor: colors.muted }]}>
+        <Icon size={22} color={colors.mutedForeground} />
+      </View>
+      <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>{text}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  hint: {
+  segments: {
+    flexDirection: "row",
+    gap: spacing.xs,
+    padding: spacing.xs,
+    borderRadius: radius.xl,
+  },
+  segment: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: "transparent",
+    borderRadius: radius.lg,
+  },
+  segmentCount: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  segmentLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  group: {
+    gap: spacing.sm,
+  },
+  heading: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  list: {
+    borderWidth: 1,
+    borderRadius: radius.xl,
+    overflow: "hidden",
+  },
+  divider: {
+    borderTopWidth: 1,
+  },
+  empty: {
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing["2xl"],
+  },
+  emptyIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
     fontSize: 14,
     lineHeight: 20,
-    paddingHorizontal: spacing.xs,
+    textAlign: "center",
+    paddingHorizontal: spacing.lg,
   },
 });

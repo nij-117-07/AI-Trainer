@@ -3,7 +3,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Check, Repeat } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { formatDueDate, isOverdue, PRIORITY_LABELS, subtaskProgress } from "../lib/tasks";
+import { formatDueDate, isOverdue, subtaskProgress } from "../lib/tasks";
 import type { Task } from "../types";
 
 interface TaskRowProps {
@@ -19,18 +19,19 @@ export function TaskRow({ task, today, projectName, labelNames, onOpen, onToggle
   const colors = useThemeColors();
   const overdue = isOverdue(task, today);
   const progress = subtaskProgress(task);
+  const urgent = !task.completed && task.priority === 1;
+  const flagged = !task.completed && task.priority <= 2;
   const meta = [
     task.dueDate ? formatDueDate(task.dueDate, today) : null,
     projectName,
     progress.total > 0 ? `${progress.done}/${progress.total} subtasks` : null,
-    task.priority < 4 ? PRIORITY_LABELS[task.priority] : null,
     ...labelNames.map((name) => `#${name}`),
   ]
     .filter(Boolean)
     .join(" · ");
 
   return (
-    <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View style={styles.row}>
       <Pressable
         onPress={onToggle}
         accessibilityRole="checkbox"
@@ -40,7 +41,7 @@ export function TaskRow({ task, today, projectName, labelNames, onOpen, onToggle
         style={[
           styles.checkbox,
           {
-            borderColor: task.priority === 1 && !task.completed ? colors.destructive : colors.mutedForeground,
+            borderColor: urgent ? colors.destructive : colors.mutedForeground,
             backgroundColor: task.completed ? colors.primary : "transparent",
           },
         ]}
@@ -73,6 +74,12 @@ export function TaskRow({ task, today, projectName, labelNames, onOpen, onToggle
           </View>
         ) : null}
       </Pressable>
+
+      {flagged ? (
+        <Text style={[styles.priority, { color: urgent ? colors.destructive : colors.mutedForeground }]}>
+          P{task.priority}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -82,9 +89,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: spacing.md,
-    borderWidth: 1,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
   },
   checkbox: {
     width: 22,
@@ -115,5 +121,10 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontSize: 12,
     lineHeight: 17,
+  },
+  priority: {
+    marginTop: 2,
+    fontSize: 12,
+    fontWeight: "700",
   },
 });
