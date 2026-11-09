@@ -11,6 +11,7 @@ import { useRequest } from "@/hooks/useRequest";
 import { solveMcq } from "../lib/generators";
 import { OPTION_KEYS, type McqItem, type OptionKey } from "../types";
 import { ActionButton, ErrorText, Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SolverResultCard } from "./SolverResultCard";
 
 interface McqQuestionCardProps {
@@ -37,6 +38,7 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
         </View>
         <Text style={[styles.question, { color: colors.foreground }]}>{question.questionText}</Text>
       </View>
+      <ListenButton text={question.questionText} label="Question" />
 
       {revealed &&
         (isCorrect ? (

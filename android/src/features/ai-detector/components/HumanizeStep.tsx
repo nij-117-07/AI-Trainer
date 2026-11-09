@@ -34,6 +34,7 @@ export function HumanizeStep({ aiTextPrefill, feedbackPrefill, isPending, error,
           editable={!isPending}
           maxLength={TEXT_MAX}
           multiline
+          voice
         />
         <SelectField
           label="Target tone"
@@ -51,6 +52,7 @@ export function HumanizeStep({ aiTextPrefill, feedbackPrefill, isPending, error,
           editable={!isPending}
           maxLength={FEEDBACK_MAX}
           multiline
+          voice
         />
         <TextField
           label="Extra instructions (optional)"
@@ -60,6 +62,7 @@ export function HumanizeStep({ aiTextPrefill, feedbackPrefill, isPending, error,
           editable={!isPending}
           maxLength={COMMENTS_MAX}
           multiline
+          voice
         />
         <ActionButton
           label={isPending ? "Rewriting…" : "Humanize text"}

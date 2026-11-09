@@ -32,6 +32,7 @@ export function SimulatorChatTab() {
           onChangeText={(persona) => chat.update({ persona })}
           editable={!pending}
           maxLength={1000}
+          voice
         />
         <TextField
           label="Scenario"
@@ -42,6 +43,7 @@ export function SimulatorChatTab() {
           editable={!pending}
           maxLength={2000}
           multiline
+          voice
         />
       </Panel>
 

@@ -8,6 +8,7 @@ import { BookOpen, Compass, Lightbulb } from "lucide-react-native";
 import { useThemeColors } from "@/theme";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { Section } from "@/components/tool/Section";
 import type { SkillArchitectResponse } from "../types";
 import { LevelCard } from "./LevelCard";
@@ -25,6 +26,7 @@ export function SkillArchitectResult({ response }: { response: SkillArchitectRes
       {hasText(response.corePhilosophy) && (
         <ResultCallout icon={BookOpen} title="Core philosophy" tone="sky">
           <MarkdownText content={response.corePhilosophy.trim()} />
+          <ListenButton text={response.corePhilosophy} label="Core philosophy" />
         </ResultCallout>
       )}
 
@@ -37,12 +39,14 @@ export function SkillArchitectResult({ response }: { response: SkillArchitectRes
       {hasText(response.criticalBottleneck) && (
         <ResultCallout icon={Compass} title="Critical bottleneck" tone="amber">
           <MarkdownText content={response.criticalBottleneck.trim()} />
+          <ListenButton text={response.criticalBottleneck} label="Critical bottleneck" />
         </ResultCallout>
       )}
 
       {hasText(response.strategicNavigation) && (
         <ResultCallout icon={Lightbulb} title="Strategic navigation" tone="emerald">
           <MarkdownText content={response.strategicNavigation.trim()} />
+          <ListenButton text={response.strategicNavigation} label="Strategic navigation" />
         </ResultCallout>
       )}
     </Section>

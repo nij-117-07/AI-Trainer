@@ -11,6 +11,7 @@ import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
 import { useRequest } from "@/hooks/useRequest";
@@ -72,6 +73,7 @@ export function GuideTaskTab() {
           editable={!request.pending}
           maxLength={500}
           multiline
+          voice
         />
         <SelectField
           label="Current level"
@@ -90,6 +92,7 @@ export function GuideTaskTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Instructions (optional)"
@@ -99,6 +102,7 @@ export function GuideTaskTab() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <ActionButton
           label={request.pending ? "Crafting your tasks…" : "Generate tasks"}
@@ -115,6 +119,7 @@ export function GuideTaskTab() {
           {result.mentorFeedback !== "" && (
             <ResultCallout icon={Lightbulb} title="Mentor feedback" tone="sky">
               <MarkdownText content={result.mentorFeedback} />
+              <ListenButton text={result.mentorFeedback} label="Mentor feedback" />
             </ResultCallout>
           )}
 
@@ -138,6 +143,7 @@ export function GuideTaskTab() {
                   </Text>
                 )}
                 {task.description !== "" && <MarkdownText content={task.description} />}
+                {task.description !== "" && <ListenButton text={task.description} label="Task" />}
                 {task.learningOutcomes.length > 0 && (
                   <View style={styles.outcomes}>
                     <Text style={[styles.outcomesLabel, { color: colors.mutedForeground }]}>Learning outcomes</Text>

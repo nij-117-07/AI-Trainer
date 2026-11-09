@@ -29,6 +29,7 @@ export function DetectStep({ defaultText, isPending, error, onSubmit }: DetectSt
           editable={!isPending}
           maxLength={TEXT_MAX}
           multiline
+          voice
         />
         <TextField
           label="Additional context (optional)"
@@ -38,6 +39,7 @@ export function DetectStep({ defaultText, isPending, error, onSubmit }: DetectSt
           editable={!isPending}
           maxLength={COMMENTS_MAX}
           multiline
+          voice
         />
         <ActionButton
           label={isPending ? "Analyzing…" : "Detect AI content"}

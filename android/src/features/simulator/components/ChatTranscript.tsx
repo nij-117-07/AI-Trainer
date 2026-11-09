@@ -6,6 +6,7 @@
 import { useRef } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from "react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import type { SimulatorChatMessage } from "../types";
 
@@ -67,6 +68,7 @@ function MessageBubble({ message }: { message: SimulatorChatMessage }) {
         ) : (
           <View style={styles.reply}>
             <MarkdownText content={message.content} />
+            <ListenButton text={message.content} label="Reply" />
             {thought ? (
               <Text style={[styles.thought, { color: colors.mutedForeground, borderTopColor: colors.border }]}>
                 What they&apos;re thinking: {thought}

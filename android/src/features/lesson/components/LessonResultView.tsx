@@ -8,6 +8,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { BookOpenText, Languages, ListChecks, Lightbulb, Target } from "lucide-react-native";
 import { useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -30,11 +31,13 @@ export function LessonResultView({ lesson }: { lesson: Lesson }) {
         ) : (
           <EmptyNote message="Nothing was returned." />
         )}
+        <ListenButton text={lesson.comparativeAnalysis} label="Analysis" />
       </Panel>
 
       <Panel>
         <SectionTitle icon={BookOpenText} title="Deep dive" />
         {lesson.deepDive !== "" ? <MarkdownText content={lesson.deepDive} /> : <EmptyNote message="Nothing was returned." />}
+        <ListenButton text={lesson.deepDive} label="Deep dive" />
       </Panel>
 
       <Panel>
@@ -65,12 +68,14 @@ export function LessonResultView({ lesson }: { lesson: Lesson }) {
       {lesson.nuance !== "" && (
         <ResultCallout icon={Lightbulb} title="Insider tip" tone="sky">
           <MarkdownText content={lesson.nuance} />
+          <ListenButton text={lesson.nuance} label="Insider tip" />
         </ResultCallout>
       )}
 
       {lesson.homework !== "" && (
         <ResultCallout icon={Target} title="Homework mission" tone="amber">
           <MarkdownText content={lesson.homework} />
+          <ListenButton text={lesson.homework} label="Homework" />
         </ResultCallout>
       )}
     </>

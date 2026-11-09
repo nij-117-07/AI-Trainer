@@ -57,6 +57,7 @@ export function SolverTab() {
             onChangeText={setQuestion}
             maxLength={2000}
             multiline
+            voice
           />
           <TextField
             label="Context"

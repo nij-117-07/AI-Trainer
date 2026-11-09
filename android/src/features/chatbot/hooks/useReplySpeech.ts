@@ -75,7 +75,7 @@ export function useReplySpeech(): ReplySpeech {
         return;
       }
       if (text.length > MAX_SPEECH_CHARS) {
-        setError(`This reply is longer than ${MAX_SPEECH_CHARS} characters, so it cannot be read aloud.`);
+        setError(`This text is longer than ${MAX_SPEECH_CHARS} characters, so it cannot be read aloud.`);
         return;
       }
       setActiveId(id);

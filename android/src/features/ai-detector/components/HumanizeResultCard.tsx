@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { ListChecks, Sparkles } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { confidenceTone } from "../lib/analysis";
 import type { HumanizedText } from "../types";
@@ -27,6 +28,7 @@ export function HumanizeResultCard({ result, children }: HumanizeResultCardProps
           {result.humanizedText}
         </Text>
       </View>
+      <ListenButton text={result.humanizedText} label="Humanized text" />
 
       <ScoreBar
         value={result.confidence}

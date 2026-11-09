@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { ThumbsDown, ThumbsUp, Trophy, type LucideIcon, Scale } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import type { ArgumentPoint, JudgeVerdict } from "../types";
@@ -23,8 +24,10 @@ export function DebateVerdictCard({ verdict }: { verdict: JudgeVerdict }) {
       <PointRow icon={ThumbsDown} label="Weakest argument" point={verdict.weakestArgument} />
       <ResultCallout icon={Scale} title="Reasoning" tone="sky">
         <Text style={[styles.body, { color: colors.foreground }]}>{verdict.reasoning}</Text>
+        <ListenButton text={verdict.reasoning} label="Reasoning" />
       </ResultCallout>
       <Text style={[styles.body, { color: colors.mutedForeground }]}>{verdict.judgeComments}</Text>
+      <ListenButton text={verdict.judgeComments} label="Judge comments" />
     </Panel>
   );
 }

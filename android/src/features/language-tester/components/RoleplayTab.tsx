@@ -123,6 +123,7 @@ export function RoleplayTab() {
           onChangeText={(text) => update("scenario", text)}
           editable={!request.pending}
           maxLength={500}
+          voice
         />
         <TextField
           label="Your persona"
@@ -131,6 +132,7 @@ export function RoleplayTab() {
           onChangeText={(text) => update("userPersona", text)}
           editable={!request.pending}
           maxLength={500}
+          voice
         />
         <TextField
           label="Seed (character)"
@@ -161,6 +163,7 @@ export function RoleplayTab() {
           editable={!request.pending}
           multiline
           maxLength={2000}
+          voice
         />
         <ActionButton
           label={request.pending ? "Waiting for reply…" : "Send line"}

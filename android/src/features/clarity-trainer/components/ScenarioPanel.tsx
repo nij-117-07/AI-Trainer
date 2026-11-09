@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { BadgeCheck, Clock, MessageSquareText } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -38,6 +39,7 @@ export function ScenarioPanel({ round, pending, error, onResponseChange, onEvalu
       </View>
 
       <Text style={[styles.body, { color: colors.mutedForeground }]}>{scenario.situation}</Text>
+      <ListenButton text={scenario.situation} label="Scenario" />
       {characters.length > 0 && (
         <Text style={[styles.body, { color: colors.foreground }]}>
           <Text style={styles.bold}>Characters: </Text>
@@ -52,6 +54,7 @@ export function ScenarioPanel({ round, pending, error, onResponseChange, onEvalu
 
       <ResultCallout icon={MessageSquareText} title="Your prompt" tone="sky">
         <Text style={[styles.body, { color: colors.foreground }]}>{scenario.promptToUser}</Text>
+        <ListenButton text={scenario.promptToUser} label="Prompt" />
       </ResultCallout>
 
       {!evaluation && (
@@ -64,6 +67,7 @@ export function ScenarioPanel({ round, pending, error, onResponseChange, onEvalu
             editable={!pending}
             maxLength={LIMITS.response}
             multiline
+            voice
           />
           <ErrorText message={error} />
           <ActionButton

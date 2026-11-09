@@ -8,6 +8,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Award, Flag, Timer } from "lucide-react-native";
 import { spacing, useThemeColors, radius } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -75,6 +76,7 @@ export function ForesightBoard({ session, pending, error, onDecide }: ForesightB
               {entry.role === "user" ? "You" : "Trainer"}
             </Text>
             <MarkdownText content={entry.content} />
+            {entry.role !== "user" && <ListenButton text={entry.content} label="Trainer reply" />}
           </View>
         ))}
       </Panel>
@@ -88,6 +90,7 @@ export function ForesightBoard({ session, pending, error, onDecide }: ForesightB
           )}
 
           <Text style={[styles.heading, { color: colors.foreground }]}>{session.currentScene.decisionPoint}</Text>
+          <ListenButton text={session.currentScene.decisionPoint} label="Decision" />
 
           <View style={styles.options}>
             {session.options.map((option, index) => (
@@ -122,6 +125,7 @@ export function ForesightBoard({ session, pending, error, onDecide }: ForesightB
               editable={!pending}
               maxLength={300}
               multiline
+              voice
             />
           )}
 
@@ -133,6 +137,7 @@ export function ForesightBoard({ session, pending, error, onDecide }: ForesightB
             editable={!pending}
             maxLength={2000}
             multiline
+            voice
           />
 
           <ActionButton

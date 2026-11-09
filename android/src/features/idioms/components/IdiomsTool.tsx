@@ -94,6 +94,7 @@ export function IdiomsTool() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <TextField
           label="Seed (rotation)"

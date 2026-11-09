@@ -14,6 +14,7 @@ import { runJourney } from "../lib/generators";
 import type { JourneyChapter, JourneyFormValues, JourneyPlan } from "../types";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
 
@@ -203,6 +204,7 @@ export function JourneyTab() {
             <Text style={[styles.chapterTitle, { color: colors.foreground }]}>{chapter.title}</Text>
           </View>
           <MarkdownText content={chapter.content} />
+          <ListenButton text={chapter.content} label="Chapter" />
           {chapter.analogy ? (
             <ResultCallout icon={Compass} title="Mental model" tone="amber">
               <MarkdownText content={chapter.analogy} />

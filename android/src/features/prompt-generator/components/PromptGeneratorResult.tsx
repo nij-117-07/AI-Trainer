@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Bot, Hash } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import type { PersonaResult } from "../types";
 
@@ -25,6 +26,7 @@ export function PromptGeneratorResultView({ result }: { result: PersonaResult })
             {result.systemPrompt || "No system prompt was returned."}
           </Text>
         </View>
+        <ListenButton text={result.systemPrompt} label="System prompt" />
 
         {result.seedUsed !== "" && (
           <View style={[styles.seedRow, { borderColor: colors.border, backgroundColor: colors.muted }]}>

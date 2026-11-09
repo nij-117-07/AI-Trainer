@@ -20,6 +20,7 @@ import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/For
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { suggestResources } from "../lib/generators";
@@ -94,6 +95,7 @@ export function ResourceSuggestorTab() {
           editable={!request.pending}
           maxLength={PREFERENCES_MAX}
           multiline
+          voice
         />
         <ActionButton
           label={request.pending ? "Finding resources…" : "Suggest resources"}
@@ -110,6 +112,7 @@ export function ResourceSuggestorTab() {
           {result.learningPathSummary.trim() !== "" && (
             <ResultCallout icon={Route} title="Learning path summary" tone="sky">
               <MarkdownText content={result.learningPathSummary.trim()} />
+              <ListenButton text={result.learningPathSummary} label="Learning path summary" />
             </ResultCallout>
           )}
 
@@ -127,6 +130,7 @@ export function ResourceSuggestorTab() {
           {result.nextSteps.trim() !== "" && (
             <ResultCallout icon={Lightbulb} title="Next steps" tone="emerald">
               <MarkdownText content={result.nextSteps.trim()} />
+              <ListenButton text={result.nextSteps} label="Next steps" />
             </ResultCallout>
           )}
         </>
@@ -162,6 +166,10 @@ function ResourceCard({ resource, index }: { resource: ResourceItem; index: numb
       <Detail icon={Target} title="Why this is recommended" text={resource.whyRecommended} />
       <Detail icon={BookMarked} title="Prerequisite knowledge" text={resource.prerequisiteKnowledge} />
       <Detail icon={ExternalLink} title="How to access" text={resource.accessInfo} />
+      <ListenButton
+        text={[resource.description, resource.whyRecommended].filter((part) => part.trim() !== "").join(". ")}
+        label="Resource"
+      />
     </View>
   );
 }

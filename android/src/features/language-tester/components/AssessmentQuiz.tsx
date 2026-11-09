@@ -8,6 +8,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Check, RefreshCcw, Trophy, X } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { StepNavigator } from "@/components/tool/StepNavigator";
 import { OPTION_KEYS, type AssessmentQuestion, type AssessmentResult, type OptionKey } from "../types";
 import { EmptyNote, FeedbackBox, QuestionHeading, QuizModeBar, ScorePill, type QuizMode } from "./QuizParts";
@@ -44,6 +45,7 @@ export function AssessmentQuiz({ result }: { result: AssessmentResult }) {
         {result.levelRationale !== "" && (
           <Text style={[styles.rationale, { color: colors.mutedForeground }]}>{result.levelRationale}</Text>
         )}
+        <ListenButton text={result.levelRationale} label="Level rationale" />
       </Panel>
 
       <View style={styles.toolbar}>
@@ -116,6 +118,7 @@ function QuestionCard({ index, question, selected, checked, onSelect }: Question
   return (
     <Panel>
       <QuestionHeading index={index} text={question.questionText} />
+      <ListenButton text={question.questionText} label="Question" />
       <View style={styles.options}>
         {OPTION_KEYS.map((letter) => {
           const text = question.options[letter];
@@ -170,6 +173,7 @@ function QuestionCard({ index, question, selected, checked, onSelect }: Question
           {question.explanation !== "" && (
             <Text style={[styles.explanation, { color: colors.mutedForeground }]}>{question.explanation}</Text>
           )}
+          <ListenButton text={question.explanation} label="Explanation" />
         </FeedbackBox>
       )}
     </Panel>

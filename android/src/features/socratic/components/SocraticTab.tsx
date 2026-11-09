@@ -107,6 +107,7 @@ export function SocraticTab() {
           editable={!challenge.pending}
           maxLength={STATEMENT_MAX}
           multiline
+          voice
         />
         <ErrorText message={challenge.error} />
         <ActionButton

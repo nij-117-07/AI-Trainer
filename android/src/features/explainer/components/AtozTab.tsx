@@ -11,6 +11,7 @@ import { generateTutorial } from "../lib/generators";
 import { explanationStyleOptions, expertiseLevelOptions } from "../options";
 import type { TutorialFormValues } from "../types";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 
 const DEFAULTS: TutorialFormValues = {
@@ -72,6 +73,7 @@ export function AtozTab() {
         <Panel>
           <SectionTitle icon={BookOpenText} title="Full A-to-Z tutorial" />
           <MarkdownText content={request.data.fullExplanation} />
+          <ListenButton text={request.data.fullExplanation} label="Tutorial" />
         </Panel>
       )}
 

@@ -8,6 +8,7 @@ import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { IMPROVEMENT_GOAL_OPTIONS } from "../options";
 import { rewriteJoke } from "../lib/generators";
@@ -42,6 +43,7 @@ export function RewriteTab() {
           editable={!pending}
           maxLength={5000}
           multiline
+          voice
         />
         <SelectField
           label="Improvement goal"
@@ -73,6 +75,7 @@ export function RewriteTab() {
           <View style={[styles.highlight, { backgroundColor: colors.tone.emerald.bg, borderColor: colors.tone.emerald.border }]}>
             <Text style={[styles.label, { color: colors.foreground }]}>Rewritten joke</Text>
             <MarkdownText content={result.rewrittenJoke || "No rewrite was returned."} />
+            <ListenButton text={result.rewrittenJoke} label="Rewritten joke" />
           </View>
           <View style={styles.pair}>
             <View style={[styles.cell, { backgroundColor: colors.muted }]}>
@@ -88,7 +91,10 @@ export function RewriteTab() {
           <BulletList items={result.changesMade} />
           <ResultCallout icon={PenTool} title="Performance notes" tone="amber">
             {result.performanceNotes ? (
-              <MarkdownText content={result.performanceNotes} />
+              <>
+                <MarkdownText content={result.performanceNotes} />
+                <ListenButton text={result.performanceNotes} label="Performance notes" />
+              </>
             ) : (
               <EmptyNote message="No notes were returned." />
             )}

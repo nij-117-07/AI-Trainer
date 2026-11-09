@@ -95,6 +95,7 @@ export function RoleplayChatView() {
           editable={!pending}
           maxLength={SYSTEM_PROMPT_MAX}
           multiline
+          voice
         />
         <TextField
           label="Language"
@@ -114,6 +115,7 @@ export function RoleplayChatView() {
           editable={!pending}
           maxLength={ADDITIONAL_INSTRUCTIONS_MAX}
           multiline
+          voice
         />
         <TextField
           label="Session seed"

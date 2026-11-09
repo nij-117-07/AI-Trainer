@@ -9,6 +9,7 @@ import { CountSlider } from "@/components/tool/CountSlider";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { suggestProjects } from "../lib/generators";
@@ -81,6 +82,7 @@ export function SuggestProjectsTab() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <TextField
           label="Existing suggestions (optional)"
@@ -107,6 +109,7 @@ export function SuggestProjectsTab() {
           {result.briefStrategy !== "" && (
             <ResultCallout icon={Compass} title="Strategy" tone="sky">
               <MarkdownText content={result.briefStrategy} />
+              <ListenButton text={result.briefStrategy} label="Strategy" />
             </ResultCallout>
           )}
 
@@ -120,6 +123,7 @@ export function SuggestProjectsTab() {
                   {index + 1}. {project.title || "Untitled project"}
                 </Text>
                 {project.problem !== "" && <MarkdownText content={project.problem} />}
+                {project.problem !== "" && <ListenButton text={project.problem} label="Project" />}
                 {project.keyFeatures.length > 0 && (
                   <View style={styles.features}>
                     <Text style={[styles.featuresLabel, { color: colors.mutedForeground }]}>Key features</Text>

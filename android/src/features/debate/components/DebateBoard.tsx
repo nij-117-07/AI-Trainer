@@ -8,6 +8,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Crosshair, Gavel, MessageSquare, MessageSquareQuote, Wand2 } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ChoiceChips, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -125,6 +126,7 @@ export function DebateBoard({
                 onChangeText={setEvidence}
                 editable={!busy}
                 maxLength={LIMITS.evidence}
+                voice
               />
               <SelectField
                 label="Strategy"
@@ -147,6 +149,7 @@ export function DebateBoard({
             editable={!busy}
             multiline
             maxLength={mode === "ai" ? LIMITS.direction : LIMITS.statement}
+            voice
           />
           <ActionButton
             label={busy ? "Working…" : mode === "ai" ? `Generate ${sideLabel} statement` : `Add ${sideLabel} statement`}
@@ -172,6 +175,7 @@ function TurnBreakdown({ turn }: { turn: DebateTurn }) {
       <TagList items={textList(turn.rhetoricalDevices)} />
       <ResultCallout icon={MessageSquareQuote} title="Closing question" tone="sky">
         <Text style={[styles.body, { color: colors.foreground }]}>{turn.closingQuestion}</Text>
+        <ListenButton text={turn.closingQuestion} label="Closing question" />
       </ResultCallout>
     </Panel>
   );

@@ -5,6 +5,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { LifeBuoy, Send, Sparkles, Trophy } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { GUESS_MAX_LENGTH } from "../options";
@@ -80,6 +81,7 @@ export function GameBoard({ session, pending, error, onGuess, onHint, onCoach }:
             editable={!busy}
             maxLength={GUESS_MAX_LENGTH}
             returnKeyType="send"
+            voice
           />
           <ActionButton label="Submit guess" icon={Send} loading={pending === "guess"} onPress={submit} />
           <ActionButton
@@ -119,6 +121,7 @@ function MessageBubble({ message }: { message: GameMessage }) {
   return (
     <View style={[styles.bubble, { backgroundColor: colors.muted }]}>
       <MarkdownText content={message.content} />
+      <ListenButton text={message.content} label="Reply" />
     </View>
   );
 }

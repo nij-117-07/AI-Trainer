@@ -8,6 +8,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Pencil, RotateCcw, StepForward } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { ActionButton, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
 import { DIFFICULTY_OPTIONS, QUESTION_TYPE_OPTIONS } from "../options";
 import type { Directive, SessionDecision } from "../types";
@@ -79,6 +80,7 @@ export function DirectiveStage({ decision, isPending, error, onProceed, onEdit, 
         {draft.difficulty ? <StageBadge label={`difficulty: ${draft.difficulty}`} /> : null}
         {draft.questionType ? <StageBadge label={`type: ${draft.questionType}`} /> : null}
       </BadgeRow>
+      <ListenButton text={decision.actionReasoning} label="Decision" />
 
       {editing ? (
         <View style={styles.form}>
@@ -109,6 +111,7 @@ export function DirectiveStage({ decision, isPending, error, onProceed, onEdit, 
             onChangeText={(text) => set({ constraints: text })}
             maxLength={1000}
             multiline
+            voice
           />
         </View>
       ) : (

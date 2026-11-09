@@ -4,6 +4,7 @@ import { StyleSheet, Text } from "react-native";
 import { FileText, Lightbulb } from "lucide-react-native";
 import { useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -16,6 +17,7 @@ export function FlexibleWriterResultView({ result }: { result: FlexibleWriterRes
       {result.answerMessage !== "" && (
         <ResultCallout icon={Lightbulb} title="Summary" tone="sky">
           <MarkdownText content={result.answerMessage} />
+          <ListenButton text={result.answerMessage} label="Summary" />
         </ResultCallout>
       )}
 
@@ -28,6 +30,7 @@ export function FlexibleWriterResultView({ result }: { result: FlexibleWriterRes
             {result.updatedData}
           </Text>
         )}
+        <ListenButton text={result.updatedData} label="Transformed data" />
       </Panel>
     </>
   );

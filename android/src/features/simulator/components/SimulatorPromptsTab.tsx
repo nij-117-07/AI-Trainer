@@ -85,6 +85,7 @@ export function SimulatorPromptsTab() {
           editable={!saving}
           maxLength={10000}
           multiline
+          voice
         />
         <ErrorText message={fieldError} />
         <ErrorText message={actionError} />

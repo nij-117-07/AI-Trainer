@@ -8,6 +8,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Bot, Eye, Send } from "lucide-react-native";
 import { spacing, useThemeColors, type Tone } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -60,6 +61,7 @@ export function SimulationBoard({ session, pending, error, onRespond }: Simulati
       <Panel>
         <Text style={[styles.heading, { color: colors.foreground }]}>The scene</Text>
         {scenario.settingDescription !== "" && <MarkdownText content={scenario.settingDescription} />}
+        <ListenButton text={scenario.settingDescription} label="Scene" />
         {scenario.initialStakes !== "" && (
           <Text style={[styles.stakes, { color: colors.tone.rose.fg }]}>{scenario.initialStakes}</Text>
         )}
@@ -75,6 +77,7 @@ export function SimulationBoard({ session, pending, error, onRespond }: Simulati
       {session.lastBriefing && (
         <ResultCallout icon={Eye} title="Read the room" tone="sky">
           {session.lastBriefing.meetingScenario !== "" && <MarkdownText content={session.lastBriefing.meetingScenario} />}
+          <ListenButton text={session.lastBriefing.meetingScenario} label="Briefing" />
           {session.lastBriefing.rationale !== "" && (
             <LabeledLine label="Rationale" value={session.lastBriefing.rationale} />
           )}
@@ -104,6 +107,7 @@ export function SimulationBoard({ session, pending, error, onRespond }: Simulati
                 {entry.role === "user" ? "You" : "Simulation"}
               </Text>
               <MarkdownText content={entry.content} />
+              {entry.role !== "user" && <ListenButton text={entry.content} label="Reply" />}
             </View>
           ))
         )}
@@ -119,6 +123,7 @@ export function SimulationBoard({ session, pending, error, onRespond }: Simulati
           editable={!pending}
           maxLength={2000}
           multiline
+          voice
         />
         <ActionButton
           label={pending ? "Reading the room…" : "Send response"}

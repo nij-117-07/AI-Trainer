@@ -8,6 +8,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { CircleCheck, CircleX, Eye, Lightbulb, RefreshCcw, Sparkles, Target, Trophy } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -37,6 +38,7 @@ export function PuzzleRoundView({ round, isPending, error, onAnswerChange, onSub
           <Text style={[styles.persona, { color: colors.mutedForeground }]}>{puzzle.puzzlerPersona}</Text>
         )}
         <MarkdownText content={puzzle.puzzleText} />
+        <ListenButton text={puzzle.puzzleText} label="Puzzle" />
         <ResultCallout icon={Lightbulb} title="Cognitive trigger" tone="amber">
           <MarkdownText content={puzzle.cognitiveTrigger || "Nothing was returned."} />
         </ResultCallout>
@@ -92,14 +94,17 @@ export function PuzzleRoundView({ round, isPending, error, onAnswerChange, onSub
 
           <SectionTitle icon={Sparkles} title="Feedback" />
           <MarkdownText content={latest.evaluation.evaluationFeedback || "Nothing was returned."} />
+          <ListenButton text={latest.evaluation.evaluationFeedback} label="Feedback" />
 
           {latest.evaluation.hintRedirection && (
             <ResultCallout icon={Target} title="Nudge toward the right path" tone="sky">
               <MarkdownText content={latest.evaluation.hintRedirection} />
+              <ListenButton text={latest.evaluation.hintRedirection} label="Nudge" />
             </ResultCallout>
           )}
           <ResultCallout icon={Lightbulb} title="Rethink it" tone="amber">
             <MarkdownText content={latest.evaluation.metacognitivePrompt || "Nothing was returned."} />
+            <ListenButton text={latest.evaluation.metacognitivePrompt} label="Rethink" />
           </ResultCallout>
 
           <ActionButton
@@ -111,6 +116,7 @@ export function PuzzleRoundView({ round, isPending, error, onAnswerChange, onSub
           {showSolution && (
             <ResultCallout icon={CircleCheck} title="Solution & breakdown" tone="emerald">
               <MarkdownText content={puzzle.solution || "Nothing was returned."} />
+              <ListenButton text={puzzle.solution} label="Solution" />
             </ResultCallout>
           )}
         </Panel>
@@ -132,6 +138,7 @@ export function PuzzleRoundView({ round, isPending, error, onAnswerChange, onSub
             editable={!isPending}
             maxLength={ANSWER_MAX}
             multiline
+            voice
           />
           <ErrorText message={error} />
           <ActionButton

@@ -2,6 +2,7 @@
 /** Score, target status, and feedback from the AI grader. */
 import { StyleSheet, Text, View } from "react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { ListenButton } from "@/components/tool/ListenButton";
 import type { GradingResult } from "../types";
 
 function BulletList({ title, items }: { title: string; items: string[] }) {
@@ -44,6 +45,7 @@ export function GraderFeedback({ result }: { result: GradingResult }) {
           {result.combinedAnalysis}
         </Text>
       ) : null}
+      <ListenButton text={result.combinedAnalysis} label="Analysis" />
 
       <BulletList title="Strengths" items={result.strengths} />
       <BulletList title="Weaknesses" items={result.weaknesses} />
@@ -54,6 +56,7 @@ export function GraderFeedback({ result }: { result: GradingResult }) {
           <Text selectable style={[styles.body, { color: colors.foreground }]}>
             {result.detailedFeedback}
           </Text>
+          <ListenButton text={result.detailedFeedback} label="Feedback" />
         </View>
       ) : null}
     </View>

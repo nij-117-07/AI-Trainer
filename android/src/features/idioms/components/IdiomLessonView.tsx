@@ -1,10 +1,11 @@
 // src/features/idioms/components/IdiomLessonView.tsx
 /** Renders one idiom lesson: the idiom, its meaning and equivalent, context, a dialogue, and a practice prompt. */
 import type { ReactNode } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { BookOpen, Landmark, Lightbulb, MessagesSquare, PencilLine } from "lucide-react-native";
 import type { LucideIcon } from "lucide-react-native";
-import { useThemeColors } from "@/theme";
+import { spacing, useThemeColors } from "@/theme";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { Panel } from "@/components/tool/FormControls";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -23,10 +24,15 @@ export function IdiomLessonView({ lesson, nativeLanguage }: IdiomLessonViewProps
   return (
     <>
       <Panel>
-        <Text style={[styles.idiom, { color: colors.foreground }]}>{lesson.idiomInTargetLanguage || "Untitled idiom"}</Text>
-        {lesson.phoneticPronunciation !== "" && (
-          <Text style={[styles.phonetic, { color: colors.mutedForeground }]}>{lesson.phoneticPronunciation}</Text>
-        )}
+        <View style={styles.titleRow}>
+          <View style={styles.titleText}>
+            <Text style={[styles.idiom, { color: colors.foreground }]}>{lesson.idiomInTargetLanguage || "Untitled idiom"}</Text>
+            {lesson.phoneticPronunciation !== "" && (
+              <Text style={[styles.phonetic, { color: colors.mutedForeground }]}>{lesson.phoneticPronunciation}</Text>
+            )}
+          </View>
+          <ListenButton text={lesson.idiomInTargetLanguage} label="Idiom" />
+        </View>
       </Panel>
 
       {(lesson.figurativeMeaning !== "" || lesson.equivalentInNativeLanguage !== "") && (
@@ -71,6 +77,14 @@ function LessonPanel({ icon, title, children }: { icon: LucideIcon; title: strin
 }
 
 const styles = StyleSheet.create({
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
+  },
+  titleText: {
+    flex: 1,
+  },
   idiom: {
     fontSize: 22,
     fontWeight: "700",

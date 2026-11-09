@@ -6,6 +6,7 @@ import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/For
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { generateReflection } from "../lib/generators";
@@ -48,6 +49,7 @@ export function ReflectTab() {
           editable={!request.pending}
           maxLength={500}
           multiline
+          voice
         />
         <TextField
           label="Goal or value to focus on"
@@ -65,6 +67,7 @@ export function ReflectTab() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <ActionButton
           label={request.pending ? "Reflecting…" : "Generate prompts"}
@@ -87,10 +90,12 @@ export function ReflectTab() {
                   : "_No prompts returned._"
               }
             />
+            <ListenButton text={result.prompts.join(" ")} label="Prompts" />
           </Panel>
           {result.perspectiveShift.trim() !== "" && (
             <ResultCallout icon={Lightbulb} title="Perspective shift" tone="sky">
               <MarkdownText content={result.perspectiveShift} />
+              <ListenButton text={result.perspectiveShift} label="Perspective shift" />
             </ResultCallout>
           )}
         </>

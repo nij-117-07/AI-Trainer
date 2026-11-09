@@ -3,6 +3,7 @@
 import { StyleSheet, Text } from "react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import type { SimulationResult } from "../types";
 
@@ -14,10 +15,12 @@ export function SimulationResultView({ result }: { result: SimulationResult }) {
     result.responseDialogue && `## The Persona Responds\n\n> ${result.responseDialogue}`,
     result.emotionalState && `## Emotional State\n\n${result.emotionalState}`,
   ].filter(Boolean);
+  const content = sections.join("\n\n");
 
   return (
     <Panel>
-      <MarkdownText content={sections.join("\n\n")} />
+      <MarkdownText content={content} />
+      <ListenButton text={content} label="Simulation" />
       {result.simulationId ? (
         <Text style={[styles.footer, { color: colors.mutedForeground, borderTopColor: colors.border }]}>
           Simulation ID: {result.simulationId}

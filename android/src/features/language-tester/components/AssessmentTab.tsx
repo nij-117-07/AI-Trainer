@@ -94,6 +94,7 @@ export function AssessmentTab() {
           onChangeText={(text) => update("scenario", text)}
           editable={!request.pending}
           maxLength={500}
+          voice
         />
         <TextField
           label="User details"
@@ -103,6 +104,7 @@ export function AssessmentTab() {
           onChangeText={(text) => update("userDetails", text)}
           editable={!request.pending}
           maxLength={500}
+          voice
         />
         <TextField
           label="Custom instructions (optional)"
@@ -113,6 +115,7 @@ export function AssessmentTab() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <TextField
           label="Seed (variety)"

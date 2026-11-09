@@ -73,6 +73,7 @@ export function BrainDumpTool() {
             setError(null);
           }}
           multiline
+          voice
           style={styles.dump}
           placeholder="What's on your mind?"
         />

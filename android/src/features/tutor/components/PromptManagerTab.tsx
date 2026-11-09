@@ -111,6 +111,7 @@ export function PromptManagerTab() {
           editable={!busy}
           maxLength={PROMPT_CONTENT_MAX}
           multiline
+          voice
         />
         <ErrorText message={error} />
         {success ? <Text style={[styles.success, { color: colors.tone.emerald.fg }]}>{success}</Text> : null}

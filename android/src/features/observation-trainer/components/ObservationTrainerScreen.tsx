@@ -75,6 +75,7 @@ export function ObservationTrainerScreen() {
           editable={!request.pending}
           maxLength={OBSERVATIONS_MAX}
           multiline
+          voice
         />
         <TextField
           label="Context category (optional)"

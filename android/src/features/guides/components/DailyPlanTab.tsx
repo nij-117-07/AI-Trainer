@@ -7,6 +7,7 @@ import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { useRequest } from "@/hooks/useRequest";
 import { generateDailyPlan } from "../lib/generators";
 import { GUIDE_STORAGE_KEYS } from "../lib/persistence";
@@ -92,6 +93,7 @@ export function DailyPlanTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <SelectField
           label="Learning focus"
@@ -108,6 +110,7 @@ export function DailyPlanTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <ActionButton
           label={request.pending ? "Planning your day…" : "Generate daily plan"}
@@ -124,22 +127,26 @@ export function DailyPlanTab() {
           {result.learningObjective !== "" && (
             <ResultCallout icon={Target} title="Learning objective" tone="sky">
               <MarkdownText content={result.learningObjective} />
+              <ListenButton text={result.learningObjective} label="Learning objective" />
             </ResultCallout>
           )}
           {result.masteryGapAnalysis !== "" && (
             <ResultCallout icon={Flag} title="Mastery gap analysis" tone="amber">
               <MarkdownText content={result.masteryGapAnalysis} />
+              <ListenButton text={result.masteryGapAnalysis} label="Mastery gap analysis" />
             </ResultCallout>
           )}
           <ListPanel icon={CalendarDays} title="Structured roadmap" items={result.structuredRoadmap} numbered />
           {result.recommendedExercise !== "" && (
             <ResultCallout icon={Trophy} title="Recommended exercise" tone="emerald">
               <MarkdownText content={result.recommendedExercise} />
+              <ListenButton text={result.recommendedExercise} label="Recommended exercise" />
             </ResultCallout>
           )}
           {result.resourceSuggestions !== "" && (
             <ResultCallout icon={BookOpen} title="Resources and suggestions" tone="rose">
               <MarkdownText content={result.resourceSuggestions} />
+              <ListenButton text={result.resourceSuggestions} label="Resources and suggestions" />
             </ResultCallout>
           )}
         </>

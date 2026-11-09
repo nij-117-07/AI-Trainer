@@ -14,6 +14,7 @@ import { expertiseLevelOptions, roadmapStyleOptions } from "../options";
 import type { RoadmapFormValues } from "../types";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 
 const DEFAULTS: RoadmapFormValues = {
@@ -85,6 +86,7 @@ export function RoadmapTab() {
         <>
           <ResultCallout icon={BookOpen} title="Summary" tone="sky">
             <MarkdownText content={result.summary} />
+            <ListenButton text={result.summary} label="Summary" />
           </ResultCallout>
 
           <Panel>
@@ -114,6 +116,7 @@ export function RoadmapTab() {
                       {open && (
                         <View style={styles.conceptBody}>
                           <MarkdownText content={item.explanation} />
+                          <ListenButton text={item.explanation} label="Concept" />
                         </View>
                       )}
                     </View>
@@ -125,6 +128,7 @@ export function RoadmapTab() {
 
           <ResultCallout icon={Lightbulb} title="Practical takeaway" tone="emerald">
             <MarkdownText content={result.practicalTakeaway} />
+            <ListenButton text={result.practicalTakeaway} label="Practical takeaway" />
           </ResultCallout>
         </>
       )}

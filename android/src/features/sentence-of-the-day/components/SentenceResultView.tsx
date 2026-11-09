@@ -7,6 +7,7 @@ import { StyleSheet, Text } from "react-native";
 import { BookOpen, Globe, Quote, Shuffle } from "lucide-react-native";
 import { useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import type { SentenceOfTheDay } from "../types";
@@ -24,12 +25,14 @@ export function SentenceResultView({ sentence }: { sentence: SentenceOfTheDay })
         {sentence.literalTranslation !== "" && (
           <MarkdownText content={`**Literal translation:** ${sentence.literalTranslation}`} />
         )}
+        <ListenButton text={sentence.targetSentence} label="Sentence" />
       </Panel>
 
       {sentence.grammaticalHighlight !== "" && (
         <Panel>
           <SectionTitle icon={BookOpen} title="Grammatical highlight" />
           <MarkdownText content={sentence.grammaticalHighlight} />
+          <ListenButton text={sentence.grammaticalHighlight} label="Grammar" />
         </Panel>
       )}
 
@@ -37,6 +40,7 @@ export function SentenceResultView({ sentence }: { sentence: SentenceOfTheDay })
         <Panel>
           <SectionTitle icon={Globe} title="Cultural context" />
           <MarkdownText content={sentence.culturalContext} />
+          <ListenButton text={sentence.culturalContext} label="Cultural context" />
         </Panel>
       )}
 

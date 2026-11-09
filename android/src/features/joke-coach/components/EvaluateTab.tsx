@@ -6,6 +6,7 @@ import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { evaluateJoke } from "../lib/generators";
 import { JOKE_COACH_STORAGE_KEYS } from "../lib/persistence";
@@ -39,6 +40,7 @@ export function EvaluateTab() {
           editable={!pending}
           maxLength={5000}
           multiline
+          voice
         />
         <TextField
           label="Intended audience"
@@ -55,6 +57,7 @@ export function EvaluateTab() {
           onChangeText={(text) => update("context", text)}
           editable={!pending}
           maxLength={500}
+          voice
         />
         <ActionButton
           label={pending ? "Scoring your joke…" : "Evaluate joke"}
@@ -90,6 +93,7 @@ export function EvaluateTab() {
           <BulletList items={result.weaknesses} />
           <ResultCallout icon={ClipboardCheck} title="Feedback" tone="sky">
             {result.feedback ? <MarkdownText content={result.feedback} /> : <EmptyNote message="No feedback was returned." />}
+            <ListenButton text={result.feedback} label="Feedback" />
           </ResultCallout>
         </Panel>
       ) : (

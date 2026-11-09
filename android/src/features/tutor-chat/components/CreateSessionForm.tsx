@@ -53,6 +53,7 @@ export function CreateSessionForm({ onCreate }: CreateSessionFormProps) {
         editable={!creating}
         maxLength={2000}
         multiline
+        voice
       />
       <ErrorText message={error} />
       <ActionButton

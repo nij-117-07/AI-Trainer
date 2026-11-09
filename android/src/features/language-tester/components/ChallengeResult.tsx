@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BookOpen, Eye, EyeOff, Globe, PenLine, Quote, Target } from "lucide-react-native";
 import { Panel, TextField, ActionButton } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -19,11 +20,15 @@ export function ChallengeResult({ result }: { result: ChallengeResultData }) {
       <Panel>
         <SectionTitle icon={Target} title={`Test type: ${result.testType}`} />
         {result.challengeInstruction !== "" && (
-          <MarkdownText content={result.challengeInstruction} />
+          <>
+            <MarkdownText content={result.challengeInstruction} />
+            <ListenButton text={result.challengeInstruction} label="Challenge" />
+          </>
         )}
         {result.sourceText !== "" && (
           <ResultCallout icon={Quote} title="Source text" tone="sky">
             <MarkdownText content={result.sourceText.split("\n").map((line) => `> ${line}`).join("\n")} />
+            <ListenButton text={result.sourceText} label="Source text" />
           </ResultCallout>
         )}
         {result.vocabularyHighlights.length > 0 && (
@@ -35,6 +40,7 @@ export function ChallengeResult({ result }: { result: ChallengeResultData }) {
         {result.culturalTip !== "" && (
           <ResultCallout icon={Globe} title="Cultural tip" tone="amber">
             <MarkdownText content={result.culturalTip} />
+            <ListenButton text={result.culturalTip} label="Cultural tip" />
           </ResultCallout>
         )}
       </Panel>
@@ -48,6 +54,7 @@ export function ChallengeResult({ result }: { result: ChallengeResultData }) {
           onChangeText={setAttempt}
           multiline
           maxLength={2000}
+          voice
         />
         <ActionButton
           label={revealed ? "Hide reference" : "Reveal reference"}
@@ -58,6 +65,7 @@ export function ChallengeResult({ result }: { result: ChallengeResultData }) {
         {revealed && (
           <ResultCallout icon={Eye} title="Reference answer" tone="emerald">
             <MarkdownText content={result.correctReference} />
+            <ListenButton text={result.correctReference} label="Reference answer" />
           </ResultCallout>
         )}
       </Panel>

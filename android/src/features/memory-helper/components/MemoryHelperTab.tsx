@@ -9,6 +9,7 @@ import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { generateMemoryAids } from "../lib/generators";
@@ -50,6 +51,7 @@ export function MemoryHelperTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <SelectField
           label="Mnemonic technique"
@@ -75,6 +77,7 @@ export function MemoryHelperTab() {
           {result.explanation.trim() !== "" && (
             <ResultCallout icon={Lightbulb} title="Why this technique works" tone="sky">
               <MarkdownText content={result.explanation} />
+              <ListenButton text={result.explanation} label="Explanation" />
             </ResultCallout>
           )}
 
@@ -90,6 +93,7 @@ export function MemoryHelperTab() {
                       {index + 1}. {item.concept}
                     </Text>
                     <MarkdownText content={item.hook} />
+                    <ListenButton text={item.hook} label="Memory hook" />
                   </View>
                 ))}
               </View>
@@ -99,6 +103,7 @@ export function MemoryHelperTab() {
           {result.retentionPlan.trim() !== "" && (
             <ResultCallout icon={ListChecks} title="Retention plan" tone="emerald">
               <MarkdownText content={result.retentionPlan} />
+              <ListenButton text={result.retentionPlan} label="Retention plan" />
             </ResultCallout>
           )}
         </>

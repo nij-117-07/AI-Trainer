@@ -6,6 +6,7 @@ import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { TagList } from "@/components/tool/TagList";
 import { classifyJoke } from "../lib/generators";
 import { JOKE_COACH_STORAGE_KEYS } from "../lib/persistence";
@@ -37,6 +38,7 @@ export function ClassifyTab() {
           editable={!pending}
           maxLength={5000}
           multiline
+          voice
         />
         <ActionButton
           label={pending ? "Analyzing the humor…" : "Classify joke"}
@@ -58,6 +60,7 @@ export function ClassifyTab() {
           <View style={styles.block}>
             <Label>Structure</Label>
             <Text style={[styles.text, { color: colors.foreground }]}>{result.structure || "Not returned."}</Text>
+            <ListenButton text={result.structure} label="Structure" />
           </View>
           <View style={styles.block}>
             <SectionTitle icon={Tags} title="Tags" />

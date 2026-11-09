@@ -8,6 +8,7 @@ import { FileText, Gauge, ShieldAlert } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
@@ -43,6 +44,7 @@ export function IngredientsResult({ result }: { result: IngredientAnalysis }) {
       <Panel>
         <SectionTitle icon={FileText} title="Analysis" />
         <MarkdownText content={result.summaryAnalysis} />
+        <ListenButton text={result.summaryAnalysis} label="Analysis" />
       </Panel>
     </>
   );

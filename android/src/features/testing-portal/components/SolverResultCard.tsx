@@ -1,6 +1,7 @@
 // src/features/testing-portal/components/SolverResultCard.tsx
 import { StyleSheet, Text, View } from "react-native";
 import { spacing, radius, useThemeColors } from "@/theme";
+import { ListenButton } from "@/components/tool/ListenButton";
 import type { SolverResult } from "../types";
 
 export function SolverResultCard({ result }: { result: SolverResult }) {
@@ -13,6 +14,7 @@ export function SolverResultCard({ result }: { result: SolverResult }) {
       <Text selectable style={[styles.body, { color: colors.mutedForeground }]}>
         {result.reasoning}
       </Text>
+      <ListenButton text={result.reasoning} label="Reasoning" />
     </View>
   );
 }

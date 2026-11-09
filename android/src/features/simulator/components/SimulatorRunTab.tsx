@@ -71,6 +71,7 @@ export function SimulatorRunTab() {
           onChangeText={(text) => update("persona", text)}
           editable={!pending}
           maxLength={1000}
+          voice
         />
         <TextField
           label="Scenario"
@@ -81,6 +82,7 @@ export function SimulatorRunTab() {
           editable={!pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Your Line"
@@ -91,6 +93,7 @@ export function SimulatorRunTab() {
           editable={!pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Additional Context"
@@ -101,6 +104,7 @@ export function SimulatorRunTab() {
           editable={!pending}
           maxLength={2000}
           multiline
+          voice
         />
         <ActionButton
           label={pending ? "Running the scenario…" : "Run simulation"}

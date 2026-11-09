@@ -11,6 +11,7 @@ import { simplifyTopic } from "../lib/generators";
 import type { FeynmanFormValues } from "../types";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
 
@@ -64,6 +65,7 @@ export function FeynmanTab() {
           <Panel>
             <SectionTitle icon={Puzzle} title="Simplified explanation" />
             <MarkdownText content={result.explanation} />
+            <ListenButton text={result.explanation} label="Explanation" />
           </Panel>
 
           {result.keyMetaphors.length > 0 && (
@@ -75,6 +77,7 @@ export function FeynmanTab() {
 
           <ResultCallout icon={MessageCircleHeart} title="Fun analogy" tone="amber">
             <MarkdownText content={result.funAnalogy} />
+            <ListenButton text={result.funAnalogy} label="Fun analogy" />
           </ResultCallout>
         </>
       )}

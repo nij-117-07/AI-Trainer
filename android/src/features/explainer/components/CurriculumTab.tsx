@@ -14,6 +14,7 @@ import { userLevelOptions } from "../options";
 import type { CurriculumFormValues } from "../types";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 
 const DEFAULTS: CurriculumFormValues = {
@@ -61,6 +62,7 @@ export function CurriculumTab() {
           editable={!request.pending}
           maxLength={5000}
           multiline
+          voice
         />
         <TextField
           label="What you already know"
@@ -70,6 +72,7 @@ export function CurriculumTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <SelectField
           label="Your level"
@@ -86,6 +89,7 @@ export function CurriculumTab() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <TextField
           label="Additional instructions (optional)"
@@ -95,6 +99,7 @@ export function CurriculumTab() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <ActionButton
           label={request.pending ? "Mapping your path…" : "Generate curriculum"}
@@ -110,10 +115,12 @@ export function CurriculumTab() {
         <>
           <ResultCallout icon={Lightbulb} title="The crux" tone="emerald">
             <MarkdownText content={result.theCrux} />
+            <ListenButton text={result.theCrux} label="Crux" />
           </ResultCallout>
 
           <ResultCallout icon={ScrollText} title="Rationale" tone="sky">
             <MarkdownText content={result.rationale} />
+            <ListenButton text={result.rationale} label="Rationale" />
           </ResultCallout>
 
           <Panel>
@@ -144,6 +151,7 @@ export function CurriculumTab() {
 
           <ResultCallout icon={Compass} title="Suggested focus" tone="amber">
             <MarkdownText content={result.suggestedFocus} />
+            <ListenButton text={result.suggestedFocus} label="Suggested focus" />
           </ResultCallout>
         </>
       )}

@@ -7,6 +7,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Brain, CircleCheck, CircleX, Compass, Eye, EyeOff, Lightbulb, ListChecks, MessageSquare, RefreshCcw, Target, Trophy } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -45,6 +46,7 @@ export function RiddleRoundView({
             <MarkdownText content={riddle.riddleText} />
           </View>
         </View>
+        <ListenButton text={riddle.riddleText} label="Riddle" />
         <ResultCallout icon={Lightbulb} title="Mental hook being trained" tone="amber">
           <Text style={[styles.body, { color: colors.mutedForeground }]}>{riddle.cognitiveTrigger}</Text>
         </ResultCallout>
@@ -83,9 +85,11 @@ export function RiddleRoundView({
           </Text>
           <ResultCallout icon={MessageSquare} title="Feedback" tone="sky">
             <MarkdownText content={latest.evaluation.feedback} />
+            <ListenButton text={latest.evaluation.feedback} label="Feedback" />
           </ResultCallout>
           <ResultCallout icon={Compass} title="Shift your perspective" tone="rose">
             <Text style={[styles.body, { color: colors.foreground }]}>{latest.evaluation.thoughtRedirection}</Text>
+            <ListenButton text={latest.evaluation.thoughtRedirection} label="Perspective" />
           </ResultCallout>
           <ActionButton
             label={showSolution ? "Hide solution" : "Reveal solution"}
@@ -96,6 +100,7 @@ export function RiddleRoundView({
           {showSolution && (
             <ResultCallout icon={Target} title="Solution" tone="emerald">
               <MarkdownText content={riddle.solution} />
+              <ListenButton text={riddle.solution} label="Solution" />
             </ResultCallout>
           )}
         </Panel>
@@ -117,6 +122,7 @@ export function RiddleRoundView({
             editable={!pending}
             maxLength={2000}
             multiline
+            voice
           />
           <ErrorText message={error} />
           <ActionButton

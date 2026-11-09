@@ -1,20 +1,19 @@
 // src/features/testing-portal/components/TheoreticalQuestionCard.tsx
 /**
  * One theoretical question with an answer box (text, voice, and/or image), "Grade my answer",
- * then "Try again" or "Next question". The model answer is offered only after grading, so the
+ * then resubmit or "Next question". The model answer is offered only after grading, so the
  * learner attempts the question first. Mirrors the webui question card.
  */
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { ArrowRight, BookOpen, Mic, ShieldCheck, Square } from "lucide-react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { ArrowRight, BookOpen, ShieldCheck } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { useVoiceInput } from "@/features/chatbot/hooks/useVoiceInput";
-import { appendTranscript, formatElapsed } from "@/features/chatbot/lib/voice-text";
 import { useRequest } from "@/hooks/useRequest";
 import { gradeAnswer, generateAnswer } from "../lib/generators";
 import type { ImageInput, TheoreticalItem } from "../types";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { GraderFeedback } from "./GraderFeedback";
 import { ImagePickerField } from "@/components/tool/ImagePickerField";
 
@@ -41,7 +40,6 @@ export function TheoreticalQuestionCard({
   const [image, setImage] = useState<ImageInput | null>(null);
   const grade = useRequest(gradeAnswer);
   const expert = useRequest(generateAnswer);
-  const voice = useVoiceInput((text) => setAnswer((prev) => appendTranscript(prev, text)));
   const [gradedSnapshot, setGradedSnapshot] = useState<{ text: string; imageUri: string | null } | null>(null);
   const hasAnswer = answer.trim().length > 0 || image !== null;
   const answerChanged =
@@ -68,15 +66,6 @@ export function TheoreticalQuestionCard({
       customInstructions: "",
     });
   }
-
-  function voiceStatus(): string {
-    if (voice.recording) return `Recording ${formatElapsed(voice.elapsedMs)}. Tap the red button to finish.`;
-    if (voice.transcribing) return "Transcribing your voice…";
-    if (!voice.ready) return "Add the voice model in AI settings to answer by voice.";
-    return "Answer by voice";
-  }
-
-  const voiceLocked = voice.transcribing || grade.pending;
 
   return (
     <Panel>
@@ -107,34 +96,8 @@ export function TheoreticalQuestionCard({
           maxLength={MAX_ANSWER_CHARS}
           multiline
           editable={!grade.pending}
+          voice
         />
-        <View style={styles.voiceRow}>
-          <Pressable
-            onPress={() => void voice.toggle()}
-            disabled={voiceLocked}
-            accessibilityRole="button"
-            accessibilityLabel={voice.recording ? "Stop recording" : "Start voice answer"}
-            accessibilityState={{ busy: voice.transcribing, selected: voice.recording, disabled: voiceLocked }}
-            style={({ pressed }) => [
-              styles.micButton,
-              { backgroundColor: voice.recording ? colors.destructive : colors.muted },
-              pressed && styles.pressed,
-              voiceLocked && styles.disabled,
-            ]}
-          >
-            {voice.transcribing ? (
-              <ActivityIndicator size="small" color={colors.foreground} />
-            ) : voice.recording ? (
-              <Square size={14} color={colors.background} fill={colors.background} />
-            ) : (
-              <Mic size={18} color={voice.ready ? colors.foreground : colors.mutedForeground} />
-            )}
-          </Pressable>
-          <Text style={[styles.voiceStatus, { color: voice.recording ? colors.destructive : colors.mutedForeground }]}>
-            {voiceStatus()}
-          </Text>
-        </View>
-        <ErrorText message={voice.error} />
         <ImagePickerField value={image} onChange={setImage} disabled={grade.pending} />
         {grade.data && (
           <Text style={[styles.hint, { color: answerChanged ? colors.tone.amber.fg : colors.mutedForeground }]}>
@@ -173,6 +136,7 @@ export function TheoreticalQuestionCard({
               <Text selectable style={[styles.body, { color: colors.foreground }]}>
                 {expert.data.answerText}
               </Text>
+              <ListenButton text={expert.data.answerText} label="Model answer" />
               {expert.data.keyConceptsCovered.length > 0 && (
                 <View style={styles.chips}>
                   {expert.data.keyConceptsCovered.map((concept, conceptIndex) => (
@@ -241,32 +205,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     gap: spacing.md,
   },
-  voiceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  micButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  voiceStatus: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
-  },
   hint: {
     fontSize: 13,
     lineHeight: 18,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  disabled: {
-    opacity: 0.5,
   },
   expert: {
     borderWidth: 1,

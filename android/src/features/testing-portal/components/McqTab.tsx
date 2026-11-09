@@ -116,6 +116,7 @@ export function McqTab() {
               onChangeText={(text) => update("customInstructions", text)}
               maxLength={1000}
               multiline
+              voice
             />
             {!hasQuestions && (
               <ActionButton label="Generate MCQs" icon={Sparkles} loading={generate.pending} onPress={handleGenerate} />

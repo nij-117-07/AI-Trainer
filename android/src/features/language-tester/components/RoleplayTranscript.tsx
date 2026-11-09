@@ -6,6 +6,7 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Target } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import type { ChatTurn, RoleplayFeedback } from "../types";
 import { EmptyNote } from "./QuizParts";
@@ -50,6 +51,7 @@ function TurnBubble({ turn }: { turn: ChatTurn }) {
   return (
     <View style={[styles.bubble, styles.assistantBubble, { backgroundColor: colors.muted }]}>
       <MarkdownText content={turn.content} />
+      <ListenButton text={turn.content} label="Reply" />
       {turn.feedback && <FeedbackPanel feedback={turn.feedback} />}
     </View>
   );
@@ -84,7 +86,10 @@ function FeedbackPanel({ feedback }: { feedback: RoleplayFeedback }) {
         </View>
       </View>
       {feedback.linguisticCritique !== "" && (
-        <Text style={[styles.critique, { color: colors.mutedForeground }]}>{feedback.linguisticCritique}</Text>
+        <>
+          <Text style={[styles.critique, { color: colors.mutedForeground }]}>{feedback.linguisticCritique}</Text>
+          <ListenButton text={feedback.linguisticCritique} label="Feedback" />
+        </>
       )}
       {feedback.suggestedStrategies.length > 0 && (
         <MarkdownText content={feedback.suggestedStrategies.map((strategy) => `- ${strategy}`).join("\n")} />

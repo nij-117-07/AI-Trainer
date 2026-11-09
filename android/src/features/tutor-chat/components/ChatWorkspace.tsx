@@ -11,6 +11,7 @@ import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/For
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { ErrorBoundary } from "@/components/tool/ErrorBoundary";
 import type { TutorChatState } from "../hooks/useTutorChat";
 import type { ChatMessage } from "../lib/types";
@@ -62,6 +63,7 @@ export function ChatWorkspace({ chat }: ChatWorkspaceProps) {
           editable={!pending}
           maxLength={2000}
           multiline
+          voice
         />
         <Text style={[styles.status, { color: colors.mutedForeground }]}>{STATUS_TEXT[chat.settingsStatus]}</Text>
         <ErrorText message={chat.settingsError} />
@@ -129,7 +131,10 @@ function MessageBubble({ message }: { message: ChatMessage }) {
             {message.content}
           </Text>
         ) : (
-          <MarkdownText content={message.content} />
+          <>
+            <MarkdownText content={message.content} />
+            <ListenButton text={message.content} label="Reply" />
+          </>
         )}
       </View>
     </View>

@@ -9,6 +9,7 @@ import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { useRequest } from "@/hooks/useRequest";
 import { generateQuote } from "../lib/generators";
 import { QUOTE_DEFAULTS, QUOTE_DRAFT_KEY, restoreQuoteDraft } from "../lib/drafts";
@@ -69,6 +70,7 @@ export function QuoteTab() {
           editable={!request.pending}
           maxLength={500}
           multiline
+          voice
         />
         <ActionButton
           label={request.pending ? "Crafting your quote…" : "Generate quote"}
@@ -84,6 +86,7 @@ export function QuoteTab() {
         <>
           <ResultCallout icon={Quote} title="Your quote" tone="amber">
             <MarkdownText content={result.quote} />
+            <ListenButton text={result.quote} label="Quote" />
             {(result.authorPersona || result.currentDate) && (
               <Text style={[styles.attribution, { color: colors.mutedForeground }]}>
                 {[result.authorPersona && `— ${result.authorPersona}`, result.currentDate].filter(Boolean).join("  ·  ")}
@@ -92,6 +95,7 @@ export function QuoteTab() {
           </ResultCallout>
           <ResultCallout icon={Target} title="Actionable insight" tone="emerald">
             <MarkdownText content={result.actionableInsight} />
+            <ListenButton text={result.actionableInsight} label="Actionable insight" />
           </ResultCallout>
         </>
       )}

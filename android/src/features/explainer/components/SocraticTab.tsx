@@ -15,6 +15,7 @@ import { expertiseLevelOptions, questionCategoryOptions } from "../options";
 import type { SocraticFormValues } from "../types";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 
 const MAX_QUESTIONS = 10;
@@ -64,6 +65,7 @@ export function SocraticTab() {
           editable={!request.pending}
           maxLength={5000}
           multiline
+          voice
         />
         <TextField
           label="Special instructions (optional)"
@@ -73,6 +75,7 @@ export function SocraticTab() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <SelectField
           label="Level"
@@ -108,6 +111,7 @@ export function SocraticTab() {
         <>
           <ResultCallout icon={Target} title="Pedagogical goal" tone="sky">
             <MarkdownText content={result.pedagogicalGoal} />
+            <ListenButton text={result.pedagogicalGoal} label="Pedagogical goal" />
           </ResultCallout>
 
           <SectionTitle icon={HelpCircle} title="Discovery questions" />
@@ -119,6 +123,7 @@ export function SocraticTab() {
                 <Text style={[styles.question, { color: colors.foreground }]}>
                   {index + 1}. {question.questionText}
                 </Text>
+                <ListenButton text={question.questionText} label="Question" />
                 {question.cognitiveChallenge ? (
                   <View style={styles.challenge}>
                     <Lightbulb size={14} color={colors.mutedForeground} />

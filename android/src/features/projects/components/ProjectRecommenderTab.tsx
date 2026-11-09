@@ -11,6 +11,7 @@ import { CountSlider } from "@/components/tool/CountSlider";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
 import { useRequest } from "@/hooks/useRequest";
@@ -113,6 +114,7 @@ export function ProjectRecommenderTab() {
           {result.advice.trim() !== "" && (
             <ResultCallout icon={Lightbulb} title="Advice" tone="emerald">
               <MarkdownText content={result.advice.trim()} />
+              <ListenButton text={result.advice} label="Advice" />
             </ResultCallout>
           )}
         </>
@@ -143,6 +145,7 @@ function ProjectCard({ project, index }: { project: ProjectIdea; index: number }
       {project.description.trim() !== "" && (
         <Text style={[styles.description, { color: colors.mutedForeground }]}>{project.description.trim()}</Text>
       )}
+      {project.description.trim() !== "" && <ListenButton text={project.description} label="Project" />}
 
       {project.keyConcepts.length > 0 && (
         <View style={styles.group}>

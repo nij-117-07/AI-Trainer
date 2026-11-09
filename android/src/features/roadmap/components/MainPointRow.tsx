@@ -8,6 +8,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ChevronDown, ChevronRight, Flag, Pencil, Sparkles, Trash2 } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { ROADMAP_LIMITS } from "../lib/validation";
 import type { RoadmapMainPoint } from "../types";
@@ -108,6 +109,7 @@ export function MainPointRow({
           {point.milestone ? (
             <ResultCallout icon={Flag} title="Milestone" tone="sky">
               <Text style={[styles.milestone, { color: colors.foreground }]}>{point.milestone}</Text>
+              <ListenButton text={point.milestone} label="Milestone" />
             </ResultCallout>
           ) : null}
 

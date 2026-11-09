@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Flag, Lightbulb } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { Panel } from "@/components/tool/FormControls";
 import { riskTone, verdictTone } from "../lib/analysis";
 import type { AiDetection } from "../types";
@@ -32,6 +33,7 @@ export function DetectionResultCard({ result, children }: DetectionResultCardPro
       <ScoreBar value={result.aiScore} label="AI likelihood" tone={riskTone(result.aiScore)} />
 
       {result.reason ? <Text style={[styles.reason, { color: colors.foreground }]}>{result.reason}</Text> : null}
+      <ListenButton text={result.reason} label="Reason" />
 
       <BulletList icon={Flag} title="Flagged patterns" tone="amber" items={result.flaggedPatterns} />
       <BulletList icon={Lightbulb} title="Suggested changes" tone="sky" items={result.suggestedChanges} />

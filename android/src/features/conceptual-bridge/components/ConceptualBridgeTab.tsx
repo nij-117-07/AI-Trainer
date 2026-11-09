@@ -12,6 +12,7 @@ import { ActionButton, ErrorText, Field, Panel, ChoiceChips, TextField } from "@
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { loadDocument, saveDocument } from "@/lib/document-store";
@@ -124,15 +125,18 @@ export function ConceptualBridgeTab() {
           <Panel>
             <SectionTitle icon={Link2} title="Structural analogy" />
             <MarkdownText content={result.structuralAnalogy} />
+            <ListenButton text={result.structuralAnalogy} label="Structural analogy" />
           </Panel>
 
           <Panel>
             <SectionTitle icon={BookOpen} title="Bridging narrative" />
             <MarkdownText content={result.bridgingNarrative} />
+            <ListenButton text={result.bridgingNarrative} label="Bridging narrative" />
           </Panel>
 
           <ResultCallout icon={Lightbulb} title="Think about this" tone="amber">
             <MarkdownText content={result.insightQuestion} />
+            <ListenButton text={result.insightQuestion} label="Question" />
           </ResultCallout>
         </>
       )}

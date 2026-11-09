@@ -26,6 +26,7 @@ import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import type { TutorFormValues } from "../types";
@@ -119,6 +120,7 @@ export function TutorTab() {
           editable={!request.pending}
           maxLength={4000}
           multiline
+          voice
         />
         <TextField
           label="Your question"
@@ -129,6 +131,7 @@ export function TutorTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Student level"
@@ -152,6 +155,7 @@ export function TutorTab() {
           onChangeText={(text) => update("currentScenario", text)}
           editable={!request.pending}
           maxLength={500}
+          voice
         />
         <TextField
           label="Last topic taught (optional)"
@@ -200,17 +204,20 @@ export function TutorTab() {
           <Panel>
             <SectionTitle icon={Presentation} title="Adapted explanation" />
             <MarkdownText content={active.adaptedExplanation} />
+            <ListenButton text={active.adaptedExplanation} label="Explanation" />
           </Panel>
 
           {active.conceptAnalogy ? (
             <ResultCallout icon={Lightbulb} title="Concept analogy" tone="amber">
               <MarkdownText content={active.conceptAnalogy} />
+              <ListenButton text={active.conceptAnalogy} label="Concept analogy" />
             </ResultCallout>
           ) : null}
 
           {active.tutorFeedback ? (
             <ResultCallout icon={HelpCircle} title="Your turn" tone="sky">
               <MarkdownText content={active.tutorFeedback} />
+              <ListenButton text={active.tutorFeedback} label="Your turn" />
             </ResultCallout>
           ) : null}
         </>

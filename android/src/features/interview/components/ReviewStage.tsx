@@ -7,6 +7,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Flag, Lightbulb, Pencil, RotateCcw, StepForward } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { ANSWER_MAX_LENGTH } from "../options";
@@ -127,6 +128,7 @@ export function ReviewStage({ review, submittedAnswer, isPending, error, onProce
       {review.improvedAnswer ? (
         <ResultCallout icon={Lightbulb} title="How an ideal answer looks" tone="emerald">
           <MarkdownText content={review.improvedAnswer} />
+          <ListenButton text={review.improvedAnswer} label="Ideal answer" />
         </ResultCallout>
       ) : null}
 
@@ -139,6 +141,7 @@ export function ReviewStage({ review, submittedAnswer, isPending, error, onProce
             editable={!isPending}
             maxLength={ANSWER_MAX_LENGTH}
             multiline
+            voice
           />
         </View>
       ) : null}

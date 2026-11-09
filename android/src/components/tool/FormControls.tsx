@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { appendTranscript } from "@/features/chatbot/lib/voice-text";
+import { VoiceInputRow } from "./VoiceInputRow";
 
 export function Panel({ children }: { children: ReactNode }) {
   const colors = useThemeColors();
@@ -26,10 +28,12 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 interface TextFieldProps extends TextInputProps {
   label: string;
   hint?: string;
+  voice?: boolean;
 }
 
-export function TextField({ label, hint, multiline = false, style, ...inputProps }: TextFieldProps) {
+export function TextField({ label, hint, multiline = false, voice = false, style, ...inputProps }: TextFieldProps) {
   const colors = useThemeColors();
+  const { value, onChangeText, editable } = inputProps;
   return (
     <Field label={label} hint={hint}>
       <TextInput
@@ -46,6 +50,12 @@ export function TextField({ label, hint, multiline = false, style, ...inputProps
         ]}
         {...inputProps}
       />
+      {voice ? (
+        <VoiceInputRow
+          disabled={editable === false}
+          onTranscript={(text) => onChangeText?.(appendTranscript(value ?? "", text))}
+        />
+      ) : null}
     </Field>
   );
 }

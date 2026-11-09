@@ -6,6 +6,7 @@ import { BookA, History, Layers, MessageCircle, Network, Sparkles, Volume2 } fro
 import type { LucideIcon } from "lucide-react-native";
 import { useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import type { WordOfTheDay } from "../types";
@@ -46,6 +47,7 @@ function WordPanel({ icon, title, content }: { icon: LucideIcon; title: string; 
     <Panel>
       <SectionTitle icon={icon} title={title} />
       <MarkdownText content={content} />
+      <ListenButton text={content} label={title} />
     </Panel>
   );
 }

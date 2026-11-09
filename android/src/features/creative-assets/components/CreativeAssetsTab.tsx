@@ -9,6 +9,7 @@ import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/For
 import { CountSlider } from "@/components/tool/CountSlider";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -77,6 +78,7 @@ export function CreativeAssetsTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Context (optional)"
@@ -86,6 +88,7 @@ export function CreativeAssetsTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Reference examples (optional)"
@@ -126,6 +129,7 @@ export function CreativeAssetsTab() {
                 {item.explanation !== "" && (
                   <ResultCallout icon={Lightbulb} title="Why it works" tone="amber">
                     <MarkdownText content={item.explanation} />
+                    <ListenButton text={item.explanation} label="Explanation" />
                   </ResultCallout>
                 )}
               </Panel>

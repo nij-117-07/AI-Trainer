@@ -8,6 +8,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ChevronDown, RotateCcw, StepForward } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import type { InterviewQuestion } from "../types";
 import { useSyncedDraft } from "../hooks/useSyncedDraft";
 import { BadgeRow, BulletList, StageBadge, StagePanel } from "./StagePanel";
@@ -61,7 +62,9 @@ export function QuestionStage({ question, isPending, error, onProceed, onRegener
         editable={!isPending}
         maxLength={2000}
         multiline
+        voice
       />
+      <ListenButton text={draft} label="Question" />
 
       <CalibrationBlock title="Evaluation criteria" text={question.evaluationCriteria} />
       {question.redFlags.length > 0 ? (
@@ -95,7 +98,12 @@ function CalibrationBlock({ title, text, children }: { title: string; text?: str
       </Pressable>
       {open ? (
         <View style={styles.body}>
-          {text ? <Text style={[styles.text, { color: colors.mutedForeground }]}>{text}</Text> : null}
+          {text ? (
+            <>
+              <Text style={[styles.text, { color: colors.mutedForeground }]}>{text}</Text>
+              <ListenButton text={text} label={title} />
+            </>
+          ) : null}
           {children}
         </View>
       ) : null}

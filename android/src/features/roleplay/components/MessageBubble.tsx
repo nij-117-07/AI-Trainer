@@ -2,6 +2,7 @@
 /** One transcript message. User turns sit on the right; the persona's replies sit on the left and render markdown. */
 import { StyleSheet, Text, View } from "react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import type { ChatMessage } from "../types";
 
@@ -30,7 +31,10 @@ export function MessageBubble({ message, speaker }: MessageBubbleProps) {
             {message.content}
           </Text>
         ) : (
-          <MarkdownText content={message.content} />
+          <>
+            <MarkdownText content={message.content} />
+            <ListenButton text={message.content} label="Reply" />
+          </>
         )}
       </View>
     </View>

@@ -8,6 +8,7 @@ import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvid
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { CountSlider } from "@/components/tool/CountSlider";
 import { Section } from "@/components/tool/Section";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -69,6 +70,7 @@ export function SocialPostsTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Platform"
@@ -86,6 +88,7 @@ export function SocialPostsTab() {
           editable={!request.pending}
           maxLength={3000}
           multiline
+          voice
         />
         <TextField
           label="Chat history (optional)"
@@ -95,6 +98,7 @@ export function SocialPostsTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Liked post examples (optional)"
@@ -104,6 +108,7 @@ export function SocialPostsTab() {
           editable={!request.pending}
           maxLength={3000}
           multiline
+          voice
         />
         <CountSlider
           label="Number of suggestions"
@@ -126,6 +131,7 @@ export function SocialPostsTab() {
           {result.userMessage !== "" && (
             <ResultCallout icon={Lightbulb} title="Strategy" tone="sky">
               <MarkdownText content={result.userMessage} />
+              <ListenButton text={result.userMessage} label="Strategy" />
             </ResultCallout>
           )}
 
@@ -137,6 +143,7 @@ export function SocialPostsTab() {
               <Panel key={`${post.variantId}-${index}`}>
                 <Text style={[styles.title, { color: colors.foreground }]}>Variant {post.variantId}</Text>
                 <MarkdownText content={post.content} />
+                <ListenButton text={post.content} label="Post" />
                 {post.designerNotes !== "" && (
                   <ResultCallout icon={Lightbulb} title="Designer notes" tone="emerald">
                     <MarkdownText content={post.designerNotes} />

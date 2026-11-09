@@ -53,6 +53,7 @@ export function VisionConverterScreen() {
           value={draft.instruction}
           onChangeText={draft.setInstruction}
           editable={!request.pending}
+          voice
           maxLength={INSTRUCTION_MAX}
         />
         <ActionButton

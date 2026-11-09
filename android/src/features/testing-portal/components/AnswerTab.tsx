@@ -6,6 +6,7 @@ import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { BookOpen, RefreshCcw } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "@/hooks/useRequest";
 import { generateAnswer } from "../lib/generators";
@@ -69,6 +70,7 @@ export function AnswerTab() {
             onChangeText={(text) => update("question", text)}
             maxLength={2000}
             multiline
+            voice
           />
           <TextField
             label="Context"
@@ -98,6 +100,7 @@ export function AnswerTab() {
             onChangeText={(text) => update("customInstructions", text)}
             maxLength={1000}
             multiline
+            voice
           />
           <ActionButton label="Generate answer" icon={BookOpen} loading={generate.pending} onPress={handleGenerate} />
         </Panel>
@@ -112,6 +115,7 @@ export function AnswerTab() {
             <Text style={[styles.body, { color: colors.foreground }]} selectable>
               {answer.answerText}
             </Text>
+            <ListenButton text={answer.answerText} label="Answer" />
             {answer.keyConceptsCovered.length > 0 && (
               <View style={[styles.concepts, { borderTopColor: colors.border }]}>
                 <Text style={[styles.label, { color: colors.mutedForeground }]}>Key concepts</Text>

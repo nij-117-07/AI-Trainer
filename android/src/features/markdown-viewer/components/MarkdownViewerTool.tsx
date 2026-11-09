@@ -39,6 +39,7 @@ export function MarkdownViewerTool() {
           value={content}
           onChangeText={setContent}
           multiline
+          voice
           autoCapitalize="none"
           autoCorrect={false}
           spellCheck={false}

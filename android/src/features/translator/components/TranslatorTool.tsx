@@ -6,6 +6,7 @@ import { Languages, Lightbulb, RefreshCcw, Sparkles } from "lucide-react-native"
 import { useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -55,6 +56,7 @@ export function TranslatorTool() {
           editable={!request.pending}
           maxLength={10000}
           multiline
+          voice
         />
         <TextField
           label="Source Language"
@@ -88,6 +90,7 @@ export function TranslatorTool() {
           editable={!request.pending}
           maxLength={4000}
           multiline
+          voice
         />
         <TextField
           label="Custom Instructions"
@@ -98,6 +101,7 @@ export function TranslatorTool() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <ActionButton
           label={request.pending ? "Translating with context…" : "Translate"}
@@ -113,12 +117,14 @@ export function TranslatorTool() {
         <>
           <ResultCallout icon={Languages} title="Translation" tone="sky">
             <MarkdownText content={quote(result.translatedText)} />
+            <ListenButton text={result.translatedText} label="Translation" />
           </ResultCallout>
 
           {result.culturalNotes !== "" && (
             <Panel>
               <SectionTitle icon={Lightbulb} title="Cultural notes" />
               <MarkdownText content={result.culturalNotes} />
+              <ListenButton text={result.culturalNotes} label="Cultural notes" />
             </Panel>
           )}
 
@@ -126,6 +132,7 @@ export function TranslatorTool() {
             <Panel>
               <SectionTitle icon={Languages} title="Why this translation" />
               <MarkdownText content={result.rationale} />
+              <ListenButton text={result.rationale} label="Explanation" />
             </Panel>
           )}
         </>

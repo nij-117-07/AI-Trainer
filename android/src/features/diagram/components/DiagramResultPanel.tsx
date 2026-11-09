@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Code, Eye, GitBranch, Lightbulb, Play, RotateCcw } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { Section } from "@/components/tool/Section";
@@ -40,6 +41,7 @@ export function DiagramResultPanel({
       {result.message !== "" && (
         <ResultCallout icon={Lightbulb} title="Summary" tone="sky">
           <MarkdownText content={result.message} />
+          <ListenButton text={result.message} label="Summary" />
         </ResultCallout>
       )}
 

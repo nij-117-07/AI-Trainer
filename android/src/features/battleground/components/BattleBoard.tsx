@@ -8,6 +8,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Crosshair, Flag, FileText, Swords } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -65,6 +66,7 @@ export function BattleBoard({ session, pending, error, onCommit }: BattleBoardPr
       <Panel>
         <SectionTitle icon={FileText} title="Mission" />
         <Text style={[styles.body, { color: colors.foreground }]}>{session.missionObjective}</Text>
+        <ListenButton text={session.missionObjective} label="Mission" />
         {rules.length > 0 && <TagList items={rules} />}
       </Panel>
 
@@ -75,6 +77,7 @@ export function BattleBoard({ session, pending, error, onCommit }: BattleBoardPr
             <Pill label={challenge.tacticType || "unspecified"} />
           </View>
           {challenge.briefing !== "" && <MarkdownText content={challenge.briefing} />}
+          <ListenButton text={challenge.briefing} label="Briefing" />
           {challenge.tacticalSituation !== "" && (
             <Text style={[styles.body, { color: colors.foreground }]}>
               <Text style={[styles.strong, { color: colors.mutedForeground }]}>Situation: </Text>
@@ -89,6 +92,7 @@ export function BattleBoard({ session, pending, error, onCommit }: BattleBoardPr
           {challenge.question !== "" && (
             <Text style={[styles.italic, { color: colors.foreground }]}>{challenge.question}</Text>
           )}
+          <ListenButton text={challenge.question} label="Question" />
           {constraints.length > 0 && <TagList items={constraints} />}
           {Object.keys(reference).length > 0 && (
             <View style={[styles.reference, { backgroundColor: colors.muted }]}>
@@ -108,6 +112,7 @@ export function BattleBoard({ session, pending, error, onCommit }: BattleBoardPr
             editable={!pending}
             maxLength={2000}
             multiline
+            voice
           />
           <ActionButton
             label={pending ? "Resolving your move…" : "Commit to your action"}
@@ -135,6 +140,7 @@ export function BattleBoard({ session, pending, error, onCommit }: BattleBoardPr
             />
           </View>
           {evaluation.feedback !== "" && <MarkdownText content={evaluation.feedback} />}
+          <ListenButton text={evaluation.feedback} label="Feedback" />
           {evaluation.narrative !== "" && (
             <Text style={[styles.italic, { color: colors.mutedForeground }]}>{evaluation.narrative}</Text>
           )}

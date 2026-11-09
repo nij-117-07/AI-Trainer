@@ -9,6 +9,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Flag, Gavel, Send } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { Section } from "@/components/tool/Section";
 import type { NegotiationSession } from "../types";
 import { NegotiationReport } from "./NegotiationReport";
@@ -54,6 +55,7 @@ export function NegotiationBoard({ session, busy, error, onSend, onEvaluate }: N
           ) : null}
         </View>
         {scenario.context ? <Text style={[styles.body, { color: colors.mutedForeground }]}>{scenario.context}</Text> : null}
+        <ListenButton text={scenario.context} label="Scenario" />
 
         <View style={styles.briefGrid}>
           <BriefSide
@@ -102,6 +104,7 @@ export function NegotiationBoard({ session, busy, error, onSend, onEvaluate }: N
               onChangeText={setOutcome}
               editable={!busy}
               maxLength={500}
+              voice
             />
             <ActionButton
               label={busy ? "Evaluating…" : "Evaluate session"}
@@ -121,6 +124,7 @@ export function NegotiationBoard({ session, busy, error, onSend, onEvaluate }: N
               editable={!busy}
               maxLength={2000}
               multiline
+              voice
             />
             <ActionButton
               label={busy ? "Opponent is replying…" : "Send"}

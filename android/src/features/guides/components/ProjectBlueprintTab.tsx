@@ -8,6 +8,7 @@ import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/For
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { generateProjectBlueprint } from "../lib/generators";
@@ -110,6 +111,7 @@ export function ProjectBlueprintTab() {
           {result.problemStatement !== "" && (
             <ResultCallout icon={AlertTriangle} title="Problem statement" tone="rose">
               <MarkdownText content={result.problemStatement} />
+              <ListenButton text={result.problemStatement} label="Problem statement" />
             </ResultCallout>
           )}
           <ListPanel icon={Layers} title="Technical requirements" items={result.technicalRequirements} />
@@ -117,6 +119,7 @@ export function ProjectBlueprintTab() {
           {result.validationCriteria !== "" && (
             <ResultCallout icon={CheckCircle2} title="Validation criteria" tone="emerald">
               <MarkdownText content={result.validationCriteria} />
+              <ListenButton text={result.validationCriteria} label="Validation criteria" />
             </ResultCallout>
           )}
         </>

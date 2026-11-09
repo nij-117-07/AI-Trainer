@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Send } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { ANSWER_MAX_LENGTH } from "../options";
 import type { InterviewQuestion } from "../types";
 import { StagePanel } from "./StagePanel";
@@ -39,6 +40,7 @@ export function AnswerStage({ question, isPending, error, onSubmit }: AnswerStag
       <View style={[styles.question, { borderColor: colors.border, backgroundColor: colors.muted }]}>
         <Text style={[styles.questionText, { color: colors.foreground }]}>{question.question}</Text>
       </View>
+      <ListenButton text={question.question} label="Question" />
       <TextField
         label="Your response"
         placeholder="Type your answer…"
@@ -47,6 +49,7 @@ export function AnswerStage({ question, isPending, error, onSubmit }: AnswerStag
         editable={!isPending}
         maxLength={ANSWER_MAX_LENGTH}
         multiline
+        voice
       />
     </StagePanel>
   );

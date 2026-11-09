@@ -100,6 +100,7 @@ export function LessonTool() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Custom instruction (optional)"
@@ -110,6 +111,7 @@ export function LessonTool() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Seed (variety)"

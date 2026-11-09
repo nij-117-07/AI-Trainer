@@ -8,6 +8,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Award, Check, Gauge, GitCompareArrows, Lightbulb, Scissors, Trophy, type LucideIcon } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -67,6 +68,7 @@ function CoachPanel({ feedback }: { feedback: CoachFeedback }) {
       </View>
       <ScoreTrack percent={feedback.score * 10} color={scoreColor} />
       <Text style={[styles.body, { color: colors.mutedForeground }]}>{feedback.coachMessage}</Text>
+      <ListenButton text={feedback.coachMessage} label="Coach feedback" />
       <Labeled title="What worked" icon={Check}>
         <Bullets items={textList(feedback.whatWorked)} />
       </Labeled>
@@ -80,6 +82,7 @@ function CoachPanel({ feedback }: { feedback: CoachFeedback }) {
       )}
       <ResultCallout icon={Lightbulb} title="Make it punchier" tone="amber">
         <Text style={[styles.body, { color: colors.foreground }]}>{feedback.rewriteSuggestion}</Text>
+        <ListenButton text={feedback.rewriteSuggestion} label="Rewrite suggestion" />
         <Text style={[styles.note, { color: colors.mutedForeground }]}>Remember: {feedback.onePrinciple}</Text>
       </ResultCallout>
     </Panel>
@@ -92,6 +95,7 @@ function RewritePanel({ version }: { version: BetterVersion }) {
     <Panel>
       <SectionTitle icon={GitCompareArrows} title="Your response, tightened" />
       <MarkdownText content={version.rewritten} />
+      <ListenButton text={version.rewritten} label="Tightened response" />
       <Text style={[styles.note, { color: colors.mutedForeground }]}>
         {version.originalWords} → {version.newWords} words ({Math.round(version.percentReduced)}% reduced)
       </Text>
@@ -111,6 +115,7 @@ function GoldPanel({ gold }: { gold: GoldStandard }) {
         <Text style={[styles.body, styles.italic, { color: colors.foreground }]}>{gold.opening}</Text>
       </Labeled>
       <MarkdownText content={gold.fullResponse} />
+      <ListenButton text={gold.fullResponse} label="Gold standard" />
       <Bullets items={textList(gold.whyIdeal)} />
     </ResultCallout>
   );

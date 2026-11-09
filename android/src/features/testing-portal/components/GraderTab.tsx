@@ -67,6 +67,7 @@ export function GraderTab() {
             value={form.scenario}
             onChangeText={(text) => update("scenario", text)}
             maxLength={500}
+            voice
           />
           <TextField
             label="Question asked"
@@ -75,6 +76,7 @@ export function GraderTab() {
             onChangeText={(text) => update("questionAsked", text)}
             maxLength={2000}
             multiline
+            voice
           />
           <TextField
             label="Target objective"
@@ -82,6 +84,7 @@ export function GraderTab() {
             value={form.targetObjective}
             onChangeText={(text) => update("targetObjective", text)}
             maxLength={1000}
+            voice
           />
           <SelectField
             label="Expected level"
@@ -97,6 +100,7 @@ export function GraderTab() {
             onChangeText={(text) => update("userAnswerText", text)}
             maxLength={5000}
             multiline
+            voice
           />
           <ImagePickerField value={image} onChange={setImage} disabled={grade.pending} />
           <ActionButton

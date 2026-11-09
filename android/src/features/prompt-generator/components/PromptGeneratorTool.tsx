@@ -70,6 +70,7 @@ export function PromptGeneratorTool() {
           editable={!request.pending}
           maxLength={CONTEXT_MAX}
           multiline
+          voice
         />
         <TextField
           label="User Instructions (optional)"
@@ -79,6 +80,7 @@ export function PromptGeneratorTool() {
           editable={!request.pending}
           maxLength={INSTRUCTIONS_MAX}
           multiline
+          voice
         />
         <TextField
           label="Reference Samples (optional)"
@@ -88,6 +90,7 @@ export function PromptGeneratorTool() {
           editable={!request.pending}
           maxLength={REFERENCE_SAMPLES_MAX}
           multiline
+          voice
         />
         <TextField
           label="Past Prompt (optional)"
@@ -97,6 +100,7 @@ export function PromptGeneratorTool() {
           editable={!request.pending}
           maxLength={PAST_PROMPT_MAX}
           multiline
+          voice
         />
         <TextField
           label="Seed (optional)"

@@ -146,6 +146,7 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
           value={draft.notes}
           onChangeText={(value) => update({ notes: value })}
           multiline
+          voice
           style={styles.notes}
           placeholder="Add details"
         />

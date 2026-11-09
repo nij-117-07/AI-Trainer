@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Minus, RotateCcw, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react-native";
 import { radius, spacing, useThemeColors, type Tone } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { TagList } from "@/components/tool/TagList";
 import { buildInterviewReport } from "../lib/report";
 import type { InterviewSessionState, PerformanceTrend } from "../types";
@@ -92,9 +93,12 @@ export function InterviewReport({ state, onRestart }: InterviewReportProps) {
               </BadgeRow>
               <Text style={[styles.answer, { color: colors.mutedForeground }]}>{entry.answer}</Text>
               {entry.review.weaknesses.length > 0 ? (
-                <Text style={[styles.answer, { color: colors.foreground }]}>
-                  To improve: {entry.review.weaknesses.join("; ")}
-                </Text>
+                <>
+                  <Text style={[styles.answer, { color: colors.foreground }]}>
+                    To improve: {entry.review.weaknesses.join("; ")}
+                  </Text>
+                  <ListenButton text={entry.review.weaknesses.join(". ")} label="Feedback" />
+                </>
               ) : null}
             </View>
           ))

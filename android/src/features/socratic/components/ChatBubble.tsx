@@ -3,6 +3,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ListenButton } from "@/components/tool/ListenButton";
 import type { ChatMessage } from "../types";
 
 export function ChatBubble({ message }: { message: ChatMessage }) {
@@ -19,6 +20,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
   return (
     <View style={[styles.assistant, { backgroundColor: colors.muted, borderColor: colors.border }]}>
       <MarkdownText content={message.content} />
+      <ListenButton text={message.content} label="Challenge" />
     </View>
   );
 }

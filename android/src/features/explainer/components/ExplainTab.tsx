@@ -12,6 +12,7 @@ import { expertiseLevelOptions } from "../options";
 import type { ExplainFormValues } from "../types";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 
 const DEFAULTS: ExplainFormValues = {
@@ -62,6 +63,7 @@ export function ExplainTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <ActionButton
           label={request.pending ? "Generating…" : "Generate explanation"}
@@ -81,6 +83,7 @@ export function ExplainTab() {
           <Panel>
             <SectionTitle icon={MessageSquareText} title="Explanation" />
             <MarkdownText content={result.explanation} />
+            <ListenButton text={result.explanation} label="Explanation" />
           </Panel>
         </>
       )}

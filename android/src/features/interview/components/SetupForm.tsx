@@ -52,6 +52,7 @@ export function SetupForm({ form, onChange, isPending, error, hasSession, onStar
         editable={!isPending}
         maxLength={1000}
         multiline
+        voice
       />
       <TextField
         label="Skills"

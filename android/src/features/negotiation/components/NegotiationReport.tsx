@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Trophy } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import type { CategoryScores, SessionReport } from "../types";
@@ -54,10 +55,13 @@ export function NegotiationReport({ report, outcome }: { report: SessionReport; 
 
       <SectionTitle icon={Trophy} title="Strengths" />
       <MarkdownText content={toBullets(report.strengths)} />
+      <ListenButton text={toBullets(report.strengths)} label="Strengths" />
       <SectionTitle icon={Trophy} title="Areas for improvement" />
       <MarkdownText content={toBullets(report.areasForImprovement)} />
+      <ListenButton text={toBullets(report.areasForImprovement)} label="Areas for improvement" />
       <SectionTitle icon={Trophy} title="Key takeaways" />
       <MarkdownText content={toBullets(report.keyTakeaways)} />
+      <ListenButton text={toBullets(report.keyTakeaways)} label="Key takeaways" />
       <SectionTitle icon={Trophy} title="Suggested resources" />
       <MarkdownText content={toBullets(report.suggestedResources)} />
     </Panel>

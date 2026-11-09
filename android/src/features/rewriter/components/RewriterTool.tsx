@@ -16,6 +16,7 @@ import {
   Panel,
   TextField,
 } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -89,6 +90,7 @@ export function RewriterTool() {
           editable={!request.pending}
           maxLength={10000}
           multiline
+          voice
         />
         <TextField
           label="Target tone"
@@ -122,6 +124,7 @@ export function RewriterTool() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <ActionButton
           label={request.pending ? "Rewriting…" : "Rewrite"}
@@ -143,11 +146,13 @@ export function RewriterTool() {
                   : "_No rewrite was returned._"
               }
             />
+            <ListenButton text={result.rewrittenText} label="Rewrite" />
           </ResultCallout>
 
           {result.rationale !== "" && (
             <ResultCallout icon={Lightbulb} title="Rationale" tone="sky">
               <MarkdownText content={result.rationale} />
+              <ListenButton text={result.rationale} label="Rationale" />
             </ResultCallout>
           )}
 

@@ -8,6 +8,7 @@ import { ChevronDown, ChevronUp, GitBranch, Lightbulb, ListChecks, Unlock, type 
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ErrorBoundary } from "@/components/tool/ErrorBoundary";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { Panel } from "@/components/tool/FormControls";
 import type { SkillLevel } from "../types";
 
@@ -56,14 +57,29 @@ function LevelCardBody({ level, index }: LevelCardProps) {
     });
   }
   if (level.howItWorks.trim() !== "") {
-    sections.push({ key: "howItWorks", title: "How it works", icon: Lightbulb, body: <MarkdownText content={level.howItWorks.trim()} /> });
+    sections.push({
+      key: "howItWorks",
+      title: "How it works",
+      icon: Lightbulb,
+      body: (
+        <>
+          <MarkdownText content={level.howItWorks.trim()} />
+          <ListenButton text={level.howItWorks} label="How it works" />
+        </>
+      ),
+    });
   }
   if (level.proofOfMastery.trim() !== "") {
     sections.push({
       key: "proofOfMastery",
       title: "Proof of mastery",
       icon: ListChecks,
-      body: <MarkdownText content={level.proofOfMastery.trim()} />,
+      body: (
+        <>
+          <MarkdownText content={level.proofOfMastery.trim()} />
+          <ListenButton text={level.proofOfMastery} label="Proof of mastery" />
+        </>
+      ),
     });
   }
   if (level.unlockCondition.trim() !== "") {
@@ -71,7 +87,12 @@ function LevelCardBody({ level, index }: LevelCardProps) {
       key: "unlockCondition",
       title: "Unlock condition",
       icon: Unlock,
-      body: <MarkdownText content={level.unlockCondition.trim()} />,
+      body: (
+        <>
+          <MarkdownText content={level.unlockCondition.trim()} />
+          <ListenButton text={level.unlockCondition} label="Unlock condition" />
+        </>
+      ),
     });
   }
 

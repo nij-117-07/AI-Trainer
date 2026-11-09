@@ -7,6 +7,7 @@ import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/For
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { VENUE_TYPE_OPTIONS } from "../options";
 import { simulateCrowd } from "../lib/generators";
@@ -38,6 +39,7 @@ export function CrowdTab() {
           editable={!pending}
           maxLength={5000}
           multiline
+          voice
         />
         <SelectField
           label="Venue type"
@@ -53,6 +55,7 @@ export function CrowdTab() {
           onChangeText={(text) => update("audienceDemographic", text)}
           editable={!pending}
           maxLength={500}
+          voice
         />
         <ActionButton
           label={pending ? "Predicting the reaction…" : "Simulate the crowd"}
@@ -85,12 +88,14 @@ export function CrowdTab() {
           ) : (
             <EmptyNote message="No delivery advice was returned." />
           )}
+          <ListenButton text={result.bestDeliveryStyle} label="Delivery advice" />
           <Label>Potential risks</Label>
           <BulletList items={result.potentialRisks} />
           {result.alternativePunchline ? (
             <View style={[styles.box, { backgroundColor: colors.muted }]}>
               <Label>Backup punchline</Label>
               <MarkdownText content={result.alternativePunchline} />
+              <ListenButton text={result.alternativePunchline} label="Backup punchline" />
             </View>
           ) : null}
           <ResultCallout icon={Users} title="Crowd work" tone="amber">

@@ -113,6 +113,7 @@ export function DiagramTool() {
           editable={!request.pending}
           maxLength={INSTRUCTION_MAX}
           multiline
+          voice
         />
         <TextField
           label="Context (optional)"
@@ -122,6 +123,7 @@ export function DiagramTool() {
           editable={!request.pending}
           maxLength={CONTEXT_MAX}
           multiline
+          voice
         />
         {isMermaid ? (
           <TextField

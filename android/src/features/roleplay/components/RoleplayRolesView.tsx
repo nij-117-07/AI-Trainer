@@ -54,6 +54,7 @@ export function RoleplayRolesView() {
           onChangeText={(prompt) => roles.setForm((current) => ({ ...current, prompt }))}
           maxLength={ROLE_PROMPT_MAX}
           multiline
+          voice
         />
         <ErrorText message={roles.actionError} />
         {roles.success ? <Text style={[styles.success, { color: colors.tone.emerald.fg }]}>{roles.success}</Text> : null}

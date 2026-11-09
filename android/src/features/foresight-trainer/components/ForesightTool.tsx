@@ -96,6 +96,7 @@ export function ForesightTool() {
           editable={!start.pending}
           maxLength={3000}
           multiline
+          voice
         />
         <TextField
           label="Theme / skill to train"

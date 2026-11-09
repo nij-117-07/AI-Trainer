@@ -86,6 +86,7 @@ export function ChallengeTab() {
           onChangeText={(text) => update("scenario", text)}
           editable={!request.pending}
           maxLength={500}
+          voice
         />
         <TextField
           label="User persona"
@@ -95,6 +96,7 @@ export function ChallengeTab() {
           onChangeText={(text) => update("userPersona", text)}
           editable={!request.pending}
           maxLength={500}
+          voice
         />
         <TextField
           label="Custom instructions (optional)"
@@ -105,6 +107,7 @@ export function ChallengeTab() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <TextField
           label="Seed (variety)"

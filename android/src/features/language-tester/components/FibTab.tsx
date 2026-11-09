@@ -84,6 +84,7 @@ export function FibTab() {
           onChangeText={(text) => update("scenario", text)}
           editable={!request.pending}
           maxLength={500}
+          voice
         />
         <TextField
           label="User details"
@@ -93,6 +94,7 @@ export function FibTab() {
           onChangeText={(text) => update("userDetails", text)}
           editable={!request.pending}
           maxLength={500}
+          voice
         />
         <TextField
           label="Seed (variety)"

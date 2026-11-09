@@ -28,6 +28,7 @@ export function RecheckStep({ textPrefill, isPending, error, onSubmit }: Recheck
           editable={!isPending}
           maxLength={TEXT_MAX}
           multiline
+          voice
         />
         <ActionButton
           label={isPending ? "Re-checking…" : "Re-detect"}

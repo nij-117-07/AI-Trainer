@@ -52,6 +52,7 @@ export function FlexibleWriterTool() {
           editable={!request.pending}
           maxLength={SYSTEM_PROMPT_MAX}
           multiline
+          voice
         />
         <TextField
           label="Input Data"
@@ -61,6 +62,7 @@ export function FlexibleWriterTool() {
           editable={!request.pending}
           maxLength={INPUT_DATA_MAX}
           multiline
+          voice
         />
         <TextField
           label="Additional Instructions (optional)"
@@ -70,6 +72,7 @@ export function FlexibleWriterTool() {
           editable={!request.pending}
           maxLength={INSTRUCTIONS_MAX}
           multiline
+          voice
         />
         <ActionButton
           label={request.pending ? "Transforming…" : "Transform"}

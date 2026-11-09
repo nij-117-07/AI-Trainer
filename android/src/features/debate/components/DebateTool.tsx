@@ -191,6 +191,7 @@ export function DebateTool() {
           onChangeText={(text) => updateForm("customConstraints", text)}
           editable={!build.pending}
           maxLength={LIMITS.constraints}
+          voice
         />
         <ActionButton
           label={build.pending ? "Crafting the persona…" : current ? "Build a new persona" : "Build persona"}

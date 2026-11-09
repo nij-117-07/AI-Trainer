@@ -7,6 +7,7 @@ import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/For
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { JOKE_STYLE_OPTIONS } from "../options";
 import { generateJoke } from "../lib/generators";
@@ -80,6 +81,7 @@ export function GenerateTab() {
           <View style={[styles.highlight, { backgroundColor: colors.muted, borderColor: colors.border }]}>
             <Text style={[styles.jokeLabel, { color: colors.mutedForeground }]}>The joke</Text>
             <MarkdownText content={result.joke || "No joke text was returned."} />
+            <ListenButton text={result.joke} label="Joke" />
           </View>
           <Text style={[styles.meta, { color: colors.mutedForeground }]}>
             Humor: {result.humorType || "unspecified"} · Delivery difficulty: {result.difficultyRating}/5

@@ -94,6 +94,7 @@ export function WordOfTheDayTool() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <ActionButton
           label={request.pending ? "Choosing today's word…" : "Get Word of the Day"}

@@ -7,6 +7,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Compass, Scale, ShieldExclamationPoint, Zap, type LucideIcon } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -36,6 +37,7 @@ function BiasSection({ icon, title, content }: { icon: LucideIcon; title: string
     <Panel>
       <SectionTitle icon={icon} title={title} />
       {content === "" ? <MarkdownText content="Nothing was returned." /> : <MarkdownText content={content} />}
+      <ListenButton text={content} label={title} />
     </Panel>
   );
 }

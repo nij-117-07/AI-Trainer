@@ -147,6 +147,7 @@ export function CreateRoadmapPanel({ onCreated }: CreateRoadmapPanelProps) {
         editable={!busy}
         maxLength={ROADMAP_LIMITS.instructions}
         multiline
+        voice
       />
       <ActionButton
         label={request.pending ? "Generating…" : "Generate main points"}

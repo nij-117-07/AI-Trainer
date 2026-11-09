@@ -9,6 +9,7 @@ import { Check } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { StepNavigator } from "@/components/tool/StepNavigator";
 import { evaluateFibAnswer } from "../lib/generators";
 import { errorMessage } from "../lib/text";
@@ -104,6 +105,7 @@ function QuestionCard({ index, question, answer, evaluation, isChecking, onChang
   return (
     <Panel>
       <QuestionHeading index={index} text={question.sentence} />
+      <ListenButton text={question.sentence} label="Sentence" />
       {question.hint !== "" && <Text style={[styles.muted, { color: colors.mutedForeground }]}>Hint: {question.hint}</Text>}
       {question.contextClue !== "" && (
         <Text style={[styles.muted, styles.italic, { color: colors.mutedForeground }]}>{question.contextClue}</Text>
@@ -116,6 +118,7 @@ function QuestionCard({ index, question, answer, evaluation, isChecking, onChang
         onChangeText={onChangeAnswer}
         editable={!locked}
         maxLength={500}
+        voice
       />
       <ActionButton
         label={isChecking ? "Checking…" : evaluation ? "Checked" : "Check"}
@@ -134,6 +137,7 @@ function QuestionCard({ index, question, answer, evaluation, isChecking, onChang
           {evaluation.improvementTip !== "" && (
             <Text style={[styles.muted, { color: colors.mutedForeground }]}>Tip: {evaluation.improvementTip}</Text>
           )}
+          <ListenButton text={evaluation.feedback} label="Feedback" />
         </FeedbackBox>
       )}
     </Panel>

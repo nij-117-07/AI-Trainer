@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { BookOpenCheck, ChevronLeft, ChevronRight } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import type { ConceptItem } from "../lib/types";
 
@@ -67,6 +68,12 @@ export function BreakdownPanel({ items, index, count, onNavigate }: BreakdownPan
               </View>
             ))
           )}
+          {items.length > 0 ? (
+            <ListenButton
+              text={items.map((item) => [item.title, item.description].filter(Boolean).join(". ")).join(". ")}
+              label="Breakdown"
+            />
+          ) : null}
         </>
       )}
     </Panel>

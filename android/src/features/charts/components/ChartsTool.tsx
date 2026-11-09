@@ -5,6 +5,7 @@ import { Share } from "react-native";
 import { ChartColumn, Code2, Lightbulb, Play, RefreshCcw, Share2, Sparkles } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -108,6 +109,7 @@ export function ChartsTool() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Previous Code (optional)"
@@ -143,6 +145,7 @@ export function ChartsTool() {
           {result.answerMessage !== "" && (
             <ResultCallout icon={Lightbulb} title="Summary" tone="sky">
               <MarkdownText content={result.answerMessage} />
+              <ListenButton text={result.answerMessage} label="Summary" />
             </ResultCallout>
           )}
 

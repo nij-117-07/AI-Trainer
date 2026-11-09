@@ -7,6 +7,7 @@ import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/For
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { PRACTICE_FOCUS_OPTIONS, SKILL_LEVEL_OPTIONS } from "../options";
@@ -56,6 +57,7 @@ export function PracticeTab() {
           onChangeText={(text) => update("sessionGoal", text)}
           editable={!pending}
           maxLength={500}
+          voice
         />
         <TextField
           label="Your joke (optional)"
@@ -65,6 +67,7 @@ export function PracticeTab() {
           editable={!pending}
           maxLength={5000}
           multiline
+          voice
         />
         <ActionButton
           label={pending ? "Building your drill…" : "Start practice session"}
@@ -89,6 +92,7 @@ export function PracticeTab() {
           ) : (
             <EmptyNote message="No instructions were returned." />
           )}
+          <ListenButton text={result.exerciseInstructions} label="Instructions" />
           {result.practiceJoke ? (
             <View style={[styles.box, { backgroundColor: colors.muted }]}>
               <Label>Practice joke</Label>
@@ -97,6 +101,7 @@ export function PracticeTab() {
           ) : null}
           <ResultCallout icon={Target} title="Drill prompt" tone="emerald">
             {result.drillPrompt ? <MarkdownText content={result.drillPrompt} /> : <EmptyNote message="No drill was returned." />}
+            <ListenButton text={result.drillPrompt} label="Drill prompt" />
           </ResultCallout>
           <Label>Success criteria</Label>
           <BulletList items={result.successCriteria} />

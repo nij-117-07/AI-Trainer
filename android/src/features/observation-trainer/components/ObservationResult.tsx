@@ -7,6 +7,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { CircleCheck, Eye, Lightbulb, ListChecks, Search, Sparkles, Target, TriangleAlert } from "lucide-react-native";
 import { radius, spacing, useThemeColors, type Tone } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -58,15 +59,18 @@ export function ObservationResult({ result }: { result: ObservationTrainResult }
 
         <ResultCallout icon={Search} title="Scenario feedback" tone="sky">
           <MarkdownText content={evaluation.scenarioFeedback} />
+          <ListenButton text={evaluation.scenarioFeedback} label="Scenario feedback" />
         </ResultCallout>
         <ResultCallout icon={Sparkles} title="Feedback" tone="amber">
           <MarkdownText content={evaluation.feedback} />
+          <ListenButton text={evaluation.feedback} label="Feedback" />
         </ResultCallout>
       </Panel>
 
       <Panel>
         <SectionTitle icon={Eye} title="Ground-truth analysis" />
         <LabeledText label="What is actually there" body={imageAnalysis.groundTruthDescription} />
+        <ListenButton text={imageAnalysis.groundTruthDescription} label="Ground truth" />
         {imageAnalysis.keyElements.length > 0 && (
           <View style={styles.block}>
             <Text style={[styles.label, { color: colors.foreground }]}>Key elements</Text>
@@ -114,6 +118,7 @@ export function ObservationResult({ result }: { result: ObservationTrainResult }
           </ResultCallout>
           <ResultCallout icon={Lightbulb} title="Training tip" tone="amber">
             <MarkdownText content={hiddenDetails.trainingTip} />
+            <ListenButton text={hiddenDetails.trainingTip} label="Training tip" />
           </ResultCallout>
           <ResultCallout icon={ListChecks} title="Practice exercise" tone="emerald">
             <MarkdownText content={hiddenDetails.practiceExercise} />

@@ -19,6 +19,7 @@ import {
   Panel,
   TextField,
 } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -179,6 +180,7 @@ export function PoetEngineTool() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <ActionButton
           label={
@@ -210,6 +212,7 @@ export function PoetEngineTool() {
               <MarkdownText
                 content={section.quoted ? quote(section.body) : section.body}
               />
+              <ListenButton text={section.body} label={section.title} />
             </ResultCallout>
           ))
         ))}

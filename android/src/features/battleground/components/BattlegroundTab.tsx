@@ -75,6 +75,7 @@ export function BattlegroundTab() {
             editable={!pending}
             maxLength={1000}
             multiline
+            voice
           />
           <TextField
             label="Battleground topic"

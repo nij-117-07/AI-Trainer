@@ -8,6 +8,7 @@ import { Share, StyleSheet, Text, View } from "react-native";
 import { FileText, Share2 } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { ActionButton, ChoiceChips, Panel, TextField } from "@/components/tool/FormControls";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 
@@ -38,7 +39,10 @@ export function ConvertedMarkdown({ markdown }: { markdown: string }) {
       {text === "" ? (
         <Text style={[styles.empty, { color: colors.mutedForeground }]}>The model returned no Markdown.</Text>
       ) : mode === "preview" ? (
-        <MarkdownText content={text} />
+        <>
+          <MarkdownText content={text} />
+          <ListenButton text={text} label="Converted text" />
+        </>
       ) : (
         <TextField
           label="Markdown source"

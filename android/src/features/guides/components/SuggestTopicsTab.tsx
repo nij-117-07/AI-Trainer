@@ -8,6 +8,7 @@ import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/For
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { suggestTopics } from "../lib/generators";
@@ -76,6 +77,7 @@ export function SuggestTopicsTab() {
           editable={!request.pending}
           maxLength={2000}
           multiline
+          voice
         />
         <TextField
           label="Previously suggested topics (optional)"
@@ -95,6 +97,7 @@ export function SuggestTopicsTab() {
           editable={!request.pending}
           maxLength={1000}
           multiline
+          voice
         />
         <SelectField
           label="Topic level"
@@ -125,6 +128,7 @@ export function SuggestTopicsTab() {
                   {index + 1}. {item.topicName}
                 </Text>
                 {item.reason !== "" && <MarkdownText content={item.reason} />}
+                {item.reason !== "" && <ListenButton text={item.reason} label="Reason" />}
               </Panel>
             ))
           )}

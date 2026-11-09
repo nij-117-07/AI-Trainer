@@ -12,6 +12,7 @@ import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvid
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { sendTurn } from "../lib/generators";
@@ -88,6 +89,7 @@ export function RoleplayChatTab() {
           editable={!request.pending}
           multiline
           maxLength={4000}
+          voice
         />
       </Panel>
 
@@ -121,6 +123,7 @@ export function RoleplayChatTab() {
           editable={!request.pending}
           multiline
           maxLength={2000}
+          voice
         />
         <ActionButton
           label={request.pending ? "Waiting for reply…" : "Send"}
@@ -159,7 +162,10 @@ function MessageBubble({ message, speaker }: { message: ChatMessage; speaker: st
             {message.content}
           </Text>
         ) : (
-          <MarkdownText content={message.content} />
+          <>
+            <MarkdownText content={message.content} />
+            <ListenButton text={message.content} label="Reply" />
+          </>
         )}
         {!mine && meta ? <Text style={[styles.meta, { color: colors.mutedForeground }]}>{meta}</Text> : null}
       </View>

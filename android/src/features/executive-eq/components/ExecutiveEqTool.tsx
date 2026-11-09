@@ -141,6 +141,7 @@ export function ExecutiveEqTool() {
           editable={!start.pending}
           maxLength={300}
           multiline
+          voice
         />
         <SelectField
           label="Learning focus"

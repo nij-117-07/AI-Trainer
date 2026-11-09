@@ -3,6 +3,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Lightbulb } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import type { SessionEntry } from "../types";
@@ -24,6 +25,7 @@ function Entry({ entry }: { entry: SessionEntry }) {
     return (
       <ResultCallout icon={Lightbulb} title="Coach tip" tone="emerald">
         <MarkdownText content={entry.text} />
+        <ListenButton text={entry.text} label="Coach tip" />
       </ResultCallout>
     );
   }
@@ -39,6 +41,7 @@ function Entry({ entry }: { entry: SessionEntry }) {
     >
       <Text style={[styles.speaker, { color: colors.mutedForeground }]}>{isUser ? "You" : "Opponent"}</Text>
       <MarkdownText content={entry.text} />
+      {isUser ? null : <ListenButton text={entry.text} label="Reply" />}
     </View>
   );
 }

@@ -71,6 +71,7 @@ export function NoteEditor({ note, onBack, onSave, onTogglePin, onDelete }: Note
             setError(null);
           }}
           multiline
+          voice
           style={styles.body}
           placeholder="Write it all down. Use #tags to group ideas."
         />

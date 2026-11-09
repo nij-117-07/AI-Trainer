@@ -112,6 +112,7 @@ export function SkillTreeCreate() {
           editable={!busy}
           maxLength={SKILL_LIMITS.currentProficiency}
           multiline
+          voice
         />
         <TextField
           label="Target Mastery Level"
@@ -130,6 +131,7 @@ export function SkillTreeCreate() {
           editable={!busy}
           maxLength={SKILL_LIMITS.learningConstraints}
           multiline
+          voice
         />
         <ActionButton
           label={busy ? "Deconstructing skills…" : "Generate Skill Tree"}
