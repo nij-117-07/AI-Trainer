@@ -18,7 +18,10 @@ const coach = FAIL_GUIDE_DESCRIPTIONS;
 
 export const gameSetupSignature = f()
   .description(setup.instruction)
-  .input("category", f.string(`${setup.inputs.category} One of: word, movie, sentence, book, celebrity, song.`))
+  .input(
+    "category",
+    f.string(`${setup.inputs.category} Usually one of: word, movie, sentence, book, celebrity, song, or a custom category.`),
+  )
   .input("difficulty", f.string(`${setup.inputs.difficulty} One of: easy, medium, hard, expert.`))
   .input("vocabularyTheme", f.string(setup.inputs.vocabularyTheme).optional())
   .output("mysteryItem", f.string(setup.outputs.mysteryItem))

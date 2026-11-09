@@ -9,12 +9,14 @@ import { loadDocument, removeDocument, saveDocument } from "@/lib/document-store
 import { requestCoaching, requestHint, makeGuess, startGame } from "../lib/generators";
 import { GUESS_GAME_KEYS, mergeSavedForm } from "../lib/persistence";
 import { parseSavedSession, recordCoaching, recordGuess, recordHint, startSession } from "../lib/session-model";
+import { resolveCategory } from "../lib/validate";
 import type { GameSetupFormValues, GuessGameSession } from "../types";
 
 export type GamePending = "start" | "guess" | "hint" | "coach" | null;
 
 const DEFAULT_FORM: GameSetupFormValues = {
   category: "word",
+  customCategory: "",
   difficulty: "medium",
   vocabularyTheme: "",
 };
@@ -95,9 +97,12 @@ export function useGuessGame() {
   const start = useCallback(
     async (values: GameSetupFormValues) => {
       if (pending) return;
-      const setup = await run("start", (signal) => startGame(settings, values, signal));
-      if (!setup) return;
-      setSession(startSession(setup, values.category, values.difficulty));
+      const started = await run("start", async (signal) => ({
+        category: resolveCategory(values),
+        setup: await startGame(settings, values, signal),
+      }));
+      if (!started) return;
+      setSession(startSession(started.setup, started.category, values.difficulty));
     },
     [pending, run, settings],
   );

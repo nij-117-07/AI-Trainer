@@ -1,145 +1,97 @@
 // src/features/socratic/components/SocraticTab.tsx
 /**
- * Socratic Challenger: state a belief and the challenger stress-tests it with a fallacy check, a
- * falsification question, an edge case, and a refined perspective. The conversation and the chosen
- * confidence are kept on the device between visits.
+ * Socratic Challenger body. Before a discussion starts, the setup form picks the focus and
+ * confidence. After that, the chat runs in a scroll box, and the composer is in the screen footer
+ * (see the route). Wrap-up closes the discussion with both sides and a refined position.
  */
-import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { MessageSquare, Send } from "lucide-react-native";
+import { StyleSheet, Text } from "react-native";
+import { ListChecks } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
-import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { ScrollPanel } from "@/components/tool/ScrollPanel";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
-import { useRequest } from "@/hooks/useRequest";
-import { challengeStatement } from "../lib/generators";
-import { CONFIDENCE_OPTIONS, DEFAULT_CONFIDENCE } from "../options";
-import { sanitizeConfidence, sanitizeMessages } from "../lib/normalize";
-import { formatChallenge, toHistory } from "../lib/transcript";
-import { usePersistedDocument } from "../hooks/usePersistedDocument";
-import type { ChatMessage } from "../types";
+import { CONFIDENCE_OPTIONS, FOCUS_OPTIONS } from "../options";
+import type { SocraticFocus } from "../types";
+import type { useSocraticChat } from "../hooks/useSocraticChat";
 import { ChatBubble } from "./ChatBubble";
+import { ThinkingRow } from "./ThinkingRow";
 
-export const SOCRATIC_STORAGE_KEYS = {
-  messages: "practice.socratic.messages.v1",
-  confidence: "practice.socratic.confidence.v1",
-} as const;
+interface SocraticTabProps {
+  chat: ReturnType<typeof useSocraticChat>;
+}
 
-const STATEMENT_MAX = 2000;
-
-export function SocraticTab() {
+export function SocraticTab({ chat }: SocraticTabProps) {
   const colors = useThemeColors();
-  const { settings } = useAiSettings();
-  const messages = usePersistedDocument<ChatMessage[]>(SOCRATIC_STORAGE_KEYS.messages, [], sanitizeMessages);
-  const confidence = usePersistedDocument<string>(SOCRATIC_STORAGE_KEYS.confidence, DEFAULT_CONFIDENCE, sanitizeConfidence);
-  const [statement, setStatement] = useState("");
-  const challenge = useRequest(challengeStatement);
-  const activeRequest = useRef<AbortController | null>(null);
-
-  useEffect(() => () => activeRequest.current?.abort(), []);
-
-  function startRequest(): AbortSignal {
-    const controller = new AbortController();
-    activeRequest.current = controller;
-    return controller.signal;
-  }
-
-  async function handleSend() {
-    const text = statement.trim();
-    if (!text || challenge.pending) return;
-    const next: ChatMessage[] = [...messages.value, { role: "user", content: text }];
-    messages.setValue(next);
-    setStatement("");
-    const signal = startRequest();
-    const result = await challenge.run(
-      settings,
-      { statement: text, history: toHistory(next), confidence: confidence.value },
-      signal,
-    );
-    if (!result || signal.aborted) return;
-    messages.setValue((current) => [...current, { role: "assistant", content: formatChallenge(result) }]);
-  }
-
-  function handleNewDiscussion() {
-    messages.setValue([]);
-    setStatement("");
-    challenge.reset();
-  }
-
-  const empty = messages.value.length === 0 && !challenge.pending;
+  const started = chat.messages.length > 0;
+  const focusOption = FOCUS_OPTIONS.find((option) => option.value === chat.focus);
+  const confidenceOption = CONFIDENCE_OPTIONS.find((option) => option.value === chat.confidence);
 
   return (
     <Section>
-      <Panel>
-        <SelectField
-          label="Your confidence"
-          options={CONFIDENCE_OPTIONS}
-          value={confidence.value}
-          onChange={(value) => confidence.setValue(value)}
-          allowCustom={false}
-        />
-      </Panel>
+      {started ? (
+        <Text style={[styles.summaryLine, { color: colors.mutedForeground }]}>
+          {focusOption?.label} · Confidence: {confidenceOption?.label}
+        </Text>
+      ) : (
+        <Panel>
+          <SelectField
+            label="What should the challenger do?"
+            options={FOCUS_OPTIONS}
+            value={chat.focus}
+            onChange={(value) => chat.setFocus(value as SocraticFocus)}
+            allowCustom={false}
+          />
+          {focusOption?.hint && <Text style={[styles.hint, { color: colors.mutedForeground }]}>{focusOption.hint}</Text>}
+          <SelectField
+            label="Your confidence"
+            options={CONFIDENCE_OPTIONS}
+            value={chat.confidence}
+            onChange={chat.setConfidence}
+            allowCustom={false}
+          />
+        </Panel>
+      )}
 
-      <Panel>
-        {empty && (
+      <ScrollPanel scrollKey={chat.messages.length + (chat.pending ? 1 : 0)}>
+        {!started && (
           <Text style={[styles.empty, { color: colors.mutedForeground }]}>
-            No claims yet. State an opinion or belief and the challenger will interrogate it.
+            No discussion yet. State a belief or opinion, and the challenger will test it from both sides and ask you the
+            question that matters most.
           </Text>
         )}
-        {messages.value.map((message, index) => (
-          <ChatBubble key={`${index}-${message.role}`} message={message} />
+        {chat.messages.map((message, index) => (
+          <ChatBubble key={`${index}-${message.role}-${message.kind ?? "turn"}`} message={message} />
         ))}
-        {challenge.pending && (
-          <View style={styles.thinking}>
-            <ActivityIndicator color={colors.primary} />
-            <Text style={[styles.thinkingText, { color: colors.mutedForeground }]}>Challenging your reasoning…</Text>
-          </View>
-        )}
-      </Panel>
+        {chat.challengePending && <ThinkingRow label="Challenging your reasoning…" />}
+        {chat.synthesisPending && <ThinkingRow label="Weighing both sides…" />}
+      </ScrollPanel>
 
-      <Panel>
-        <TextField
-          label="Your claim or rebuttal"
-          placeholder="State your claim or rebuttal…"
-          value={statement}
-          onChangeText={setStatement}
-          editable={!challenge.pending}
-          maxLength={STATEMENT_MAX}
-          multiline
-          voice
-        />
-        <ErrorText message={challenge.error} />
+      {chat.canWrapUp && (
         <ActionButton
-          label={challenge.pending ? "Challenging…" : "Send"}
-          icon={Send}
-          loading={challenge.pending}
-          onPress={handleSend}
+          label={chat.synthesisPending ? "Summarising…" : "Wrap up both sides"}
+          icon={ListChecks}
+          variant="outline"
+          loading={chat.synthesisPending}
+          onPress={() => void chat.wrapUp()}
         />
-      </Panel>
-
-      <ActionButton
-        label="Start a new discussion"
-        icon={MessageSquare}
-        variant="outline"
-        loading={challenge.pending}
-        onPress={handleNewDiscussion}
-      />
+      )}
     </Section>
   );
 }
 
 const styles = StyleSheet.create({
+  summaryLine: {
+    fontSize: 13,
+    fontWeight: "600",
+    paddingHorizontal: spacing.xs,
+  },
+  hint: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
   empty: {
     fontSize: 14,
     lineHeight: 20,
-  },
-  thinking: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  thinkingText: {
-    fontSize: 14,
   },
 });

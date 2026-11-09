@@ -82,9 +82,14 @@ describe("parseSavedSession", () => {
     expect(parseSavedSession(JSON.parse(JSON.stringify(session)))).toEqual(session);
   });
 
+  it("keeps a custom category typed by the user", () => {
+    const session = startSession(setup, "Board games", "easy");
+    expect(parseSavedSession(JSON.parse(JSON.stringify(session)))?.category).toBe("Board games");
+  });
+
   it("rejects damaged or missing data", () => {
     expect(parseSavedSession(null)).toBeNull();
-    expect(parseSavedSession({ ...startSession(setup, "word", "easy"), category: "poem" })).toBeNull();
+    expect(parseSavedSession({ ...startSession(setup, "word", "easy"), category: "   " })).toBeNull();
     expect(parseSavedSession({ ...startSession(setup, "word", "easy"), log: [{ role: "bot", content: "x" }] })).toBeNull();
   });
 });

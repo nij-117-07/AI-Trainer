@@ -1,5 +1,5 @@
 // src/features/socratic/components/ChatBubble.tsx
-/** One turn of the Socratic dialogue: the user's statement, or the challenger's markdown reply. */
+/** One turn of the Socratic dialogue: the user's statement, the challenger's reply, or the wrap-up. */
 import { StyleSheet, Text, View } from "react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -17,10 +17,18 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
       </View>
     );
   }
+  const summary = message.kind === "summary";
   return (
-    <View style={[styles.assistant, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+    <View
+      style={[
+        styles.assistant,
+        { backgroundColor: colors.muted, borderColor: summary ? colors.primary : colors.border },
+        summary && styles.summary,
+      ]}
+    >
+      {summary && <Text style={[styles.summaryTitle, { color: colors.primary }]}>Wrap-up of both sides</Text>}
       <MarkdownText content={message.content} />
-      <ListenButton text={message.content} label="Challenge" />
+      <ListenButton text={message.content} label={summary ? "Wrap-up" : "Challenge"} />
     </View>
   );
 }
@@ -43,5 +51,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.xl,
     padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  summary: {
+    borderWidth: 2,
+  },
+  summaryTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
   },
 });

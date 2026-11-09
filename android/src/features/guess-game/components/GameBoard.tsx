@@ -1,42 +1,30 @@
 // src/features/guess-game/components/GameBoard.tsx
-/** The running game: badges, the solved banner, the hint and guess transcript, and the guess controls. */
-import { useState } from "react";
+/**
+ * The running game: badges, the solved banner, and the hint and guess transcript. The transcript
+ * scrolls inside its own box. Guess input and actions live in the screen footer (see GuessComposer).
+ */
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { LifeBuoy, Send, Sparkles, Trophy } from "lucide-react-native";
+import { Trophy } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
-import { GUESS_MAX_LENGTH } from "../options";
-import { guessesLeft } from "../lib/session-model";
+import { ScrollPanel } from "@/components/tool/ScrollPanel";
 import type { GameMessage, GuessGameSession } from "../types";
 import type { GamePending } from "../hooks/useGuessGame";
 
 interface GameBoardProps {
   session: GuessGameSession;
   pending: GamePending;
-  error: string | null;
-  onGuess: (text: string) => void;
-  onHint: () => void;
-  onCoach: () => void;
 }
 
 function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export function GameBoard({ session, pending, error, onGuess, onHint, onCoach }: GameBoardProps) {
+export function GameBoard({ session, pending }: GameBoardProps) {
   const colors = useThemeColors();
-  const [guessText, setGuessText] = useState("");
-  const busy = pending !== null;
-  const trimmed = guessText.trim();
-
-  function submit() {
-    if (busy || !trimmed) return;
-    onGuess(trimmed);
-    setGuessText("");
-  }
 
   return (
     <Panel>
@@ -58,53 +46,17 @@ export function GameBoard({ session, pending, error, onGuess, onHint, onCoach }:
         </ResultCallout>
       )}
 
-      <View style={styles.transcript}>
+      <ScrollPanel scrollKey={`${session.log.length}-${pending ?? ""}`}>
         {session.log.map((message, index) => (
           <MessageBubble key={`${index}-${message.role}`} message={message} />
         ))}
-        {busy && (
+        {pending !== null && (
           <View style={styles.thinking}>
             <ActivityIndicator color={colors.primary} />
             <Text style={[styles.thinkingText, { color: colors.mutedForeground }]}>Thinking…</Text>
           </View>
         )}
-      </View>
-
-      {!session.solved && (
-        <>
-          <TextField
-            label="Your guess"
-            placeholder={guessesLeft(session) === 0 ? "Out of guesses — keep trying!" : "Make a guess…"}
-            value={guessText}
-            onChangeText={setGuessText}
-            onSubmitEditing={submit}
-            editable={!busy}
-            maxLength={GUESS_MAX_LENGTH}
-            returnKeyType="send"
-            voice
-          />
-          <ActionButton label="Submit guess" icon={Send} loading={pending === "guess"} onPress={submit} />
-          <ActionButton
-            label="Ask for a hint"
-            icon={Sparkles}
-            variant="outline"
-            loading={pending === "hint"}
-            onPress={() => {
-              if (!busy) onHint();
-            }}
-          />
-          <ActionButton
-            label="Get coaching"
-            icon={LifeBuoy}
-            variant="outline"
-            loading={pending === "coach"}
-            onPress={() => {
-              if (!busy) onCoach();
-            }}
-          />
-        </>
-      )}
-      <ErrorText message={error} />
+      </ScrollPanel>
     </Panel>
   );
 }
@@ -164,9 +116,6 @@ const styles = StyleSheet.create({
   body: {
     fontSize: 15,
     lineHeight: 22,
-  },
-  transcript: {
-    gap: spacing.md,
   },
   bubble: {
     borderRadius: radius.xl,

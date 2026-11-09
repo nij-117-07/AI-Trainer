@@ -4,11 +4,15 @@
 export const GAME_CATEGORIES = ["word", "movie", "sentence", "book", "celebrity", "song"] as const;
 export type GameCategory = (typeof GAME_CATEGORIES)[number];
 
+/** Picked in the form to type a category of the user's own. */
+export const OTHER_CATEGORY = "other";
+
 export const GAME_DIFFICULTIES = ["easy", "medium", "hard", "expert"] as const;
 export type GameDifficulty = (typeof GAME_DIFFICULTIES)[number];
 
 export interface GameSetupFormValues {
-  category: GameCategory;
+  category: GameCategory | typeof OTHER_CATEGORY;
+  customCategory: string;
   difficulty: GameDifficulty;
   vocabularyTheme: string;
 }
@@ -45,7 +49,8 @@ export interface GameMessage {
 }
 
 export interface GuessGameSession {
-  category: GameCategory;
+  /** A preset category, or the custom text the user typed. */
+  category: string;
   difficulty: GameDifficulty;
   mysteryItem: string;
   funFact: string;

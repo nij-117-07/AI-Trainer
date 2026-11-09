@@ -1,4 +1,4 @@
-import { optionalText, requireOption, requireText } from "./validate";
+import { optionalText, requireOption, requireText, resolveCategory } from "./validate";
 
 describe("requireText", () => {
   it("trims and returns the value", () => {
@@ -27,5 +27,19 @@ describe("requireOption", () => {
     expect(() => requireOption("poem", ["word", "movie"], "Category")).toThrow(
       "Category must be one of: word, movie.",
     );
+  });
+});
+
+describe("resolveCategory", () => {
+  it("returns a preset category as is", () => {
+    expect(resolveCategory({ category: "movie", customCategory: "" })).toBe("movie");
+  });
+
+  it("returns the trimmed custom text when Other is picked", () => {
+    expect(resolveCategory({ category: "other", customCategory: "  Board games " })).toBe("Board games");
+  });
+
+  it("requires custom text when Other is picked", () => {
+    expect(() => resolveCategory({ category: "other", customCategory: "   " })).toThrow("Custom category is required.");
   });
 });

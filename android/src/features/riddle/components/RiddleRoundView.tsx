@@ -1,12 +1,12 @@
 // src/features/riddle/components/RiddleRoundView.tsx
 /**
- * The active riddle: the puzzle, the user's attempts, the latest feedback, and an answer box that
- * stays open until the riddle is solved. The solution is hidden until the user asks for it.
+ * The active riddle: the puzzle, the user's attempts, and the latest feedback. The solution is
+ * hidden until the user asks for it. The answer box is in the screen footer.
  */
 import { StyleSheet, Text, View } from "react-native";
-import { Brain, CircleCheck, CircleX, Compass, Eye, EyeOff, Lightbulb, ListChecks, MessageSquare, RefreshCcw, Target, Trophy } from "lucide-react-native";
+import { Brain, CircleCheck, CircleX, Compass, Eye, EyeOff, Lightbulb, ListChecks, MessageSquare, Target, Trophy } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
@@ -15,25 +15,13 @@ import type { RiddleRound } from "../types";
 
 interface RiddleRoundViewProps {
   round: RiddleRound;
-  pending: boolean;
-  error: string | null;
   showSolution: boolean;
   onToggleSolution: () => void;
-  onAnswerChange: (text: string) => void;
-  onSubmit: () => void;
 }
 
-export function RiddleRoundView({
-  round,
-  pending,
-  error,
-  showSolution,
-  onToggleSolution,
-  onAnswerChange,
-  onSubmit,
-}: RiddleRoundViewProps) {
+export function RiddleRoundView({ round, showSolution, onToggleSolution }: RiddleRoundViewProps) {
   const colors = useThemeColors();
-  const { riddle, attempts, userAnswer } = round;
+  const { riddle, attempts } = round;
   const latest = attempts.length > 0 ? attempts[attempts.length - 1] : null;
   const solved = latest?.evaluation.isCorrect ?? false;
 
@@ -112,27 +100,7 @@ export function RiddleRoundView({
             Solved in {attempts.length} {attempts.length === 1 ? "attempt" : "attempts"} — nice work!
           </Text>
         </ResultCallout>
-      ) : (
-        <Panel>
-          <TextField
-            label="Your answer"
-            placeholder={attempts.length > 0 ? "Try a different answer…" : "Your answer (or ask for a hint)…"}
-            value={userAnswer}
-            onChangeText={onAnswerChange}
-            editable={!pending}
-            maxLength={2000}
-            multiline
-            voice
-          />
-          <ErrorText message={error} />
-          <ActionButton
-            label={pending ? "Checking answer…" : attempts.length > 0 ? "Check again" : "Submit answer"}
-            icon={attempts.length > 0 ? RefreshCcw : CircleCheck}
-            loading={pending}
-            onPress={onSubmit}
-          />
-        </Panel>
-      )}
+      ) : null}
     </>
   );
 }

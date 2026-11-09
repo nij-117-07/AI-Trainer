@@ -19,9 +19,10 @@ interface ToolScreenProps {
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  headerRight?: ReactNode;
 }
 
-export function ToolScreen({ title, children, footer }: ToolScreenProps) {
+export function ToolScreen({ title, children, footer, headerRight }: ToolScreenProps) {
   const colors = useThemeColors();
   const router = useRouter();
   const goBack = useGoBack();
@@ -43,7 +44,7 @@ export function ToolScreen({ title, children, footer }: ToolScreenProps) {
         <Text style={[styles.headerTitle, { color: colors.foreground }]} numberOfLines={1}>
           {title}
         </Text>
-        <View style={styles.iconSpacer} />
+        <View style={styles.headerRight}>{headerRight}</View>
       </View>
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -96,8 +97,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  iconSpacer: {
-    width: 40,
+  headerRight: {
+    minWidth: 40,
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
   content: {
     padding: spacing.lg,

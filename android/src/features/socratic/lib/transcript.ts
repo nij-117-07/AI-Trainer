@@ -1,21 +1,40 @@
 // src/features/socratic/lib/transcript.ts
 /**
- * Builds the chat transcript shown to the user and the history text sent to the model. Matches the
- * webui: user lines start with "User:", challenger replies with "AI:", and an empty history reads
- * "No prior history." as in Backend/practice/socratic/services.py.
+ * Builds the chat transcript shown to the user and the history text sent to the model. User lines
+ * start with "User:", and challenger replies and wrap-ups start with "AI:". An empty history reads
+ * "No prior history.".
  */
-import type { ChatMessage, SocraticChallenge } from "../types";
+import type { ChatMessage, SocraticChallenge, SocraticSynthesis } from "../types";
 
 export function formatChallenge(challenge: SocraticChallenge): string {
   const parts: string[] = [];
-  if (challenge.logicalFallacyCheck) {
-    parts.push(`**Logical fallacy detected:** ${challenge.logicalFallacyCheck}`);
-  } else {
-    parts.push("**Logical fallacy check:** None detected");
+  parts.push(
+    challenge.logicalFallacyCheck
+      ? `**Fallacy check:** ${challenge.logicalFallacyCheck}`
+      : "**Fallacy check:** None detected",
+  );
+  if (challenge.hiddenAssumption) parts.push(`**Hidden assumption:** ${challenge.hiddenAssumption}`);
+  if (challenge.strongestCounterargument) {
+    parts.push(`**Strongest case against it:** ${challenge.strongestCounterargument}`);
   }
-  parts.push(`**Falsification question:** ${challenge.falsificationQuestion}`);
-  parts.push(`**Edge case to consider:** ${challenge.edgeCaseScenario}`);
-  parts.push(`**Refined perspective:** ${challenge.refinedPerspective}`);
+  if (challenge.bothSidesView) parts.push(`**Both sides:** ${challenge.bothSidesView}`);
+  if (challenge.probingQuestion) parts.push(`**Question for you:** ${challenge.probingQuestion}`);
+  return parts.join("\n\n");
+}
+
+export function formatSynthesis(synthesis: SocraticSynthesis): string {
+  const parts: string[] = [];
+  if (synthesis.strongestCaseForUserView) {
+    parts.push(`**Strongest case for your view:** ${synthesis.strongestCaseForUserView}`);
+  }
+  if (synthesis.strongestCaseAgainstUserView) {
+    parts.push(`**Strongest case against it:** ${synthesis.strongestCaseAgainstUserView}`);
+  }
+  if (synthesis.sharedGround) parts.push(`**Common ground:** ${synthesis.sharedGround}`);
+  if (synthesis.unresolvedQuestions.length > 0) {
+    parts.push(`**Still open:**\n\n${synthesis.unresolvedQuestions.map((item) => `- ${item}`).join("\n")}`);
+  }
+  if (synthesis.refinedPosition) parts.push(`**Refined position:** ${synthesis.refinedPosition}`);
   return parts.join("\n\n");
 }
 

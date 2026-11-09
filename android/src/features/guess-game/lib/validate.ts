@@ -1,5 +1,15 @@
 // src/features/guess-game/lib/validate.ts
 /** Input checks for the Guess Game. Lengths match the webui zod schemas before a request is sent. */
+import { CUSTOM_CATEGORY_MAX_LENGTH } from "../options";
+import { GAME_CATEGORIES, OTHER_CATEGORY, type GameSetupFormValues } from "../types";
+
+/** The category name sent to the model: a preset, or the custom text when "Other" is picked. */
+export function resolveCategory(values: Pick<GameSetupFormValues, "category" | "customCategory">): string {
+  if (values.category === OTHER_CATEGORY) {
+    return requireText(values.customCategory, "Custom category", CUSTOM_CATEGORY_MAX_LENGTH);
+  }
+  return requireOption(values.category, GAME_CATEGORIES, "Category");
+}
 
 export function requireText(value: string, label: string, max: number): string {
   const trimmed = value.trim();

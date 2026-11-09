@@ -3,11 +3,11 @@
  * Pure rules for a running game: starting it, recording guesses, hints and coaching, and
  * reading a saved game back from the device. Nothing here touches storage or the network.
  */
-import { GAME_CATEGORIES, GAME_DIFFICULTIES } from "../types";
+import { CUSTOM_CATEGORY_MAX_LENGTH } from "../options";
+import { GAME_DIFFICULTIES } from "../types";
 import type {
   CoachResult,
   GameDifficulty,
-  GameCategory,
   GameMessage,
   GameSetupResult,
   GuessGameSession,
@@ -17,7 +17,7 @@ import type {
 
 export function startSession(
   setup: GameSetupResult,
-  category: GameCategory,
+  category: string,
   difficulty: GameDifficulty,
 ): GuessGameSession {
   return {
@@ -92,7 +92,9 @@ export function parseSavedSession(value: unknown): GuessGameSession | null {
   if (typeof value !== "object" || value === null) return null;
   const saved = value as Record<string, unknown>;
   const valid =
-    (GAME_CATEGORIES as readonly unknown[]).includes(saved.category) &&
+    typeof saved.category === "string" &&
+    saved.category.trim() !== "" &&
+    saved.category.length <= CUSTOM_CATEGORY_MAX_LENGTH &&
     (GAME_DIFFICULTIES as readonly unknown[]).includes(saved.difficulty) &&
     typeof saved.mysteryItem === "string" &&
     saved.mysteryItem.trim() !== "" &&
@@ -105,7 +107,7 @@ export function parseSavedSession(value: unknown): GuessGameSession | null {
     saved.log.every(isMessage);
   if (!valid) return null;
   return {
-    category: saved.category as GameCategory,
+    category: saved.category as string,
     difficulty: saved.difficulty as GameDifficulty,
     mysteryItem: saved.mysteryItem as string,
     funFact: saved.funFact as string,

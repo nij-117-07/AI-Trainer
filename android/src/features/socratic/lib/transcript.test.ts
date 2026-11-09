@@ -1,29 +1,46 @@
-import { formatChallenge, formatHistory, toHistory } from "./transcript";
+import { formatChallenge, formatHistory, formatSynthesis, toHistory } from "./transcript";
 
 describe("formatChallenge", () => {
-  it("reports a fallacy when one is named", () => {
+  it("lists each part in order, ending with the question", () => {
     const text = formatChallenge({
       logicalFallacyCheck: "Strawman",
-      falsificationQuestion: "What evidence would prove you wrong?",
-      edgeCaseScenario: "What if the sample is tiny?",
-      refinedPerspective: "A more nuanced way to look at this might be...",
+      hiddenAssumption: "Tiny samples are unreliable.",
+      strongestCounterargument: "Small samples can still be representative.",
+      bothSidesView: "A more nuanced way to see this is ...",
+      probingQuestion: "What evidence would change your mind?",
     });
     expect(text.split("\n\n")).toEqual([
-      "**Logical fallacy detected:** Strawman",
-      "**Falsification question:** What evidence would prove you wrong?",
-      "**Edge case to consider:** What if the sample is tiny?",
-      "**Refined perspective:** A more nuanced way to look at this might be...",
+      "**Fallacy check:** Strawman",
+      "**Hidden assumption:** Tiny samples are unreliable.",
+      "**Strongest case against it:** Small samples can still be representative.",
+      "**Both sides:** A more nuanced way to see this is ...",
+      "**Question for you:** What evidence would change your mind?",
     ]);
   });
 
   it("says none detected when there is no fallacy", () => {
     const text = formatChallenge({
       logicalFallacyCheck: null,
-      falsificationQuestion: "Q",
-      edgeCaseScenario: "E",
-      refinedPerspective: "R",
+      hiddenAssumption: "",
+      strongestCounterargument: "",
+      bothSidesView: "",
+      probingQuestion: "Q",
     });
-    expect(text.startsWith("**Logical fallacy check:** None detected")).toBe(true);
+    expect(text).toBe("**Fallacy check:** None detected\n\n**Question for you:** Q");
+  });
+});
+
+describe("formatSynthesis", () => {
+  it("renders open questions as a list", () => {
+    const text = formatSynthesis({
+      strongestCaseForUserView: "For",
+      strongestCaseAgainstUserView: "Against",
+      sharedGround: "Both agree on X.",
+      unresolvedQuestions: ["Q1", "Q2"],
+      refinedPosition: "I now think ...",
+    });
+    expect(text).toContain("**Still open:**\n\n- Q1\n- Q2");
+    expect(text.endsWith("**Refined position:** I now think ...")).toBe(true);
   });
 });
 

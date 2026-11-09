@@ -8,10 +8,8 @@ import type { AiSettings } from "@/features/ai-settings/types";
 import { createLlm } from "@/features/ai-settings/lib/llm";
 import { GUESS_MAX_LENGTH, MAX_GUESSES_BY_DIFFICULTY, THEME_MAX_LENGTH } from "../options";
 import {
-  GAME_CATEGORIES,
   GAME_DIFFICULTIES,
   type CoachResult,
-  type GameCategory,
   type GameDifficulty,
   type GameSetupFormValues,
   type GameSetupResult,
@@ -20,7 +18,7 @@ import {
 } from "../types";
 import { failGuideSignature, gameSetupSignature, guessEvaluatorSignature, hintProviderSignature } from "./signatures";
 import { normalizeCoach, normalizeGuess, normalizeHint, normalizeSetup } from "./normalize";
-import { optionalText, requireOption, requireText } from "./validate";
+import { optionalText, requireOption, requireText, resolveCategory } from "./validate";
 
 const TEMPERATURE = 0.4;
 
@@ -33,7 +31,7 @@ export async function startGame(
   values: GameSetupFormValues,
   signal: AbortSignal,
 ): Promise<GameSetupResult> {
-  const category = requireOption(values.category, GAME_CATEGORIES, "Category");
+  const category = resolveCategory(values);
   const difficulty = requireOption(values.difficulty, GAME_DIFFICULTIES, "Difficulty");
   const vocabularyTheme = optionalText(values.vocabularyTheme, "Vocabulary theme", THEME_MAX_LENGTH);
   const llm = createLlm(settings);
@@ -48,7 +46,7 @@ export async function startGame(
 
 export interface GuessInput {
   mysteryItem: string;
-  category: GameCategory;
+  category: string;
   difficulty: GameDifficulty;
   guess: string;
 }
@@ -72,7 +70,7 @@ export async function makeGuess(settings: AiSettings, input: GuessInput, signal:
 
 export interface HintInput {
   mysteryItem: string;
-  category: GameCategory;
+  category: string;
   previousHints: string[];
 }
 
@@ -94,7 +92,7 @@ export async function requestHint(settings: AiSettings, input: HintInput, signal
 
 export interface CoachInput {
   mysteryItem: string;
-  category: GameCategory;
+  category: string;
   failedGuesses: string[];
   hintNumber: number;
 }

@@ -1,29 +1,24 @@
 // src/features/puzzle/components/PuzzleRoundView.tsx
 /**
- * One puzzle round: the puzzle and its cognitive trigger, the attempts so far, the latest
- * evaluation with feedback and a nudge, and the answer box until the puzzle is solved.
+ * One puzzle round: the puzzle and its cognitive trigger, the attempts so far, and the latest
+ * evaluation with feedback and a nudge. The answer box is in the screen footer.
  */
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { CircleCheck, CircleX, Eye, Lightbulb, RefreshCcw, Sparkles, Target, Trophy } from "lucide-react-native";
+import { CircleCheck, CircleX, Eye, Lightbulb, Sparkles, Target, Trophy } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import type { PuzzleRound } from "../types";
-import { ANSWER_MAX } from "../lib/validate";
 
 interface PuzzleRoundViewProps {
   round: PuzzleRound;
-  isPending: boolean;
-  error: string | null;
-  onAnswerChange: (answer: string) => void;
-  onSubmit: () => void;
 }
 
-export function PuzzleRoundView({ round, isPending, error, onAnswerChange, onSubmit }: PuzzleRoundViewProps) {
+export function PuzzleRoundView({ round }: PuzzleRoundViewProps) {
   const colors = useThemeColors();
   const [showSolution, setShowSolution] = useState(false);
   const { puzzle, attempts } = round;
@@ -128,29 +123,7 @@ export function PuzzleRoundView({ round, isPending, error, onAnswerChange, onSub
             Solved in {attempts.length} {attempts.length === 1 ? "attempt" : "attempts"} — nice work!
           </Text>
         </ResultCallout>
-      ) : (
-        <Panel>
-          <TextField
-            label="Your answer"
-            placeholder={attempts.length > 0 ? "Try a different answer…" : "Your answer…"}
-            value={round.userAnswer}
-            onChangeText={onAnswerChange}
-            editable={!isPending}
-            maxLength={ANSWER_MAX}
-            multiline
-            voice
-          />
-          <ErrorText message={error} />
-          <ActionButton
-            label={isPending ? "Evaluating…" : attempts.length > 0 ? "Check again" : "Submit answer"}
-            icon={attempts.length > 0 ? RefreshCcw : CircleCheck}
-            loading={isPending}
-            onPress={() => {
-              if (round.userAnswer.trim()) onSubmit();
-            }}
-          />
-        </Panel>
-      )}
+      ) : null}
     </>
   );
 }

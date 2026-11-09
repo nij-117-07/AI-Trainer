@@ -1,20 +1,31 @@
 // src/features/guess-game/components/GuessGameView.tsx
-/** Guess Game body: the setup panel, then the running game board or an empty note. */
+/** Guess Game body: the setup form before a game starts, then the running game board. */
 import { StyleSheet, Text } from "react-native";
-import { Gamepad2, RefreshCcw } from "lucide-react-native";
+import { Gamepad2 } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
-import { useGuessGame } from "../hooks/useGuessGame";
-import { CATEGORY_OPTIONS, DIFFICULTY_OPTIONS, THEME_MAX_LENGTH } from "../options";
-import type { GameCategory, GameDifficulty } from "../types";
+import type { useGuessGame } from "../hooks/useGuessGame";
+import { CATEGORY_OPTIONS, CUSTOM_CATEGORY_MAX_LENGTH, DIFFICULTY_OPTIONS, THEME_MAX_LENGTH } from "../options";
+import { OTHER_CATEGORY, type GameDifficulty, type GameSetupFormValues } from "../types";
 import { GameBoard } from "./GameBoard";
 
-export function GuessGameView() {
+interface GuessGameViewProps {
+  game: ReturnType<typeof useGuessGame>;
+}
+
+export function GuessGameView({ game }: GuessGameViewProps) {
   const colors = useThemeColors();
-  const game = useGuessGame();
   const starting = game.pending === "start";
+
+  if (game.session) {
+    return (
+      <Section>
+        <GameBoard session={game.session} pending={game.pending} />
+      </Section>
+    );
+  }
 
   return (
     <Section>
@@ -28,9 +39,19 @@ export function GuessGameView() {
           label="Category"
           options={CATEGORY_OPTIONS}
           value={game.form.category}
-          onChange={(value) => game.updateForm("category", value as GameCategory)}
+          onChange={(value) => game.updateForm("category", value as GameSetupFormValues["category"])}
           allowCustom={false}
         />
+        {game.form.category === OTHER_CATEGORY && (
+          <TextField
+            label="Custom category"
+            placeholder="e.g. board games, poems, TV shows"
+            value={game.form.customCategory}
+            onChangeText={(text) => game.updateForm("customCategory", text)}
+            editable={!starting}
+            maxLength={CUSTOM_CATEGORY_MAX_LENGTH}
+          />
+        )}
         <SelectField
           label="Difficulty"
           options={DIFFICULTY_OPTIONS}
@@ -46,34 +67,21 @@ export function GuessGameView() {
           editable={!starting}
           maxLength={THEME_MAX_LENGTH}
         />
-        {!game.session && <ErrorText message={game.error} />}
+        <ErrorText message={game.error} />
         <ActionButton
-          label={starting ? "Setting up the game…" : game.session ? "Start a new game" : "Start game"}
+          label={starting ? "Setting up the game…" : "Start game"}
           icon={Gamepad2}
           loading={starting}
           onPress={() => void game.start(game.form)}
         />
       </Panel>
 
-      {game.session ? (
-        <GameBoard
-          session={game.session}
-          pending={game.pending}
-          error={game.error}
-          onGuess={(text) => void game.guess(text)}
-          onHint={() => void game.getHint()}
-          onCoach={() => void game.getCoaching()}
-        />
-      ) : (
-        <Panel>
-          <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No game yet</Text>
-          <Text style={[styles.intro, { color: colors.mutedForeground }]}>
-            Pick a category and difficulty, then start your first guessing game.
-          </Text>
-        </Panel>
-      )}
-
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={game.reset} />
+      <Panel>
+        <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No game yet</Text>
+        <Text style={[styles.intro, { color: colors.mutedForeground }]}>
+          Pick a category and difficulty, then start your first guessing game.
+        </Text>
+      </Panel>
     </Section>
   );
 }
