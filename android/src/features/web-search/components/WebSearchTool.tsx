@@ -2,7 +2,7 @@
 /** Web Search tool: result cards with a Load more pager, then the search form that opens on tap. */
 import { useEffect, type ReactNode } from "react";
 import { usePersistedState } from "@/hooks/usePersistedState";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import { Globe, ListPlus, SearchX } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
@@ -27,6 +27,17 @@ export function WebSearchTool() {
   useEffect(() => {
     if (meta) panel.reset();
   }, [meta]);
+
+  if (Platform.OS === "web") {
+    return (
+      <StatePanel>
+        <SectionTitle icon={Globe} title="Web search is available in the Android app" />
+        <Text style={[styles.body, { color: colors.mutedForeground }]}>
+          Browsers block direct requests to DuckDuckGo and SearXNG (CORS). Open this tool in the Android app to search.
+        </Text>
+      </StatePanel>
+    );
+  }
 
   function handleSearch() {
     void submit(form);

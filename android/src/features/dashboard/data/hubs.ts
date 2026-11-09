@@ -41,7 +41,7 @@ export const HUBS: HubConfig[] = [
     key: "tools",
     title: "Tools",
     tagline: "Build faster",
-    description: "Vision conversion, diagrams, charts, content generators, and prompt engineering utilities.",
+    description: "Vision conversion, content generators, and prompt engineering utilities.",
     tone: "amber",
     icon: Wrench,
   },
