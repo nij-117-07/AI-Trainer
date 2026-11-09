@@ -4,6 +4,7 @@ import { useState } from "react";
 import { RefreshCcw, Sparkles } from "lucide-react-native";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { SectionTitle } from "@/components/tool/SectionTitle";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import type { TutorSettingsValues } from "../lib/types";
 
 interface CreateSessionFormProps {
@@ -11,9 +12,10 @@ interface CreateSessionFormProps {
 }
 
 const EMPTY: TutorSettingsValues = { masterTopic: "", additionalContext: "" };
+const STORAGE_KEY = "learning.tutor-chat.create-session.v1";
 
 export function CreateSessionForm({ onCreate }: CreateSessionFormProps) {
-  const [form, setForm] = useState<TutorSettingsValues>(EMPTY);
+  const [form, setForm] = usePersistedState<TutorSettingsValues>(STORAGE_KEY, EMPTY);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

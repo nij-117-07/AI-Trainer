@@ -5,7 +5,7 @@
  * Applications in this app read these values through useAiSettings().
  */
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Eye, EyeOff, Mic, Save, Volume2 } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
@@ -94,178 +94,180 @@ export function AiSettingsScreen() {
         <View style={styles.iconButtonSpacer} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <AppearanceSettings />
+      <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          <AppearanceSettings />
 
-        {!loaded ? (
-          <View style={styles.loading}>
-            <ActivityIndicator color={colors.primary} />
-          </View>
-        ) : (
-          <>
-            <View style={styles.intro}>
-              <Text style={[styles.title, { color: colors.foreground }]}>Model connection</Text>
-              <Text style={[styles.description, { color: colors.mutedForeground }]}>
-                These values are used by every application that calls an AI model. They are stored only on this device.
-              </Text>
+          {!loaded ? (
+            <View style={styles.loading}>
+              <ActivityIndicator color={colors.primary} />
             </View>
-
-            <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.cardTitle, { color: colors.foreground }]}>Chat model</Text>
-
-              <Field label="Model name" hint="For example: gpt-4o-mini or claude-haiku-5-5">
-                <TextInput
-                  value={form.modelName}
-                  onChangeText={(text) => update("modelName", text)}
-                  placeholder="Model name"
-                  placeholderTextColor={colors.mutedForeground}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
-                />
-              </Field>
-
-              <SecretField
-                label="API key"
-                hint="Sent as the Authorization header. Keep it private."
-                value={form.apiKey}
-                onChangeText={(text) => update("apiKey", text)}
-                visible={showKey}
-                onToggleVisible={() => setShowKey((prev) => !prev)}
-              />
-
-              <Field label="Base URL" hint="For example: https://openrouter.ai/api/v1. Leave empty for the provider default.">
-                <TextInput
-                  value={form.baseUrl}
-                  onChangeText={(text) => update("baseUrl", text)}
-                  placeholder="https://api.example.com/v1"
-                  placeholderTextColor={colors.mutedForeground}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="url"
-                  style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
-                />
-              </Field>
-            </View>
-
-            <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={styles.cardHeader}>
-                <Mic size={18} color={colors.foreground} />
-                <Text style={[styles.cardTitle, { color: colors.foreground }]}>Voice model</Text>
+          ) : (
+            <>
+              <View style={styles.intro}>
+                <Text style={[styles.title, { color: colors.foreground }]}>Model connection</Text>
+                <Text style={[styles.description, { color: colors.mutedForeground }]}>
+                  These values are used by every application that calls an AI model. They are stored only on this device.
+                </Text>
               </View>
-              <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-                The speech-to-text model used by Voice Notes. Its base URL and key are optional. Leave them empty to use the chat connection above.
-              </Text>
 
-              <SelectField
-                label="Voice model"
-                options={VOICE_MODEL_OPTIONS}
-                value={form.transcriptionModel}
-                onChange={(value) => update("transcriptionModel", value)}
-                customPlaceholder="Speech-to-text model name"
-              />
+              <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Text style={[styles.cardTitle, { color: colors.foreground }]}>Chat model</Text>
 
-              <Field label="Voice base URL" hint="Optional. For example: https://openrouter.ai/api/v1. Empty uses the chat base URL.">
-                <TextInput
-                  value={form.transcriptionBaseUrl}
-                  onChangeText={(text) => update("transcriptionBaseUrl", text)}
-                  placeholder="Same as the chat base URL"
-                  placeholderTextColor={colors.mutedForeground}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="url"
-                  style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+                <Field label="Model name" hint="For example: gpt-4o-mini or claude-haiku-5-5">
+                  <TextInput
+                    value={form.modelName}
+                    onChangeText={(text) => update("modelName", text)}
+                    placeholder="Model name"
+                    placeholderTextColor={colors.mutedForeground}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+                  />
+                </Field>
+
+                <SecretField
+                  label="API key"
+                  hint="Sent as the Authorization header. Keep it private."
+                  value={form.apiKey}
+                  onChangeText={(text) => update("apiKey", text)}
+                  visible={showKey}
+                  onToggleVisible={() => setShowKey((prev) => !prev)}
                 />
-              </Field>
 
-              <SecretField
-                label="Voice API key"
-                hint="Optional. Empty uses the chat API key."
-                value={form.transcriptionApiKey}
-                onChangeText={(text) => update("transcriptionApiKey", text)}
-                visible={showVoiceKey}
-                onToggleVisible={() => setShowVoiceKey((prev) => !prev)}
-                placeholder="Same as the chat API key"
-              />
-            </View>
-
-            <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={styles.cardHeader}>
-                <Volume2 size={18} color={colors.foreground} />
-                <Text style={[styles.cardTitle, { color: colors.foreground }]}>Speech model</Text>
+                <Field label="Base URL" hint="For example: https://openrouter.ai/api/v1. Leave empty for the provider default.">
+                  <TextInput
+                    value={form.baseUrl}
+                    onChangeText={(text) => update("baseUrl", text)}
+                    placeholder="https://api.example.com/v1"
+                    placeholderTextColor={colors.mutedForeground}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                    style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+                  />
+                </Field>
               </View>
-              <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-                The text-to-speech model and voice used by the Text to Speech tool. The base URL and key are optional. Leave them empty to use the chat connection above.
-              </Text>
 
-              <SelectField
-                label="Speech model"
-                options={TTS_MODEL_OPTIONS}
-                value={form.ttsModel}
-                onChange={(value) => update("ttsModel", value)}
-                customPlaceholder="Text-to-speech model name"
-              />
+              <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={styles.cardHeader}>
+                  <Mic size={18} color={colors.foreground} />
+                  <Text style={[styles.cardTitle, { color: colors.foreground }]}>Voice model</Text>
+                </View>
+                <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+                  The speech-to-text model used by Voice Notes. Its base URL and key are optional. Leave them empty to use the chat connection above.
+                </Text>
 
-              <SelectField
-                label="Voice"
-                options={TTS_VOICE_OPTIONS}
-                value={form.ttsVoice}
-                onChange={(value) => update("ttsVoice", value)}
-                customPlaceholder="Voice name, for example Zephyr"
-              />
-
-              <Field label="Speech base URL" hint="Optional. For example: https://openrouter.ai/api/v1. Empty uses the chat base URL.">
-                <TextInput
-                  value={form.ttsBaseUrl}
-                  onChangeText={(text) => update("ttsBaseUrl", text)}
-                  placeholder="Same as the chat base URL"
-                  placeholderTextColor={colors.mutedForeground}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="url"
-                  style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+                <SelectField
+                  label="Voice model"
+                  options={VOICE_MODEL_OPTIONS}
+                  value={form.transcriptionModel}
+                  onChange={(value) => update("transcriptionModel", value)}
+                  customPlaceholder="Speech-to-text model name"
                 />
-              </Field>
 
-              <SecretField
-                label="Speech API key"
-                hint="Optional. Empty uses the chat API key."
-                value={form.ttsApiKey}
-                onChangeText={(text) => update("ttsApiKey", text)}
-                visible={showTtsKey}
-                onToggleVisible={() => setShowTtsKey((prev) => !prev)}
-                placeholder="Same as the chat API key"
-              />
-            </View>
+                <Field label="Voice base URL" hint="Optional. For example: https://openrouter.ai/api/v1. Empty uses the chat base URL.">
+                  <TextInput
+                    value={form.transcriptionBaseUrl}
+                    onChangeText={(text) => update("transcriptionBaseUrl", text)}
+                    placeholder="Same as the chat base URL"
+                    placeholderTextColor={colors.mutedForeground}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                    style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+                  />
+                </Field>
 
-            {error ? (
-              <Text style={[styles.message, { color: colors.destructive }]} accessibilityLiveRegion="polite">
-                {error}
-              </Text>
-            ) : saved ? (
-              <Text style={[styles.message, { color: colors.tone.emerald.fg }]} accessibilityLiveRegion="polite">
-                Settings saved.
-              </Text>
-            ) : null}
+                <SecretField
+                  label="Voice API key"
+                  hint="Optional. Empty uses the chat API key."
+                  value={form.transcriptionApiKey}
+                  onChangeText={(text) => update("transcriptionApiKey", text)}
+                  visible={showVoiceKey}
+                  onToggleVisible={() => setShowVoiceKey((prev) => !prev)}
+                  placeholder="Same as the chat API key"
+                />
+              </View>
 
-            <Pressable
-              onPress={handleSave}
-              disabled={busy}
-              accessibilityRole="button"
-              accessibilityLabel="Save AI settings"
-              style={({ pressed }) => [
-                styles.saveButton,
-                { backgroundColor: colors.primary },
-                pressed && { opacity: 0.85 },
-                busy && styles.disabled,
-              ]}
-            >
-              <Save size={18} color={colors.primaryForeground} />
-              <Text style={[styles.saveText, { color: colors.primaryForeground }]}>Save settings</Text>
-            </Pressable>
-          </>
-        )}
-      </ScrollView>
+              <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={styles.cardHeader}>
+                  <Volume2 size={18} color={colors.foreground} />
+                  <Text style={[styles.cardTitle, { color: colors.foreground }]}>Speech model</Text>
+                </View>
+                <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+                  The text-to-speech model and voice used by the Text to Speech tool. The base URL and key are optional. Leave them empty to use the chat connection above.
+                </Text>
+
+                <SelectField
+                  label="Speech model"
+                  options={TTS_MODEL_OPTIONS}
+                  value={form.ttsModel}
+                  onChange={(value) => update("ttsModel", value)}
+                  customPlaceholder="Text-to-speech model name"
+                />
+
+                <SelectField
+                  label="Voice"
+                  options={TTS_VOICE_OPTIONS}
+                  value={form.ttsVoice}
+                  onChange={(value) => update("ttsVoice", value)}
+                  customPlaceholder="Voice name, for example Zephyr"
+                />
+
+                <Field label="Speech base URL" hint="Optional. For example: https://openrouter.ai/api/v1. Empty uses the chat base URL.">
+                  <TextInput
+                    value={form.ttsBaseUrl}
+                    onChangeText={(text) => update("ttsBaseUrl", text)}
+                    placeholder="Same as the chat base URL"
+                    placeholderTextColor={colors.mutedForeground}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                    style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+                  />
+                </Field>
+
+                <SecretField
+                  label="Speech API key"
+                  hint="Optional. Empty uses the chat API key."
+                  value={form.ttsApiKey}
+                  onChangeText={(text) => update("ttsApiKey", text)}
+                  visible={showTtsKey}
+                  onToggleVisible={() => setShowTtsKey((prev) => !prev)}
+                  placeholder="Same as the chat API key"
+                />
+              </View>
+
+              {error ? (
+                <Text style={[styles.message, { color: colors.destructive }]} accessibilityLiveRegion="polite">
+                  {error}
+                </Text>
+              ) : saved ? (
+                <Text style={[styles.message, { color: colors.tone.emerald.fg }]} accessibilityLiveRegion="polite">
+                  Settings saved.
+                </Text>
+              ) : null}
+
+              <Pressable
+                onPress={handleSave}
+                disabled={busy}
+                accessibilityRole="button"
+                accessibilityLabel="Save AI settings"
+                style={({ pressed }) => [
+                  styles.saveButton,
+                  { backgroundColor: colors.primary },
+                  pressed && { opacity: 0.85 },
+                  busy && styles.disabled,
+                ]}
+              >
+                <Save size={18} color={colors.primaryForeground} />
+                <Text style={[styles.saveText, { color: colors.primaryForeground }]}>Save settings</Text>
+              </Pressable>
+            </>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

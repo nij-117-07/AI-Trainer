@@ -1,13 +1,14 @@
 // src/features/web-search/components/WebSearchTool.tsx
 /** Web Search tool: the search form on top, then result cards with a Load more pager. */
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Globe, ListPlus, SearchX } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
-import { DEFAULT_FORM, hasAdvancedFilters } from "../options";
+import { DEFAULT_FORM, SEARCH_FORM_KEY, hasAdvancedFilters } from "../options";
 import { useSearxngUrl } from "../hooks/useSearxngUrl";
 import { useWebSearch } from "../hooks/useWebSearch";
 import type { SearchFormValues } from "../types";
@@ -16,7 +17,7 @@ import { SearchResultCard } from "./SearchResultCard";
 
 export function WebSearchTool() {
   const colors = useThemeColors();
-  const [form, setForm] = useState<SearchFormValues>(DEFAULT_FORM);
+  const [form, setForm] = usePersistedState<SearchFormValues>(SEARCH_FORM_KEY, DEFAULT_FORM);
   const { searxngUrl, setSearxngUrl } = useSearxngUrl();
   const { results, meta, isPending, error, submit, loadMore } = useWebSearch(searxngUrl);
 

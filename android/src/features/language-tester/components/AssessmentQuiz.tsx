@@ -12,13 +12,21 @@ import { ListenButton } from "@/components/tool/ListenButton";
 import { StepNavigator } from "@/components/tool/StepNavigator";
 import { OPTION_KEYS, type AssessmentQuestion, type AssessmentResult, type OptionKey } from "../types";
 import { EmptyNote, FeedbackBox, QuestionHeading, QuizModeBar, ScorePill, type QuizMode } from "./QuizParts";
+import { usePersistedRunState } from "@/hooks/usePersistedRunState";
+
+const STORAGE_KEY = "language-learner.language-tester.assessment.run.v1";
 
 export function AssessmentQuiz({ result }: { result: AssessmentResult }) {
   const colors = useThemeColors();
   const [mode, setMode] = useState<QuizMode>("list");
   const [activeIndex, setActiveIndex] = useState(0);
-  const [answers, setAnswers] = useState<Partial<Record<number, OptionKey>>>({});
-  const [checked, setChecked] = useState(false);
+  const runId = JSON.stringify(result);
+  const [answers, setAnswers] = usePersistedRunState<Partial<Record<number, OptionKey>>>(
+    `${STORAGE_KEY}.answers`,
+    runId,
+    {},
+  );
+  const [checked, setChecked] = usePersistedRunState(`${STORAGE_KEY}.checked`, runId, false);
 
   const total = result.questions.length;
   const answeredCount = Object.keys(answers).length;

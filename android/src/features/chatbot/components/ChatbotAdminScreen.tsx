@@ -1,7 +1,7 @@
 // src/features/chatbot/components/ChatbotAdminScreen.tsx
 /** Chatbot admin: create, edit, duplicate, and delete personas, and set chat-wide defaults. */
 import { useState, type ReactNode } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ArrowLeft, Check, Copy, Pencil, Plus, Trash2, type LucideIcon } from "lucide-react-native";
@@ -99,86 +99,88 @@ export function ChatbotAdminScreen() {
         <View style={styles.iconSpacer} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {!config.loaded ? (
-          <View style={styles.loading}>
-            <ActivityIndicator color={colors.primary} />
-          </View>
-        ) : editing ? (
-          <PersonaEditor
-            key={editing === "new" ? "new" : editing.id}
-            persona={editing === "new" ? null : editing}
-            onSave={savePersona}
-            onCancel={() => setEditing(null)}
-          />
-        ) : (
-          <>
-            <View style={styles.intro}>
-              <Text style={[styles.title, { color: colors.foreground }]}>Personas</Text>
-              <Text style={[styles.description, { color: colors.mutedForeground }]}>
-                Each persona has its own system prompt and model settings. Pick one on the chatbot page to chat with it.
-              </Text>
+      <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          {!config.loaded ? (
+            <View style={styles.loading}>
+              <ActivityIndicator color={colors.primary} />
             </View>
+          ) : editing ? (
+            <PersonaEditor
+              key={editing === "new" ? "new" : editing.id}
+              persona={editing === "new" ? null : editing}
+              onSave={savePersona}
+              onCancel={() => setEditing(null)}
+            />
+          ) : (
+            <>
+              <View style={styles.intro}>
+                <Text style={[styles.title, { color: colors.foreground }]}>Personas</Text>
+                <Text style={[styles.description, { color: colors.mutedForeground }]}>
+                  Each persona has its own system prompt and model settings. Pick one on the chatbot page to chat with it.
+                </Text>
+              </View>
 
-            {notice ? (
-              <Text accessibilityLiveRegion="polite" style={[styles.notice, { color: colors.tone.emerald.fg }]}>
-                {notice}
-              </Text>
-            ) : null}
+              {notice ? (
+                <Text accessibilityLiveRegion="polite" style={[styles.notice, { color: colors.tone.emerald.fg }]}>
+                  {notice}
+                </Text>
+              ) : null}
 
-            <Pressable
-              onPress={() => setEditing("new")}
-              accessibilityRole="button"
-              accessibilityLabel="New persona"
-              style={({ pressed }) => [styles.newButton, { backgroundColor: colors.primary }, pressed && { opacity: 0.85 }]}
-            >
-              <Plus size={18} color={colors.primaryForeground} />
-              <Text style={[styles.newButtonText, { color: colors.primaryForeground }]}>New persona</Text>
-            </Pressable>
+              <Pressable
+                onPress={() => setEditing("new")}
+                accessibilityRole="button"
+                accessibilityLabel="New persona"
+                style={({ pressed }) => [styles.newButton, { backgroundColor: colors.primary }, pressed && { opacity: 0.85 }]}
+              >
+                <Plus size={18} color={colors.primaryForeground} />
+                <Text style={[styles.newButtonText, { color: colors.primaryForeground }]}>New persona</Text>
+              </Pressable>
 
-            {config.personas.map((persona) => {
-              const isDefault = persona.id === config.settings.defaultPersonaId;
-              return (
-                <View key={persona.id} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <View style={styles.cardTop}>
-                    <PersonaAvatar emoji={persona.avatar} size={40} />
-                    <View style={styles.cardText}>
-                      <View style={styles.nameRow}>
-                        <Text numberOfLines={1} style={[styles.name, { color: colors.foreground }]}>
-                          {persona.name}
+              {config.personas.map((persona) => {
+                const isDefault = persona.id === config.settings.defaultPersonaId;
+                return (
+                  <View key={persona.id} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <View style={styles.cardTop}>
+                      <PersonaAvatar emoji={persona.avatar} size={40} />
+                      <View style={styles.cardText}>
+                        <View style={styles.nameRow}>
+                          <Text numberOfLines={1} style={[styles.name, { color: colors.foreground }]}>
+                            {persona.name}
+                          </Text>
+                          {isDefault ? (
+                            <Text style={[styles.badge, { color: colors.tone.emerald.fg, borderColor: colors.border }]}>Default</Text>
+                          ) : null}
+                        </View>
+                        <Text numberOfLines={2} style={[styles.hint, { color: colors.mutedForeground }]}>
+                          {persona.description || "No description"}
                         </Text>
-                        {isDefault ? (
-                          <Text style={[styles.badge, { color: colors.tone.emerald.fg, borderColor: colors.border }]}>Default</Text>
-                        ) : null}
+                        <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+                          {persona.model || "Chat model"} · temp {persona.temperature.toFixed(2)} · top P {persona.topP.toFixed(2)}
+                          {persona.maxTokens > 0 ? ` · ${persona.maxTokens} tokens` : ""}
+                        </Text>
                       </View>
-                      <Text numberOfLines={2} style={[styles.hint, { color: colors.mutedForeground }]}>
-                        {persona.description || "No description"}
-                      </Text>
-                      <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-                        {persona.model || "Chat model"} · temp {persona.temperature.toFixed(2)} · top P {persona.topP.toFixed(2)}
-                        {persona.maxTokens > 0 ? ` · ${persona.maxTokens} tokens` : ""}
-                      </Text>
+                    </View>
+                    <View style={styles.actions}>
+                      <ActionLink label="Edit" icon={Pencil} onPress={() => setEditing(persona)} />
+                      {!isDefault ? <ActionLink label="Make default" icon={Check} onPress={() => makeDefault(persona)} /> : null}
+                      <ActionLink label="Duplicate" icon={Copy} onPress={() => duplicate(persona)} />
+                      <ActionLink label="Delete" icon={Trash2} danger onPress={() => remove(persona)} />
                     </View>
                   </View>
-                  <View style={styles.actions}>
-                    <ActionLink label="Edit" icon={Pencil} onPress={() => setEditing(persona)} />
-                    {!isDefault ? <ActionLink label="Make default" icon={Check} onPress={() => makeDefault(persona)} /> : null}
-                    <ActionLink label="Duplicate" icon={Copy} onPress={() => duplicate(persona)} />
-                    <ActionLink label="Delete" icon={Trash2} danger onPress={() => remove(persona)} />
-                  </View>
-                </View>
-              );
-            })}
+                );
+              })}
 
-            <ChatbotSettingsCard
-              settings={config.settings}
-              personas={config.personas}
-              speechReady={speechReady}
-              onSave={(next) => config.saveSettingsValues(next)}
-            />
-          </>
-        )}
-      </ScrollView>
+              <ChatbotSettingsCard
+                settings={config.settings}
+                personas={config.personas}
+                speechReady={speechReady}
+                onSave={(next) => config.saveSettingsValues(next)}
+              />
+            </>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

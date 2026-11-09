@@ -4,6 +4,7 @@
  * appear as they finish. Stop ends the journey after the current chapter and keeps what is done.
  */
 import { useEffect, useRef, useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { StyleSheet, Text, View } from "react-native";
 import { Check, CircleDot, Compass, Loader2, MapPin, RefreshCcw, Square } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
@@ -34,10 +35,12 @@ const DEFAULTS: JourneyFormValues = {
   expertise: "Undergraduate",
 };
 
+const STORAGE_KEY = "learning.explainer.journey.form.v1";
+
 export function JourneyTab() {
   const colors = useThemeColors();
   const { settings } = useAiSettings();
-  const [form, setForm] = useState<JourneyFormValues>(DEFAULTS);
+  const [form, setForm] = usePersistedState<JourneyFormValues>(STORAGE_KEY, DEFAULTS);
   const [state, setState] = useState<JourneyState>(IDLE_STATE);
   const controllerRef = useRef<AbortController | null>(null);
 

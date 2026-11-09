@@ -1,6 +1,7 @@
 // src/features/explainer/components/RoadmapTab.tsx
 /** Knowledge Roadmap: a summary, an expandable list of concepts A to Z, and a practical takeaway. */
 import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { BookOpen, ChevronDown, ChevronUp, Lightbulb, ListTree, RefreshCcw, Sparkles } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
@@ -23,10 +24,12 @@ const DEFAULTS: RoadmapFormValues = {
   explanationStyle: "conceptual",
 };
 
+const STORAGE_KEY = "learning.explainer.roadmap.form.v1";
+
 export function RoadmapTab() {
   const colors = useThemeColors();
   const { settings } = useAiSettings();
-  const [form, setForm] = useState<RoadmapFormValues>(DEFAULTS);
+  const [form, setForm] = usePersistedState<RoadmapFormValues>(STORAGE_KEY, DEFAULTS);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const request = useRequest(generateRoadmap);
 

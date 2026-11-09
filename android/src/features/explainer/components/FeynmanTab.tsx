@@ -1,6 +1,6 @@
 // src/features/explainer/components/FeynmanTab.tsx
 /** Feynman: simplify a jargon-heavy idea with metaphors, pitched to an age the user picks. */
-import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { MessageCircleHeart, Puzzle, RefreshCcw, Sparkles } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
@@ -20,9 +20,11 @@ const DEFAULTS: FeynmanFormValues = {
   targetAge: 5,
 };
 
+const STORAGE_KEY = "learning.explainer.feynman.form.v1";
+
 export function FeynmanTab() {
   const { settings } = useAiSettings();
-  const [form, setForm] = useState<FeynmanFormValues>(DEFAULTS);
+  const [form, setForm] = usePersistedState<FeynmanFormValues>(STORAGE_KEY, DEFAULTS);
   const request = useRequest(simplifyTopic);
 
   function reset() {

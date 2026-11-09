@@ -4,6 +4,7 @@
  * already exists updates that role's prompt, as the webui does.
  */
 import { useCallback, useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { EMPTY_ROLE_FORM } from "../options";
 import { loadRoles, saveRoles } from "../lib/persistence";
 import { findRole, removeRole, roleSlug, upsertRole, validateRole } from "../lib/roles";
@@ -17,7 +18,7 @@ export function useRoleplayRoles() {
   const [roles, setRoles] = useState<RoleRecord[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [form, setForm] = useState<RoleFormValues>(EMPTY_ROLE_FORM);
+  const [form, setForm] = usePersistedState<RoleFormValues>("language-learner.roleplay.role-form.v1", EMPTY_ROLE_FORM);
   const [editing, setEditing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);

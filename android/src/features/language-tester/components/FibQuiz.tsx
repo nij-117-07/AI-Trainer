@@ -16,14 +16,22 @@ import { errorMessage } from "../lib/text";
 import { useRunSignal } from "../hooks/useRunSignal";
 import type { FibEvaluation, FibQuestion, FibResult } from "../types";
 import { EmptyNote, FeedbackBox, QuestionHeading, QuizModeBar, ScorePill, type QuizMode } from "./QuizParts";
+import { usePersistedRunState } from "@/hooks/usePersistedRunState";
+
+const STORAGE_KEY = "language-learner.language-tester.fib.run.v1";
 
 export function FibQuiz({ result }: { result: FibResult }) {
   const { settings } = useAiSettings();
   const nextSignal = useRunSignal();
   const [mode, setMode] = useState<QuizMode>("list");
   const [activeIndex, setActiveIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [feedback, setFeedback] = useState<Record<number, FibEvaluation>>({});
+  const runId = JSON.stringify(result);
+  const [answers, setAnswers] = usePersistedRunState<Record<number, string>>(`${STORAGE_KEY}.answers`, runId, {});
+  const [feedback, setFeedback] = usePersistedRunState<Record<number, FibEvaluation>>(
+    `${STORAGE_KEY}.feedback`,
+    runId,
+    {},
+  );
   const [pendingIndex, setPendingIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 

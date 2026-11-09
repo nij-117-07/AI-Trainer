@@ -98,7 +98,7 @@ export function ChatbotScreen() {
         </IconButton>
       </View>
 
-      <KeyboardAvoidingView style={styles.body} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView style={styles.body} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         {chat.messages.length === 0 ? (
           <EmptyChat persona={persona} onPick={chat.setDraft} />
         ) : (

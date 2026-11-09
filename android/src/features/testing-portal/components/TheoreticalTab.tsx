@@ -6,6 +6,7 @@
  * image), graded by AI, or answered by AI after grading.
  */
 import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { StyleSheet, Text, View } from "react-native";
 import { Plus, RefreshCcw, Sparkles } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
@@ -49,10 +50,12 @@ function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+const STORAGE_KEY = "practice.testing-portal.theoretical.form.v1";
+
 export function TheoreticalTab() {
   const colors = useThemeColors();
   const { settings } = useAiSettings();
-  const [form, setForm] = useState<TheoreticalFormValues>(DEFAULTS);
+  const [form, setForm] = usePersistedState<TheoreticalFormValues>(STORAGE_KEY, DEFAULTS);
   const [questions, setQuestions] = useState<TheoreticalItem[]>([]);
   const [history, setHistory] = useState<string[]>([]);
   const [showSettings, setShowSettings] = useState(true);

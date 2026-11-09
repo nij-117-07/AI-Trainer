@@ -1,6 +1,6 @@
 // src/features/explainer/components/ExplainTab.tsx
 /** Quick Explain: a structured explanation of a topic plus a one-line takeaway. */
-import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { Lightbulb, MessageSquareText, RefreshCcw, Sparkles } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
@@ -21,9 +21,11 @@ const DEFAULTS: ExplainFormValues = {
   context: "Use a metaphor involving shoes.",
 };
 
+const STORAGE_KEY = "learning.explainer.explain.form.v1";
+
 export function ExplainTab() {
   const { settings } = useAiSettings();
-  const [form, setForm] = useState<ExplainFormValues>(DEFAULTS);
+  const [form, setForm] = usePersistedState<ExplainFormValues>(STORAGE_KEY, DEFAULTS);
   const request = useRequest(explainTopic);
 
   function update<K extends keyof ExplainFormValues>(key: K, value: ExplainFormValues[K]) {

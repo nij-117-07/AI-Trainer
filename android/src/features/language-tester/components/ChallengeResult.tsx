@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BookOpen, Eye, EyeOff, Globe, PenLine, Quote, Target } from "lucide-react-native";
 import { Panel, TextField, ActionButton } from "@/components/tool/FormControls";
+import { usePersistedRunState } from "@/hooks/usePersistedRunState";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
@@ -11,8 +12,10 @@ import { TagList } from "@/components/tool/TagList";
 import { Section } from "@/components/tool/Section";
 import type { ChallengeResult as ChallengeResultData } from "../types";
 
+const ATTEMPT_KEY = "language-learner.language-tester.challenge.attempt.v1";
+
 export function ChallengeResult({ result }: { result: ChallengeResultData }) {
-  const [attempt, setAttempt] = useState("");
+  const [attempt, setAttempt] = usePersistedRunState(ATTEMPT_KEY, JSON.stringify(result), "");
   const [revealed, setRevealed] = useState(false);
 
   return (

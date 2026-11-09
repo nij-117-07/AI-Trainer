@@ -1,6 +1,6 @@
 // src/features/explainer/components/CurriculumTab.tsx
 /** Curriculum Path: a personal plan that connects what the learner knows to today's crux. */
-import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { StyleSheet, Text, View } from "react-native";
 import { Compass, Lightbulb, RefreshCcw, Route, ScrollText, Sparkles } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
@@ -26,10 +26,12 @@ const DEFAULTS: CurriculumFormValues = {
   additionalInstructions: "Use real-world examples.",
 };
 
+const STORAGE_KEY = "learning.explainer.curriculum.form.v1";
+
 export function CurriculumTab() {
   const colors = useThemeColors();
   const { settings } = useAiSettings();
-  const [form, setForm] = useState<CurriculumFormValues>(DEFAULTS);
+  const [form, setForm] = usePersistedState<CurriculumFormValues>(STORAGE_KEY, DEFAULTS);
   const request = useRequest(buildCurriculum);
 
   function update<K extends keyof CurriculumFormValues>(key: K, value: CurriculumFormValues[K]) {

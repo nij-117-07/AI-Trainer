@@ -3,6 +3,7 @@
  * Expert answer. Settings collapse once an answer is shown. "Reset" clears the form and the answer.
  */
 import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { StyleSheet, Text, View } from "react-native";
 import { BookOpen, RefreshCcw } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
@@ -25,10 +26,12 @@ const DEFAULTS: AnswerFormValues = {
   customInstructions: "",
 };
 
+const STORAGE_KEY = "practice.testing-portal.answer.form.v1";
+
 export function AnswerTab() {
   const colors = useThemeColors();
   const { settings } = useAiSettings();
-  const [form, setForm] = useState<AnswerFormValues>(DEFAULTS);
+  const [form, setForm] = usePersistedState<AnswerFormValues>(STORAGE_KEY, DEFAULTS);
   const [showSettings, setShowSettings] = useState(true);
   const generate = useRequest(generateAnswer);
 

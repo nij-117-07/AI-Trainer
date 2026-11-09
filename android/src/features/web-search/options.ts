@@ -46,6 +46,7 @@ export const SAFE_SEARCH_OPTIONS: { value: SafeSearch; label: string }[] = [
 
 export const DEFAULT_SEARXNG_URL = "http://127.0.0.1:8888";
 export const SEARXNG_URL_KEY = "tools.web-search.searxng-url.v1";
+export const SEARCH_FORM_KEY = "tools.web-search.form.v1";
 
 export const DEFAULT_FORM: SearchFormValues = {
   query: "",

@@ -1,6 +1,6 @@
 // src/features/explainer/components/SocraticTab.tsx
 /** Socratic Mentor: discovery questions and hints that guide the learner without giving answers. */
-import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { StyleSheet, Text, View } from "react-native";
 import { HelpCircle, Lightbulb, RefreshCcw, Sparkles, Target } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
@@ -29,10 +29,12 @@ const DEFAULTS: SocraticFormValues = {
   numQuestions: 3,
 };
 
+const STORAGE_KEY = "learning.explainer.socratic.form.v1";
+
 export function SocraticTab() {
   const colors = useThemeColors();
   const { settings } = useAiSettings();
-  const [form, setForm] = useState<SocraticFormValues>(DEFAULTS);
+  const [form, setForm] = usePersistedState<SocraticFormValues>(STORAGE_KEY, DEFAULTS);
   const request = useRequest(startSocraticSession);
 
   function update<K extends keyof SocraticFormValues>(key: K, value: SocraticFormValues[K]) {

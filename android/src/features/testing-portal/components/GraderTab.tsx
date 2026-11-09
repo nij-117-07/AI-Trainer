@@ -4,6 +4,7 @@
  * image, or both. The settings form collapses once a grade is shown. "Reset" clears it all.
  */
 import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { RefreshCcw, ShieldCheck } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "@/hooks/useRequest";
@@ -25,9 +26,11 @@ const DEFAULTS = {
   userAnswerText: "I would listen actively and offer a refund.",
 };
 
+const STORAGE_KEY = "practice.testing-portal.grader.form.v1";
+
 export function GraderTab() {
   const { settings } = useAiSettings();
-  const [form, setForm] = useState(DEFAULTS);
+  const [form, setForm] = usePersistedState(STORAGE_KEY, DEFAULTS);
   const [image, setImage] = useState<ImageInput | null>(null);
   const [showForm, setShowForm] = useState(true);
   const grade = useRequest(gradeAnswer);

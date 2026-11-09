@@ -5,6 +5,7 @@
  * "Reset" clears the questions, the past list, and the form.
  */
 import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { mcqDifficultyLevelOptions, mcqQuestionTypeOptions } from "../options";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { Sparkles } from "lucide-react-native";
@@ -33,9 +34,11 @@ const DEFAULTS: McqFormValues = {
   pastQuestions: "",
 };
 
+const STORAGE_KEY = "practice.testing-portal.mcq.form.v1";
+
 export function McqTab() {
   const { settings } = useAiSettings();
-  const [form, setForm] = useState<McqFormValues>(DEFAULTS);
+  const [form, setForm] = usePersistedState<McqFormValues>(STORAGE_KEY, DEFAULTS);
   const [questions, setQuestions] = useState<McqItem[]>([]);
   const [history, setHistory] = useState<string[]>([]);
   const [showSettings, setShowSettings] = useState(true);

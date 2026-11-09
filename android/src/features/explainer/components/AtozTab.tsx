@@ -1,6 +1,6 @@
 // src/features/explainer/components/AtozTab.tsx
 /** A-to-Z Tutorial: one cohesive markdown document that covers a topic from basics to mastery. */
-import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { BookOpenText, RefreshCcw, Sparkles } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
@@ -20,9 +20,11 @@ const DEFAULTS: TutorialFormValues = {
   explanationStyle: "practical",
 };
 
+const STORAGE_KEY = "learning.explainer.atoz.form.v1";
+
 export function AtozTab() {
   const { settings } = useAiSettings();
-  const [form, setForm] = useState<TutorialFormValues>(DEFAULTS);
+  const [form, setForm] = usePersistedState<TutorialFormValues>(STORAGE_KEY, DEFAULTS);
   const request = useRequest(generateTutorial);
 
   function update<K extends keyof TutorialFormValues>(key: K, value: TutorialFormValues[K]) {

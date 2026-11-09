@@ -3,6 +3,7 @@
  * Solve an MCQ. The question form collapses once an answer is shown. "Reset" clears everything.
  */
 import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { RefreshCcw, Target } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "@/hooks/useRequest";
@@ -15,11 +16,13 @@ import { SolverResultCard } from "./SolverResultCard";
 
 const EMPTY_OPTIONS: Options = { A: "", B: "", C: "", D: "" };
 
+const STORAGE_KEY = "practice.testing-portal.solver.form.v1";
+
 export function SolverTab() {
   const { settings } = useAiSettings();
-  const [question, setQuestion] = useState("");
-  const [context, setContext] = useState("");
-  const [options, setOptions] = useState<Options>(EMPTY_OPTIONS);
+  const [question, setQuestion] = usePersistedState(`${STORAGE_KEY}.question`, "");
+  const [context, setContext] = usePersistedState(`${STORAGE_KEY}.context`, "");
+  const [options, setOptions] = usePersistedState<Options>(`${STORAGE_KEY}.options`, EMPTY_OPTIONS);
   const [showForm, setShowForm] = useState(true);
   const solve = useRequest(solveMcq);
 

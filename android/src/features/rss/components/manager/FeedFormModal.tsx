@@ -122,7 +122,7 @@ export function FeedFormModal({ visible, feed, busy, onClose, onSave }: FeedForm
           </Pressable>
         </View>
 
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
             <Text style={[styles.description, { color: colors.mutedForeground }]}>
               Configure an RSS or Atom source. Test it before saving to confirm it parses correctly.

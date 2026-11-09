@@ -5,6 +5,7 @@
  */
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { BookOpenCheck, Pencil, Plus, Save } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
@@ -16,6 +17,7 @@ import type { PromptFormValues, PromptTemplate } from "../types";
 import { SimulatorNav } from "./SimulatorNav";
 
 const EMPTY_FORM: PromptFormValues = { name: "", content: "" };
+const STORAGE_KEY = "language-learner.simulator.prompt-form.v1";
 
 function messageOf(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -24,7 +26,7 @@ function messageOf(error: unknown, fallback: string): string {
 export function SimulatorPromptsTab() {
   const colors = useThemeColors();
   const library = usePromptLibrary();
-  const [form, setForm] = useState<PromptFormValues>(EMPTY_FORM);
+  const [form, setForm] = usePersistedState<PromptFormValues>(STORAGE_KEY, EMPTY_FORM);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);

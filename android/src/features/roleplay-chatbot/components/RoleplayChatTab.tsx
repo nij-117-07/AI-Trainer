@@ -15,6 +15,7 @@ import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { sendTurn } from "../lib/generators";
 import type { ChatMessage } from "../types";
 
@@ -22,11 +23,13 @@ const DEFAULT_CHARACTER = "Elara";
 const DEFAULT_PERSONA =
   "You are Elara Nightwhisper, a mysterious elven mage from the ancient forest of Thalendril. You are over 800 years old but appear as a young woman with silver hair and violet eyes. You speak in a slightly formal, archaic manner and use metaphors related to nature, stars, and time.";
 
+const STORAGE_KEY = "learning.roleplay-chatbot.setup.v1";
+
 export function RoleplayChatTab() {
   const colors = useThemeColors();
   const { settings } = useAiSettings();
-  const [characterName, setCharacterName] = useState(DEFAULT_CHARACTER);
-  const [persona, setPersona] = useState(DEFAULT_PERSONA);
+  const [characterName, setCharacterName] = usePersistedState(`${STORAGE_KEY}.character`, DEFAULT_CHARACTER);
+  const [persona, setPersona] = usePersistedState(`${STORAGE_KEY}.persona`, DEFAULT_PERSONA);
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const request = useRequest(sendTurn);
