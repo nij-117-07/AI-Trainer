@@ -1,7 +1,8 @@
 // src/features/dashboard/data/apps.ts
-/** Every application shown on the dashboard, grouped into sections. Each one opens its own route. */
+/** Every app inside the areas (Learning, Practice, Tools). Each one opens its own route. */
 import {
   Apple,
+  AudioLines,
   BarChart3,
   Bot,
   Brain,
@@ -27,6 +28,7 @@ import {
   Link2,
   MapPinned,
   Megaphone,
+  Mic,
   MessageCircleQuestion,
   MessagesSquare,
   Network,
@@ -45,8 +47,9 @@ import {
   type LucideIcon,
 } from "lucide-react-native";
 import type { Tone } from "@/theme";
+import type { HubItem } from "@/components/tool/HubMenu";
 
-export type AppGroup = "learning" | "language" | "practice" | "tools";
+export type AppGroup = "learning" | "practice" | "tools";
 
 export interface AppCard {
   key: string;
@@ -58,12 +61,46 @@ export interface AppCard {
   tone: Tone;
 }
 
-export const APP_GROUPS: { key: AppGroup; title: string }[] = [
-  { key: "learning", title: "Learning" },
-  { key: "language", title: "Language Learner" },
-  { key: "practice", title: "Practice" },
-  { key: "tools", title: "Tools" },
+/** Top-level areas on the dashboard. Each one opens a hub menu of its apps. */
+export const HUBS: HubItem[] = [
+  {
+    key: "learning",
+    title: "Learning",
+    description: "Explainers, guides, roadmaps, tutors, memory aids, and planning tools.",
+    route: "/learning",
+    icon: GraduationCap,
+    tone: "sky",
+  },
+  {
+    key: "language-learner",
+    title: "Language Learner",
+    description: "Idioms, word and sentence of the day, translation, rewriting, lessons, poetry, language tests, simulations, and roleplay.",
+    route: "/language-learner",
+    icon: Languages,
+    tone: "amber",
+  },
+  {
+    key: "practice",
+    title: "Practice",
+    description: "Testing Portal, the performance grader, and interactive games and trainers.",
+    route: "/practice",
+    icon: ClipboardList,
+    tone: "rose",
+  },
+  {
+    key: "tools",
+    title: "Tools",
+    description: "Vision, writing, diagrams, charts, web search, RSS, and other productivity helpers.",
+    route: "/tools",
+    icon: Wrench,
+    tone: "emerald",
+  },
 ];
+
+/** Apps shown inside one area's hub menu, in registry order. */
+export function appsInGroup(group: AppGroup): AppCard[] {
+  return APPS.filter((app) => app.group === group);
+}
 
 export const APPS: AppCard[] = [
   {
@@ -283,6 +320,24 @@ export const APPS: AppCard[] = [
     tone: "sky",
   },
   {
+    key: "text-to-speech",
+    title: "Text to Speech",
+    description: "Type or paste text and hear it read aloud with your speech model and voice.",
+    route: "/tools/text-to-speech",
+    icon: AudioLines,
+    group: "tools",
+    tone: "amber",
+  },
+  {
+    key: "voice-notes",
+    title: "Voice Notes",
+    description: "Record a voice memo, transcribe it with your voice model, and keep the text as a note.",
+    route: "/tools/voice-notes",
+    icon: Mic,
+    group: "tools",
+    tone: "rose",
+  },
+  {
     key: "rss",
     title: "RSS Reader",
     description: "Manage feed sources and read the latest items in one place.",
@@ -425,14 +480,5 @@ export const APPS: AppCard[] = [
     icon: MessageCircleQuestion,
     group: "practice",
     tone: "amber",
-  },
-  {
-    key: "language-learner",
-    title: "Language Learner",
-    description: "Idioms, word and sentence of the day, translation, rewriting, lessons, poetry, language tests, simulations, and roleplay.",
-    route: "/language-learner",
-    icon: Languages,
-    group: "language",
-    tone: "sky",
   },
 ];

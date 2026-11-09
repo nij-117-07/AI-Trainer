@@ -7,6 +7,13 @@ const configured: AiSettings = {
   modelName: "my-model",
   apiKey: "test-key",
   baseUrl: "https://gateway.example.com/v1",
+  transcriptionModel: "",
+  transcriptionBaseUrl: "",
+  transcriptionApiKey: "",
+  ttsModel: "",
+  ttsVoice: "",
+  ttsBaseUrl: "",
+  ttsApiKey: "",
 };
 
 const valid: BridgeFormValues = {

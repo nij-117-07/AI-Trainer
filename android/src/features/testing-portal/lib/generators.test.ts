@@ -7,12 +7,19 @@ const configured: AiSettings = {
   modelName: "my-model",
   apiKey: "test-key",
   baseUrl: "https://gateway.example.com/v1",
+  transcriptionModel: "",
+  transcriptionBaseUrl: "",
+  transcriptionApiKey: "",
+  ttsModel: "",
+  ttsVoice: "",
+  ttsBaseUrl: "",
+  ttsApiKey: "",
 };
 
 describe("createLlm", () => {
   it("refuses to build a client without a model name and API key", () => {
-    expect(() => createLlm({ modelName: "", apiKey: "k", baseUrl: "" })).toThrow(AiNotConfiguredError);
-    expect(() => createLlm({ modelName: "m", apiKey: "  ", baseUrl: "" })).toThrow(AiNotConfiguredError);
+    expect(() => createLlm({ ...configured, modelName: "" })).toThrow(AiNotConfiguredError);
+    expect(() => createLlm({ ...configured, apiKey: "  " })).toThrow(AiNotConfiguredError);
   });
 });
 
