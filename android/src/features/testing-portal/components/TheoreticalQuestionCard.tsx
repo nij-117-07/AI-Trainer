@@ -6,7 +6,7 @@
  */
 import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { ArrowRight, BookOpen, Mic, RotateCcw, ShieldCheck, Square } from "lucide-react-native";
+import { ArrowRight, BookOpen, Mic, ShieldCheck, Square } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useVoiceInput } from "@/features/chatbot/hooks/useVoiceInput";
@@ -42,9 +42,13 @@ export function TheoreticalQuestionCard({
   const grade = useRequest(gradeAnswer);
   const expert = useRequest(generateAnswer);
   const voice = useVoiceInput((text) => setAnswer((prev) => appendTranscript(prev, text)));
+  const [gradedSnapshot, setGradedSnapshot] = useState<{ text: string; imageUri: string | null } | null>(null);
   const hasAnswer = answer.trim().length > 0 || image !== null;
+  const answerChanged =
+    gradedSnapshot !== null && (gradedSnapshot.text !== answer || gradedSnapshot.imageUri !== (image?.uri ?? null));
 
   function handleGrade() {
+    setGradedSnapshot({ text: answer, imageUri: image?.uri ?? null });
     return grade.run(settings, {
       scenario: contextSetting,
       questionAsked: question.questionText,
@@ -132,8 +136,15 @@ export function TheoreticalQuestionCard({
         </View>
         <ErrorText message={voice.error} />
         <ImagePickerField value={image} onChange={setImage} disabled={grade.pending} />
+        {grade.data && (
+          <Text style={[styles.hint, { color: answerChanged ? colors.tone.amber.fg : colors.mutedForeground }]}>
+            {answerChanged
+              ? "Your answer has changed. Resubmit to update the feedback."
+              : "Edit your answer above and resubmit to get new feedback."}
+          </Text>
+        )}
         <ActionButton
-          label={grade.pending ? "Grading…" : "Grade my answer"}
+          label={grade.pending ? "Grading…" : grade.data ? "Resubmit for grading" : "Grade my answer"}
           icon={ShieldCheck}
           loading={grade.pending}
           disabled={!hasAnswer}
@@ -145,16 +156,7 @@ export function TheoreticalQuestionCard({
 
       {grade.data && (
         <View style={[styles.section, { borderTopColor: colors.border }]}>
-          <View style={styles.actionRow}>
-            <View style={styles.flex}>
-              <ActionButton label="Try again" icon={RotateCcw} variant="outline" onPress={grade.reset} />
-            </View>
-            {onNext && (
-              <View style={styles.flex}>
-                <ActionButton label="Next question" icon={ArrowRight} onPress={onNext} />
-              </View>
-            )}
-          </View>
+          {onNext && <ActionButton label="Next question" icon={ArrowRight} onPress={onNext} />}
 
           {!expert.data && (
             <ActionButton
@@ -256,12 +258,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
   },
-  actionRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  flex: {
-    flex: 1,
+  hint: {
+    fontSize: 13,
+    lineHeight: 18,
   },
   pressed: {
     opacity: 0.85,
