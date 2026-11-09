@@ -4,10 +4,12 @@
  * "Answer with AI" for an expert answer. Mirrors the webui question card.
  */
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { BookOpen, ShieldCheck } from "lucide-react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { BookOpen, Mic, ShieldCheck, Square } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
+import { useVoiceInput } from "@/features/chatbot/hooks/useVoiceInput";
+import { appendTranscript, formatElapsed } from "@/features/chatbot/lib/voice-text";
 import { useRequest } from "@/hooks/useRequest";
 import { gradeAnswer, generateAnswer } from "../lib/generators";
 import type { ImageInput, TheoreticalItem } from "../types";
@@ -29,6 +31,7 @@ export function TheoreticalQuestionCard({ index, question, contextSetting, diffi
   const [image, setImage] = useState<ImageInput | null>(null);
   const grade = useRequest(gradeAnswer);
   const expert = useRequest(generateAnswer);
+  const voice = useVoiceInput((text) => setAnswer((prev) => appendTranscript(prev, text)));
 
   function handleGrade() {
     return grade.run(settings, {
@@ -80,6 +83,39 @@ export function TheoreticalQuestionCard({ index, question, contextSetting, diffi
           multiline
           editable={!grade.pending}
         />
+        <View style={styles.voiceRow}>
+          <Pressable
+            onPress={() => void voice.toggle()}
+            disabled={voice.transcribing || grade.pending}
+            accessibilityRole="button"
+            accessibilityLabel={voice.recording ? "Stop recording" : "Start voice answer"}
+            accessibilityState={{ busy: voice.transcribing, selected: voice.recording, disabled: grade.pending }}
+            style={({ pressed }) => [
+              styles.micButton,
+              { backgroundColor: voice.recording ? colors.destructive : colors.muted },
+              pressed && styles.pressed,
+              (voice.transcribing || grade.pending) && styles.disabled,
+            ]}
+          >
+            {voice.transcribing ? (
+              <ActivityIndicator size="small" color={colors.foreground} />
+            ) : voice.recording ? (
+              <Square size={14} color={colors.background} fill={colors.background} />
+            ) : (
+              <Mic size={18} color={voice.ready ? colors.foreground : colors.mutedForeground} />
+            )}
+          </Pressable>
+          <Text style={[styles.voiceStatus, { color: voice.recording ? colors.destructive : colors.mutedForeground }]}>
+            {voice.recording
+              ? `Recording ${formatElapsed(voice.elapsedMs)}. Tap the red button to finish.`
+              : voice.transcribing
+                ? "Transcribing your voice…"
+                : voice.ready
+                  ? "Tap the mic to add your answer by voice."
+                  : "Add the voice model in AI settings to answer by voice."}
+          </Text>
+        </View>
+        <ErrorText message={voice.error} />
         <ImagePickerField value={image} onChange={setImage} disabled={grade.pending} />
         <ActionButton
           label={grade.pending ? "Grading…" : "Grade my answer"}
@@ -172,6 +208,29 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingTop: spacing.lg,
     gap: spacing.md,
+  },
+  voiceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  micButton: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  voiceStatus: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+  disabled: {
+    opacity: 0.5,
   },
   expert: {
     borderWidth: 1,
