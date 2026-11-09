@@ -121,6 +121,21 @@ export function hiddenFromModel(raw: unknown): HiddenDetailsSummary {
   });
 }
 
+const SEARCH_QUERY_MAX = 120;
+
+/** Cleans the model's search query: one line, no quotes, short enough for a search box. */
+export function normalizeSearchQuery(raw: unknown): string {
+  const query = textOf(isRecord(raw) ? raw.searchQuery : raw)
+    .split("\n")[0]
+    .replace(/["'`]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, SEARCH_QUERY_MAX)
+    .trim();
+  if (!query) throw new Error("The model did not return a search query. Please try again.");
+  return query;
+}
+
 /** Reads a saved training result. Returns null when the draft has no evaluation to show. */
 export function readTrainResult(raw: unknown): ObservationTrainResult | null {
   if (!isRecord(raw) || !isRecord(raw.evaluation)) return null;

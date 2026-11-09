@@ -3,8 +3,27 @@
  * Instructions and field descriptions for the Joke Coach Ax signatures. The text is copied from
  * the DSPy signatures in Backend/practice/joke_coach/services.py. Keys use the Ax field names;
  * the matching DSPy field is noted beside each key. Multi-line DSPy descriptions are joined onto
- * one line, with the wording unchanged.
+ * one line, with the wording unchanged. The language inputs and the scenario signature are Android
+ * additions; the Backend has no language option.
  */
+
+const LANGUAGE_INPUT =
+  "Language for all written output (e.g., 'English', 'Spanish'). Write in this language, and use wordplay and cultural references that work in it.";
+
+export const JOKE_SCENARIO_DESCRIPTIONS = {
+  instruction:
+    "You are a Joke Scenario Writer. Invent one realistic, specific everyday situation that someone can write a joke about. Give it a short title, a vivid situation of two to four sentences, and the audience it would suit. Keep it open enough that many different jokes are possible, and avoid real people, brands, and anything offensive.",
+  inputs: {
+    language: LANGUAGE_INPUT,
+    // theme
+    theme: "Optional theme the scenario should touch on (e.g., 'office life', 'travel'). Empty means any theme.",
+  },
+  outputs: {
+    title: "A short title for the scenario, under eight words.",
+    situation: "The scenario itself: who is where, what is happening, and what is about to go wrong.",
+    audience: "The audience this scenario suits (e.g., 'office workers', 'families').",
+  },
+};
 
 export const JOKE_GENERATOR_DESCRIPTIONS = {
   instruction:
@@ -16,6 +35,7 @@ export const JOKE_GENERATOR_DESCRIPTIONS = {
     jokeStyle: "Preferred joke format or style (pun, one-liner, story, observational, dad-joke).",
     // audience
     audience: "Target audience (e.g., 'kids', 'adults', 'professionals').",
+    language: LANGUAGE_INPUT,
   },
   outputs: {
     // joke
@@ -42,6 +62,7 @@ export const JOKE_EVALUATOR_DESCRIPTIONS = {
     // context
     evaluationContext:
       "Additional context (e.g., 'open mic night', 'family dinner', 'comedy club').",
+    language: LANGUAGE_INPUT,
   },
   outputs: {
     // overall_score
@@ -75,6 +96,7 @@ export const JOKE_REWRITER_DESCRIPTIONS = {
     improvementGoal: "What aspect to improve (funnier, cleaner, shorter, more-clever, better-timing).",
     // target_audience
     targetAudience: "Who should find this funny.",
+    language: LANGUAGE_INPUT,
   },
   outputs: {
     // rewritten_joke

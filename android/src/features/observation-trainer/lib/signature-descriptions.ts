@@ -108,3 +108,17 @@ export const HIDDEN_DETAILS_DESCRIPTIONS = {
     encouragement: "Positive, motivating message about improvement.",
   },
 };
+
+export const IMAGE_SEARCH_QUERY_DESCRIPTIONS = {
+  instruction:
+    "You turn a user's description of the picture they want to practise observing into one short image search query. Use plain, concrete keywords that a photo archive such as Wikimedia Commons understands: the main subject, the setting, and the lighting or mood if the user asked for it. Avoid brand names, people's names, and any text that would have to be read in the picture. Return only the query, with no quotes and no explanation.",
+  inputs: {
+    // image_requirements
+    imageRequirements:
+      "What the user wants the image to show, for example 'a crowded street market at dusk with a fruit seller and a dog'.",
+  },
+  outputs: {
+    // search_query
+    searchQuery: "A search query of three to six keywords, such as 'street market dusk fruit seller'.",
+  },
+};

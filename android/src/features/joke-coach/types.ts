@@ -1,23 +1,11 @@
 // src/features/joke-coach/types.ts
 
-export interface GenerateJokeFormValues {
-  topic: string;
-  jokeStyle: string;
-  audience: string;
-}
-
 export interface GeneratedJoke {
   joke: string;
   setup: string;
   punchline: string;
   humorType: string;
   difficultyRating: number;
-}
-
-export interface EvaluateJokeFormValues {
-  jokeText: string;
-  intendedAudience: string;
-  context: string;
 }
 
 export interface JokeEvaluation {
@@ -32,18 +20,41 @@ export interface JokeEvaluation {
   isRecommended: boolean;
 }
 
-export interface RewriteJokeFormValues {
-  originalJoke: string;
-  improvementGoal: string;
-  targetAudience: string;
-}
-
 export interface RewrittenJoke {
   rewrittenJoke: string;
   setup: string;
   punchline: string;
   changesMade: string[];
   performanceNotes: string;
+}
+
+export interface JokeScenario {
+  title: string;
+  situation: string;
+  audience: string;
+}
+
+export interface JokeLabAttempt {
+  joke: string;
+  evaluation: JokeEvaluation;
+}
+
+export type JokeLabExtra =
+  | { kind: "joke"; joke: GeneratedJoke }
+  | { kind: "improved"; source: string; rewrite: RewrittenJoke };
+
+export type LabTask = "scenario" | "evaluate" | "joke" | "improve";
+
+/** Everything the Joke Lab keeps on the device between visits. */
+export interface JokeLabState {
+  language: string;
+  theme: string;
+  jokeStyle: string;
+  improvementGoal: string;
+  scenario: JokeScenario | null;
+  draft: string;
+  attempts: JokeLabAttempt[];
+  extra: JokeLabExtra | null;
 }
 
 export interface ClassifyJokeFormValues {
@@ -90,4 +101,4 @@ export interface CrowdSimulation {
   crowdWorkOpportunity: string;
 }
 
-export type JokeMode = "generate" | "evaluate" | "rewrite" | "classify" | "practice" | "crowd";
+export type JokeMode = "lab" | "classify" | "practice" | "crowd";

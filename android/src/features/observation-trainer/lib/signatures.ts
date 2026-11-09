@@ -8,12 +8,20 @@ import { OBSERVATION_RATINGS } from "../types";
 import {
   HIDDEN_DETAILS_DESCRIPTIONS,
   IMAGE_DESCRIBER_DESCRIPTIONS,
+  IMAGE_SEARCH_QUERY_DESCRIPTIONS,
   OBSERVATION_EVALUATOR_DESCRIPTIONS,
 } from "./signature-descriptions";
 
 const describer = IMAGE_DESCRIBER_DESCRIPTIONS;
 const evaluator = OBSERVATION_EVALUATOR_DESCRIPTIONS;
 const hidden = HIDDEN_DETAILS_DESCRIPTIONS;
+const searchQuery = IMAGE_SEARCH_QUERY_DESCRIPTIONS;
+
+export const imageSearchQuerySignature = f()
+  .description(searchQuery.instruction)
+  .input("imageRequirements", f.string(searchQuery.inputs.imageRequirements))
+  .output("searchQuery", f.string(searchQuery.outputs.searchQuery))
+  .build();
 
 export const imageDescriberSignature = f()
   .description(describer.instruction)

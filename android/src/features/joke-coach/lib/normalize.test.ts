@@ -5,8 +5,29 @@ import {
   normalizeEvaluation,
   normalizeGeneratedJoke,
   normalizePracticeSession,
+  normalizeScenario,
 } from "./normalize";
 import { pickOption, scoreOf, textList, wholeOf } from "./text";
+
+describe("normalizeScenario", () => {
+  it("keeps the title, situation, and audience", () => {
+    expect(
+      normalizeScenario({ title: "Late train", situation: "A commuter misses the last train.", audience: "commuters" }),
+    ).toEqual({ title: "Late train", situation: "A commuter misses the last train.", audience: "commuters" });
+  });
+
+  it("falls back to a default title and audience", () => {
+    expect(normalizeScenario({ situation: "A chef burns toast." })).toEqual({
+      title: "Untitled scenario",
+      situation: "A chef burns toast.",
+      audience: "general audience",
+    });
+  });
+
+  it("rejects a scenario with no situation", () => {
+    expect(() => normalizeScenario({ title: "Empty" })).toThrow("did not return a scenario");
+  });
+});
 
 describe("normalizeEvaluation", () => {
   it("clamps scores to 0-10 and falls back to 5 for missing values", () => {

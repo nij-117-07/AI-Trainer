@@ -3,6 +3,7 @@
 import type { ObservationFormValues } from "./types";
 
 export const DEFAULT_OBSERVATION_FORM: ObservationFormValues = {
+  imageRequirements: "",
   trainingScenario: "Crime scene investigation",
   userObservations: "",
   contextCategory: "",

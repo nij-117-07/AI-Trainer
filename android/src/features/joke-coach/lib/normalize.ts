@@ -8,10 +8,15 @@ import type {
   GeneratedJoke,
   JokeClassification,
   JokeEvaluation,
+  JokeScenario,
   PracticeSession,
   RewrittenJoke,
 } from "../types";
 import { booleanOf, isRecord, pickOption, scoreOf, textList, textOf, wholeOf } from "./text";
+
+const SCENARIO_TITLE_MAX = 120;
+const SCENARIO_SITUATION_MAX = 500;
+const SCENARIO_AUDIENCE_MAX = 200;
 
 const APPROPRIATENESS = ["all-ages", "teen", "mature", "nsfw"] as const;
 const JOKE_CATEGORIES = [
@@ -43,6 +48,16 @@ export function normalizeGeneratedJoke(raw: Record<string, unknown>): GeneratedJ
     punchline: textOf(raw.punchline),
     humorType: textOf(raw.humorType),
     difficultyRating: wholeOf(raw.difficultyRating, 3, 1, 5),
+  };
+}
+
+export function normalizeScenario(raw: Record<string, unknown>): JokeScenario {
+  const situation = textOf(raw.situation).slice(0, SCENARIO_SITUATION_MAX);
+  if (!situation) throw new Error("The model did not return a scenario. Please try again.");
+  return {
+    title: textOf(raw.title).slice(0, SCENARIO_TITLE_MAX) || "Untitled scenario",
+    situation,
+    audience: textOf(raw.audience).slice(0, SCENARIO_AUDIENCE_MAX) || "general audience",
   };
 }
 

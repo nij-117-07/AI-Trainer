@@ -5,6 +5,7 @@
  */
 import type { ImageInput } from "@/lib/image";
 
+export const IMAGE_REQUIREMENTS_MAX = 300;
 export const SCENARIO_MAX = 500;
 export const OBSERVATIONS_MAX = 5000;
 export const CONTEXT_MAX = 200;

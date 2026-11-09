@@ -1,7 +1,8 @@
 // src/features/observation-trainer/components/ObservationTrainerScreen.tsx
 /**
- * Observation Trainer: attach an image, describe what you noticed, and get a scored evaluation plus
- * the details you missed. The draft and last report are kept on the device.
+ * Observation Trainer: find a photo from a description (or upload one), describe what you noticed,
+ * and get a scored evaluation plus the details you missed. The form and last report are kept on
+ * the device.
  */
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Switch, Text, View } from "react-native";
@@ -15,8 +16,10 @@ import { useRequest } from "@/hooks/useRequest";
 import type { ImageInput } from "@/lib/image";
 import { trainObservation } from "../lib/generators";
 import { CONTEXT_MAX, FOCUS_MAX, OBSERVATIONS_MAX, SCENARIO_MAX } from "../lib/validate";
+import { useImageSearch } from "../hooks/useImageSearch";
 import { usePersistedTraining } from "../hooks/usePersistedTraining";
 import type { ObservationFormValues } from "../types";
+import { ImageSearchPanel } from "./ImageSearchPanel";
 import { ObservationResult } from "./ObservationResult";
 import { EmptyNote } from "./ResultParts";
 
@@ -25,6 +28,7 @@ export function ObservationTrainerScreen() {
   const { settings } = useAiSettings();
   const { form, setForm, result, setResult, reset } = usePersistedTraining();
   const [image, setImage] = useState<ImageInput | null>(null);
+  const imageSearch = useImageSearch(setImage);
   const request = useRequest(trainObservation);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -46,19 +50,34 @@ export function ObservationTrainerScreen() {
     controllerRef.current?.abort();
     reset();
     setImage(null);
+    imageSearch.reset();
     request.reset();
+  }
+
+  function handleImageChange(next: ImageInput | null) {
+    setImage(next);
+    imageSearch.clearChoice();
   }
 
   return (
     <Section>
       <Panel>
+        <ImageSearchPanel
+          requirements={form.imageRequirements}
+          onRequirementsChange={(text) => update("imageRequirements", text)}
+          search={imageSearch}
+          disabled={request.pending}
+        />
         <ImagePickerField
           value={image}
-          onChange={setImage}
+          onChange={handleImageChange}
           disabled={request.pending}
           label="Image to observe"
-          hint="PNG, JPG, or WEBP: the picture you will describe from memory."
+          hint="Found above, or upload your own: PNG, JPG, or WEBP."
         />
+      </Panel>
+
+      <Panel>
         <TextField
           label="Training scenario"
           placeholder="e.g. Crime scene investigation"
@@ -115,7 +134,7 @@ export function ObservationTrainerScreen() {
       {result ? (
         <ObservationResult result={result} />
       ) : (
-        <EmptyNote message="Upload an image, describe what you see, and the trainer will score your observation skills." />
+        <EmptyNote message="Find or upload an image, describe what you see, and the trainer will score your observation skills." />
       )}
 
       <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />

@@ -7,12 +7,19 @@ import { ax } from "@ax-llm/ax";
 import type { AiSettings } from "@/features/ai-settings/types";
 import { createLlm } from "@/features/ai-settings/lib/llm";
 import type { ImageInput } from "@/lib/image";
-import type { HiddenDetailsSummary, ObservationFormValues, ObservationTrainResult } from "../types";
-import { analysisFromModel, evaluationFromModel, hiddenFromModel } from "./normalize";
-import { hiddenDetailsRevealerSignature, imageDescriberSignature, observationEvaluatorSignature } from "./signatures";
+import type { HiddenDetailsSummary, ImageCandidate, ObservationFormValues, ObservationTrainResult } from "../types";
+import { analysisFromModel, evaluationFromModel, hiddenFromModel, normalizeSearchQuery } from "./normalize";
+import { searchCommonsImages } from "./image-search";
+import {
+  hiddenDetailsRevealerSignature,
+  imageDescriberSignature,
+  imageSearchQuerySignature,
+  observationEvaluatorSignature,
+} from "./signatures";
 import {
   CONTEXT_MAX,
   FOCUS_MAX,
+  IMAGE_REQUIREMENTS_MAX,
   OBSERVATIONS_MAX,
   SCENARIO_MAX,
   optionalText,
@@ -21,6 +28,35 @@ import {
 } from "./validate";
 
 const TEMPERATURE = 0.3;
+const SEARCH_RESULT_LIMIT = 8;
+
+export interface ImageSearchResult {
+  query: string;
+  candidates: ImageCandidate[];
+}
+
+/** Turns the user's picture description into a search query, then searches for matching photos. */
+export async function findObservationImages(
+  settings: AiSettings,
+  requirements: string,
+  signal?: AbortSignal,
+): Promise<ImageSearchResult> {
+  const imageRequirements = requireText(requirements, "Image description", IMAGE_REQUIREMENTS_MAX);
+  throwIfCancelled(signal);
+  const llm = createLlm(settings);
+  const raw = await ax(imageSearchQuerySignature).forward(
+    llm,
+    { imageRequirements },
+    { modelConfig: { temperature: TEMPERATURE }, abortSignal: signal },
+  );
+  const query = normalizeSearchQuery(raw);
+  throwIfCancelled(signal);
+  const candidates = await searchCommonsImages(query, SEARCH_RESULT_LIMIT);
+  if (candidates.length === 0) {
+    throw new Error(`No photos found for "${query}". Try describing the picture in other words.`);
+  }
+  return { query, candidates };
+}
 
 export interface TrainingRequest {
   form: ObservationFormValues;

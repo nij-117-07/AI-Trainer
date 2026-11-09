@@ -3,12 +3,41 @@
  * Dropdown presets and allowed values for the Joke Coach. Values match the webui options and the
  * backend enums, so the model only ever receives a value the backend accepts.
  */
-import type { JokeMode } from "./types";
+import type { JokeLabState, JokeMode } from "./types";
 
 export interface JokeChoice {
   value: string;
   label: string;
 }
+
+const LANGUAGE_NAMES = [
+  "English",
+  "Spanish",
+  "French",
+  "German",
+  "Italian",
+  "Portuguese",
+  "Dutch",
+  "Hindi",
+  "Arabic",
+  "Japanese",
+  "Korean",
+  "Chinese",
+  "Russian",
+];
+
+export const LANGUAGE_OPTIONS: JokeChoice[] = LANGUAGE_NAMES.map((name) => ({ value: name, label: name }));
+
+export const DEFAULT_LAB_STATE: JokeLabState = {
+  language: "English",
+  theme: "",
+  jokeStyle: "dad-joke",
+  improvementGoal: "funnier",
+  scenario: null,
+  draft: "",
+  attempts: [],
+  extra: null,
+};
 
 export const JOKE_STYLE_OPTIONS: JokeChoice[] = [
   { value: "dad-joke", label: "Dad joke" },
@@ -56,9 +85,7 @@ export const PRACTICE_FOCUSES = PRACTICE_FOCUS_OPTIONS.map((option) => option.va
 export const VENUE_TYPES = VENUE_TYPE_OPTIONS.map((option) => option.value);
 
 export const JOKE_MODE_OPTIONS: { value: JokeMode; label: string }[] = [
-  { value: "generate", label: "Generate" },
-  { value: "evaluate", label: "Evaluate" },
-  { value: "rewrite", label: "Rewrite" },
+  { value: "lab", label: "Joke lab" },
   { value: "classify", label: "Classify" },
   { value: "practice", label: "Practice" },
   { value: "crowd", label: "Crowd Sim" },

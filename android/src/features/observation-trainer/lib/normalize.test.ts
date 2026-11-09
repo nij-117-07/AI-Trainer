@@ -1,5 +1,19 @@
 // src/features/observation-trainer/lib/normalize.test.ts
-import { evaluationFromModel, hiddenFromModel, readTrainResult } from "./normalize";
+import { evaluationFromModel, hiddenFromModel, normalizeSearchQuery, readTrainResult } from "./normalize";
+
+describe("normalizeSearchQuery", () => {
+  it("keeps the first line and strips quotes and extra spaces", () => {
+    expect(normalizeSearchQuery({ searchQuery: ' "street  market   dusk" \nextra text' })).toBe("street market dusk");
+  });
+
+  it("caps long queries", () => {
+    expect(normalizeSearchQuery({ searchQuery: "word ".repeat(60) }).length).toBeLessThanOrEqual(120);
+  });
+
+  it("rejects an empty query", () => {
+    expect(() => normalizeSearchQuery({ searchQuery: "  " })).toThrow("did not return a search query");
+  });
+});
 
 describe("evaluationFromModel", () => {
   it("maps model fields and clamps the score", () => {
