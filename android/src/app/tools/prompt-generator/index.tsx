@@ -1,11 +1,11 @@
 // src/app/tools/prompt-generator/index.tsx
-import { PromptGeneratorTool } from "@/features/prompt-generator/components/PromptGeneratorTool";
+import { PromptToolsHub } from "@/features/prompt-generator/components/PromptToolsHub";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 
 export default function PromptGeneratorRoute() {
   return (
     <ToolScreen title="Prompt Generator">
-      <PromptGeneratorTool />
+      <PromptToolsHub />
     </ToolScreen>
   );
 }

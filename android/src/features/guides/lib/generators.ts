@@ -6,47 +6,17 @@
 import { ax } from "@ax-llm/ax";
 import type { AiSettings } from "@/features/ai-settings/types";
 import { createLlm } from "@/features/ai-settings/lib/llm";
-import {
-  CURRENT_LEVELS,
-  DAILY_PLAN_LEVELS,
-  LEARNING_FOCUSES,
-  TARGET_MASTERY_LEVELS,
-  TOPIC_LEVELS,
-} from "../options";
+import { CURRENT_LEVELS, TOPIC_LEVELS } from "../options";
 import type {
-  DailyPlanFormValues,
-  DailyPlanResult,
   GuideTaskFormValues,
   GuideTaskResult,
-  ProjectBlueprintFormValues,
-  ProjectBlueprintResult,
-  SuggestProjectsFormValues,
-  SuggestProjectsResult,
   SuggestTopicsFormValues,
   SuggestTopicsResult,
 } from "../types";
-import {
-  dailyPlannerSignature,
-  projectArchitectSignature,
-  projectSuggestorSignature,
-  taskGuideSignature,
-  whatToLearnSignature,
-} from "./signatures";
-import {
-  normalizeDailyPlan,
-  normalizeGuideTasks,
-  normalizeProjectBlueprint,
-  normalizeProjects,
-  normalizeTopics,
-} from "./normalize";
-import { seedId, variationSeed } from "./text";
-import {
-  clampCount,
-  optionalLines,
-  optionalText,
-  requireOption,
-  requireText,
-} from "./validate";
+import { taskGuideSignature, whatToLearnSignature } from "./signatures";
+import { normalizeGuideTasks, normalizeTopics } from "./normalize";
+import { variationSeed } from "./text";
+import { clampCount, optionalLines, optionalText, requireOption, requireText } from "./validate";
 
 const TEMPERATURE = 0.7;
 
@@ -68,44 +38,6 @@ export async function generateGuideTasks(settings: AiSettings, values: GuideTask
   return normalizeGuideTasks(result);
 }
 
-export async function generateDailyPlan(settings: AiSettings, values: DailyPlanFormValues): Promise<DailyPlanResult> {
-  const llm = createLlm(settings);
-  const result = await ax(dailyPlannerSignature).forward(
-    llm,
-    {
-      randomSeed: variationSeed(),
-      masterTopic: requireText(values.masterTopic, "Master topic", 200),
-      subtopicPreference: optionalText(values.subtopicPreference, "Subtopic preference", 500) ?? "Logical progression",
-      userLevel: requireOption(values.userLevel, DAILY_PLAN_LEVELS, "Your level"),
-      targetMastery: requireOption(values.targetMastery, TARGET_MASTERY_LEVELS, "Target mastery"),
-      existingKnowledge: requireText(values.existingKnowledge, "Existing knowledge", 2000),
-      learningFocus: requireOption(values.learningFocus, LEARNING_FOCUSES, "Learning focus"),
-      previouslyLearnedTopics: optionalText(values.history, "Previous session context", 2000) ?? "None",
-    },
-    { modelConfig: { temperature: TEMPERATURE } },
-  );
-  return normalizeDailyPlan(result);
-}
-
-export async function generateProjectBlueprint(
-  settings: AiSettings,
-  values: ProjectBlueprintFormValues,
-): Promise<ProjectBlueprintResult> {
-  const llm = createLlm(settings);
-  const result = await ax(projectArchitectSignature).forward(
-    llm,
-    {
-      randomSeed: variationSeed(),
-      masterTopic: requireText(values.masterTopic, "Master topic", 200),
-      subtopicFocus: requireText(values.subtopicFocus, "Subtopic focus", 200),
-      targetMastery: requireText(values.targetMastery, "Target mastery", 200),
-      preferredIndustry: optionalText(values.preferredIndustry, "Preferred industry", 200) ?? "General Tech",
-    },
-    { modelConfig: { temperature: TEMPERATURE } },
-  );
-  return normalizeProjectBlueprint(result, seedId(8));
-}
-
 export async function suggestTopics(settings: AiSettings, values: SuggestTopicsFormValues): Promise<SuggestTopicsResult> {
   const llm = createLlm(settings);
   const result = await ax(whatToLearnSignature).forward(
@@ -122,24 +54,4 @@ export async function suggestTopics(settings: AiSettings, values: SuggestTopicsF
     { modelConfig: { temperature: TEMPERATURE } },
   );
   return normalizeTopics(result);
-}
-
-export async function suggestProjects(
-  settings: AiSettings,
-  values: SuggestProjectsFormValues,
-): Promise<SuggestProjectsResult> {
-  const llm = createLlm(settings);
-  const result = await ax(projectSuggestorSignature).forward(
-    llm,
-    {
-      topic: requireText(values.topic, "Topic", 200),
-      industry: requireText(values.industry, "Industry", 200),
-      numUseCases: clampCount(values.numUseCases, 1, 10),
-      existingSuggestions: optionalLines(values.existingSuggestions, "Existing suggestions", 2000),
-      userInstructions: optionalText(values.userInstructions, "Instructions", 1000) ?? "No specific instructions.",
-      randomSeed: variationSeed(),
-    },
-    { modelConfig: { temperature: TEMPERATURE } },
-  );
-  return normalizeProjects(result);
 }

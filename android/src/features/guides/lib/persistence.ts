@@ -9,10 +9,7 @@ export interface SavedGuideState<TForm, TResult> {
 
 export const GUIDE_STORAGE_KEYS = {
   task: "learning.guides.task.v1",
-  dailyPlan: "learning.guides.daily-plan.v1",
-  projectBlueprint: "learning.guides.project-blueprint.v1",
   suggestTopics: "learning.guides.suggest-topics.v1",
-  suggestProjects: "learning.guides.suggest-projects.v1",
 } as const;
 
 /**
