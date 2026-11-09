@@ -25,7 +25,26 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
-    ]
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "d0c61b54-09bc-4680-9fc6-27f52bd94e98"
+      }
+    },
+    "owner": "nij117-2"
   }
 }
