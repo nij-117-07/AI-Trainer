@@ -1,16 +1,20 @@
 // src/features/charts/components/ChartsTool.tsx
 /** Chart.js Generator: data and style form, live preview, generated code, and version history. */
 import { useEffect, useRef, useState } from "react";
-import { Share } from "react-native";
+import { Share, StyleSheet, View } from "react-native";
 import { ChartColumn, Code2, Lightbulb, Play, RefreshCcw, Share2, Sparkles } from "lucide-react-native";
+import { spacing } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
+import { SettingsToggle } from "@/components/tool/SettingsToggle";
+import { CopyButton } from "@/components/tool/CopyButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
+import { useCollapsibleForm } from "@/hooks/useCollapsibleForm";
 import { useRequest } from "@/hooks/useRequest";
 import { usePersistedChart } from "../hooks/usePersistedChart";
 import { useChartHistory } from "../hooks/useChartHistory";
@@ -34,6 +38,7 @@ export function ChartsTool() {
     DEFAULTS,
   );
   const { versions, addVersion } = useChartHistory();
+  const panel = useCollapsibleForm(result !== null);
   const request = useRequest(generateChart);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -57,6 +62,7 @@ export function ChartsTool() {
   function handleReset() {
     controllerRef.current?.abort();
     reset();
+    panel.reset();
     request.reset();
   }
 
@@ -69,6 +75,7 @@ export function ChartsTool() {
     setResult(next);
     setForm((prev) => ({ ...prev, previousCode: next.chartDivCode }));
     addVersion(next.chartDivCode);
+    panel.reset();
   }
 
   function handleRender() {
@@ -91,53 +98,6 @@ export function ChartsTool() {
 
   return (
     <Section>
-      <Panel>
-        <TextField
-          label="Data Input"
-          placeholder="JSON, CSV, or plain text…"
-          value={form.dataInput}
-          onChangeText={(text) => update("dataInput", text)}
-          editable={!request.pending}
-          maxLength={20000}
-          multiline
-        />
-        <TextField
-          label="Custom Instructions"
-          placeholder="Chart type, colors, labels, theme…"
-          value={form.customInstructions}
-          onChangeText={(text) => update("customInstructions", text)}
-          editable={!request.pending}
-          maxLength={2000}
-          multiline
-          voice
-        />
-        <TextField
-          label="Previous Code (optional)"
-          placeholder="Existing Chart.js code to refactor…"
-          hint="Generated code is fed back here, so each run refines the previous result."
-          value={form.previousCode}
-          onChangeText={(text) => update("previousCode", text)}
-          editable={!request.pending}
-          maxLength={20000}
-          multiline
-        />
-        {versions.length > 0 && (
-          <SelectField
-            label="Restore a previous version"
-            options={versions.map((version) => ({ value: version.savedAt, label: versionLabel(version) }))}
-            value=""
-            onChange={handleRestore}
-            allowCustom={false}
-          />
-        )}
-        <ActionButton
-          label={request.pending ? "Plotting…" : "Generate chart"}
-          icon={Sparkles}
-          loading={request.pending}
-          onPress={handleGenerate}
-        />
-      </Panel>
-
       <ErrorText message={error} />
 
       {result && (
@@ -158,12 +118,81 @@ export function ChartsTool() {
           <Panel>
             <SectionTitle icon={Code2} title="Chart.js code" />
             <ChartCode code={shownCode || resultCode} />
-            <ActionButton label="Share code" icon={Share2} variant="outline" onPress={handleShare} />
+            <View style={styles.actions}>
+              <CopyButton text={shownCode || resultCode} label="Copy chart code" />
+              <ActionButton label="Share code" icon={Share2} variant="outline" onPress={handleShare} />
+            </View>
           </Panel>
         </>
       )}
 
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />
+      <SettingsToggle
+        title="Chart form"
+        summary={form.customInstructions.trim() || "Data and style"}
+        expanded={panel.expanded}
+        onToggle={panel.toggle}
+      />
+
+      {panel.expanded ? (
+        <Panel>
+          <View style={styles.formBody}>
+            <TextField
+              label="Data Input"
+              placeholder="JSON, CSV, or plain text…"
+              value={form.dataInput}
+              onChangeText={(text) => update("dataInput", text)}
+              editable={!request.pending}
+              maxLength={20000}
+              multiline
+            />
+            <TextField
+              label="Custom Instructions"
+              placeholder="Chart type, colors, labels, theme…"
+              value={form.customInstructions}
+              onChangeText={(text) => update("customInstructions", text)}
+              editable={!request.pending}
+              maxLength={2000}
+              multiline
+              voice
+            />
+            <TextField
+              label="Previous Code (optional)"
+              placeholder="Existing Chart.js code to refactor…"
+              hint="Generated code is fed back here, so each run refines the previous result."
+              value={form.previousCode}
+              onChangeText={(text) => update("previousCode", text)}
+              editable={!request.pending}
+              maxLength={20000}
+              multiline
+            />
+            {versions.length > 0 && (
+              <SelectField
+                label="Restore a previous version"
+                options={versions.map((version) => ({ value: version.savedAt, label: versionLabel(version) }))}
+                value=""
+                onChange={handleRestore}
+                allowCustom={false}
+              />
+            )}
+            <ActionButton
+              label={request.pending ? "Plotting…" : "Generate chart"}
+              icon={Sparkles}
+              loading={request.pending}
+              onPress={handleGenerate}
+            />
+            <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />
+          </View>
+        </Panel>
+      ) : null}
     </Section>
   );
 }
+
+const styles = StyleSheet.create({
+  formBody: {
+    gap: spacing.xl,
+  },
+  actions: {
+    gap: spacing.sm,
+  },
+});

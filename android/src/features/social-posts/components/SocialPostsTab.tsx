@@ -1,17 +1,19 @@
 // src/features/social-posts/components/SocialPostsTab.tsx
 /** Social Media Post Generator: platform-specific post variants with designer notes. */
 import { useEffect, useRef } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Lightbulb, Megaphone, RefreshCcw, Sparkles } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { CountSlider } from "@/components/tool/CountSlider";
 import { Section } from "@/components/tool/Section";
+import { SettingsToggle } from "@/components/tool/SettingsToggle";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
+import { useCollapsibleForm } from "@/hooks/useCollapsibleForm";
 import { useRequest } from "@/hooks/useRequest";
 import { generateSocialPosts } from "../lib/generators";
 import { SOCIAL_POSTS_STORAGE_KEY } from "../lib/persistence";
@@ -34,6 +36,7 @@ export function SocialPostsTab() {
     SOCIAL_POSTS_STORAGE_KEY,
     DEFAULTS,
   );
+  const panel = useCollapsibleForm(result !== null);
   const request = useRequest(generateSocialPosts);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -46,6 +49,7 @@ export function SocialPostsTab() {
   function handleReset() {
     controllerRef.current?.abort();
     reset();
+    panel.reset();
     request.reset();
   }
 
@@ -54,76 +58,16 @@ export function SocialPostsTab() {
     const controller = new AbortController();
     controllerRef.current = controller;
     const next = await request.run(settings, form, controller.signal);
-    if (next && !controller.signal.aborted) setResult(next);
+    if (next && !controller.signal.aborted) {
+      setResult(next);
+      panel.reset();
+    }
   }
 
   const cancelled = controllerRef.current?.signal.aborted ?? false;
 
   return (
     <Section>
-      <Panel>
-        <TextField
-          label="Brand voice / system prompt"
-          placeholder="You are a witty, tech-savvy ghostwriter…"
-          value={form.systemPrompt}
-          onChangeText={(text) => update("systemPrompt", text)}
-          editable={!request.pending}
-          maxLength={2000}
-          multiline
-          voice
-        />
-        <TextField
-          label="Platform"
-          placeholder="e.g. LinkedIn, X, Instagram, Thread"
-          value={form.platform}
-          onChangeText={(text) => update("platform", text)}
-          editable={!request.pending}
-          maxLength={100}
-        />
-        <TextField
-          label="Topic / goal"
-          placeholder="The core topic or goal for the post…"
-          value={form.userQuery}
-          onChangeText={(text) => update("userQuery", text)}
-          editable={!request.pending}
-          maxLength={3000}
-          multiline
-          voice
-        />
-        <TextField
-          label="Chat history (optional)"
-          placeholder="Earlier context to keep the tone consistent…"
-          value={form.chatHistory}
-          onChangeText={(text) => update("chatHistory", text)}
-          editable={!request.pending}
-          maxLength={2000}
-          multiline
-          voice
-        />
-        <TextField
-          label="Liked post examples (optional)"
-          placeholder="Posts you liked, for style matching…"
-          value={form.likedPostExamples}
-          onChangeText={(text) => update("likedPostExamples", text)}
-          editable={!request.pending}
-          maxLength={3000}
-          multiline
-          voice
-        />
-        <CountSlider
-          label="Number of suggestions"
-          max={10}
-          value={form.numSuggestions}
-          onChange={(value) => update("numSuggestions", value)}
-        />
-        <ActionButton
-          label={request.pending ? "Writing posts…" : "Generate posts"}
-          icon={Sparkles}
-          loading={request.pending}
-          onPress={handleGenerate}
-        />
-      </Panel>
-
       <ErrorText message={cancelled ? null : request.error} />
 
       {result && (
@@ -155,12 +99,88 @@ export function SocialPostsTab() {
         </>
       )}
 
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />
+      <SettingsToggle
+        title="Post form"
+        summary={form.platform.trim() || form.userQuery.trim() || "Platform and topic"}
+        expanded={panel.expanded}
+        onToggle={panel.toggle}
+      />
+
+      {panel.expanded ? (
+        <Panel>
+          <View style={styles.formBody}>
+            <TextField
+              label="Brand voice / system prompt"
+              placeholder="You are a witty, tech-savvy ghostwriter…"
+              value={form.systemPrompt}
+              onChangeText={(text) => update("systemPrompt", text)}
+              editable={!request.pending}
+              maxLength={2000}
+              multiline
+              voice
+            />
+            <TextField
+              label="Platform"
+              placeholder="e.g. LinkedIn, X, Instagram, Thread"
+              value={form.platform}
+              onChangeText={(text) => update("platform", text)}
+              editable={!request.pending}
+              maxLength={100}
+            />
+            <TextField
+              label="Topic / goal"
+              placeholder="The core topic or goal for the post…"
+              value={form.userQuery}
+              onChangeText={(text) => update("userQuery", text)}
+              editable={!request.pending}
+              maxLength={3000}
+              multiline
+              voice
+            />
+            <TextField
+              label="Chat history (optional)"
+              placeholder="Earlier context to keep the tone consistent…"
+              value={form.chatHistory}
+              onChangeText={(text) => update("chatHistory", text)}
+              editable={!request.pending}
+              maxLength={2000}
+              multiline
+              voice
+            />
+            <TextField
+              label="Liked post examples (optional)"
+              placeholder="Posts you liked, for style matching…"
+              value={form.likedPostExamples}
+              onChangeText={(text) => update("likedPostExamples", text)}
+              editable={!request.pending}
+              maxLength={3000}
+              multiline
+              voice
+            />
+            <CountSlider
+              label="Number of suggestions"
+              max={10}
+              value={form.numSuggestions}
+              onChange={(value) => update("numSuggestions", value)}
+            />
+            <ActionButton
+              label={request.pending ? "Writing posts…" : "Generate posts"}
+              icon={Sparkles}
+              loading={request.pending}
+              onPress={handleGenerate}
+            />
+            <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />
+          </View>
+        </Panel>
+      ) : null}
     </Section>
   );
 }
 
 const styles = StyleSheet.create({
+  formBody: {
+    gap: spacing.xl,
+  },
   title: {
     fontSize: 16,
     fontWeight: "600",

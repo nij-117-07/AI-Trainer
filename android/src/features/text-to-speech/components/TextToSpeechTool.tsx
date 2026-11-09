@@ -1,7 +1,8 @@
 // src/features/text-to-speech/components/TextToSpeechTool.tsx
 /**
- * Text to Speech: type text, generate audio with the speech model and voice from AI settings,
- * and play it. Recent requests are kept on the device so a text can be reused.
+ * Text to Speech: the generated audio is shown first, then the text form (collapsible) to generate
+ * audio with the speech model and voice from AI settings. Recent requests are kept on the device
+ * so a text can be reused.
  */
 import { createElement, useEffect, useRef, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
@@ -11,6 +12,8 @@ import { Pause, Play, RotateCcw, Settings2, Volume2 } from "lucide-react-native"
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
+import { SettingsToggle } from "@/components/tool/SettingsToggle";
+import { useCollapsibleForm } from "@/hooks/useCollapsibleForm";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { isSpeechConfigured, resolveSpeechConnection } from "@/features/ai-settings/lib/speech";
 import { createPlayableClip, releaseClip } from "../lib/clip";
@@ -42,6 +45,7 @@ export function TextToSpeechTool() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [clip, setClip] = useState<GeneratedClip | null>(null);
+  const panel = useCollapsibleForm(clip !== null);
   const abortRef = useRef<AbortController | null>(null);
   const clipRef = useRef<string | null>(null);
 
@@ -96,6 +100,7 @@ export function TextToSpeechTool() {
           generationId: generated.generationId,
         })
       );
+      panel.reset();
     } catch (cause) {
       if (controller.signal.aborted) return;
       setError(cause instanceof Error ? cause.message : "Speech generation failed.");
@@ -121,6 +126,7 @@ export function TextToSpeechTool() {
   function reuse(entry: SpeechEntry) {
     setText(entry.text);
     setError(null);
+    panel.open();
   }
 
   function reset() {
@@ -136,52 +142,6 @@ export function TextToSpeechTool() {
 
   return (
     <Section>
-      <Panel>
-        <View style={styles.settingsRow}>
-          <View style={styles.settingsText}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Using</Text>
-            <Text style={[styles.hint, { color: colors.mutedForeground }]} accessibilityLabel="Speech model and voice">
-              {configured ? `${connection.model} · voice ${connection.voice}` : "No speech model or voice set yet."}
-            </Text>
-          </View>
-          <Pressable
-            onPress={() => router.push("/admin/settings")}
-            accessibilityRole="button"
-            accessibilityLabel="Change speech model and voice in settings"
-            style={({ pressed }) => [styles.settingsButton, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
-          >
-            <Settings2 size={16} color={colors.foreground} />
-            <Text style={[styles.settingsButtonText, { color: colors.foreground }]}>Change</Text>
-          </Pressable>
-        </View>
-
-        <TextField
-          label="Text to speak"
-          value={text}
-          onChangeText={(value) => {
-            setText(value);
-            setError(null);
-          }}
-          placeholder="Type or paste the text to read aloud"
-          placeholderTextColor={colors.mutedForeground}
-          multiline
-          style={styles.textArea}
-          accessibilityLabel="Text to speak"
-        />
-        <Text style={[styles.counter, { color: overLimit ? colors.destructive : colors.mutedForeground }]}>
-          {text.length} / {MAX_SPEECH_CHARS}
-        </Text>
-
-        <ActionButton
-          label={generating ? "Generating audio…" : "Generate speech"}
-          icon={Volume2}
-          loading={generating}
-          onPress={generate}
-        />
-
-        <ErrorText message={error} />
-      </Panel>
-
       {clip ? (
         <Panel>
           <Text style={[styles.label, { color: colors.foreground }]}>Audio ready</Text>
@@ -243,6 +203,63 @@ export function TextToSpeechTool() {
         </Panel>
       ) : null}
 
+      <SettingsToggle
+        title="Speech form"
+        summary={trimmed || "Text to speak"}
+        expanded={panel.expanded}
+        onToggle={panel.toggle}
+      />
+
+      {panel.expanded ? (
+        <Panel>
+          <View style={styles.formBody}>
+            <View style={styles.settingsRow}>
+              <View style={styles.settingsText}>
+                <Text style={[styles.label, { color: colors.foreground }]}>Using</Text>
+                <Text style={[styles.hint, { color: colors.mutedForeground }]} accessibilityLabel="Speech model and voice">
+                  {configured ? `${connection.model} · voice ${connection.voice}` : "No speech model or voice set yet."}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => router.push("/admin/settings")}
+                accessibilityRole="button"
+                accessibilityLabel="Change speech model and voice in settings"
+                style={({ pressed }) => [styles.settingsButton, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
+              >
+                <Settings2 size={16} color={colors.foreground} />
+                <Text style={[styles.settingsButtonText, { color: colors.foreground }]}>Change</Text>
+              </Pressable>
+            </View>
+
+            <TextField
+              label="Text to speak"
+              value={text}
+              onChangeText={(value) => {
+                setText(value);
+                setError(null);
+              }}
+              placeholder="Type or paste the text to read aloud"
+              placeholderTextColor={colors.mutedForeground}
+              multiline
+              style={styles.textArea}
+              accessibilityLabel="Text to speak"
+            />
+            <Text style={[styles.counter, { color: overLimit ? colors.destructive : colors.mutedForeground }]}>
+              {text.length} / {MAX_SPEECH_CHARS}
+            </Text>
+
+            <ActionButton
+              label={generating ? "Generating audio…" : "Generate speech"}
+              icon={Volume2}
+              loading={generating}
+              onPress={generate}
+            />
+
+            <ErrorText message={error} />
+          </View>
+        </Panel>
+      ) : null}
+
       {loaded && entries.length > 0 ? (
         <Panel>
           <View style={styles.historyHeader}>
@@ -283,6 +300,9 @@ function formatDate(iso: string): string {
 }
 
 const styles = StyleSheet.create({
+  formBody: {
+    gap: spacing.xl,
+  },
   settingsRow: {
     flexDirection: "row",
     alignItems: "center",

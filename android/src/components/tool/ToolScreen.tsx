@@ -3,8 +3,8 @@
  * Shared frame for every Testing Portal page: header with a back button, a notice when AI is
  * not configured, and a keyboard-aware scroll area so text fields stay above the keyboard.
  */
-import type { ReactNode } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useRef, type ReactNode } from "react";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
@@ -13,6 +13,7 @@ import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvid
 import { isAiConfigured } from "@/features/ai-settings/lib/llm";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { useGoBack } from "@/lib/navigation";
+import { ToolScrollContext } from "./ToolScrollContext";
 
 interface ToolScreenProps {
   title: string;
@@ -25,6 +26,7 @@ export function ToolScreen({ title, children }: ToolScreenProps) {
   const goBack = useGoBack();
   const { settings, loaded } = useAiSettings();
   const configured = isAiConfigured(settings);
+  const scrollRef = useRef<ScrollViewInstance>(null);
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
@@ -44,19 +46,21 @@ export function ToolScreen({ title, children }: ToolScreenProps) {
       </View>
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
-          {loaded && !configured && (
-            <Panel>
-              <Text style={[styles.noticeTitle, { color: colors.foreground }]}>AI model not configured</Text>
-              <Text style={[styles.noticeText, { color: colors.mutedForeground }]}>
-                Add a model name and API key in AI settings before generating content.
-              </Text>
-              <ActionButton label="Open AI settings" variant="outline" onPress={() => router.push("/admin/settings")} />
-            </Panel>
-          )}
+        <ToolScrollContext.Provider value={scrollRef}>
+          <ScrollView ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+            {loaded && !configured && (
+              <Panel>
+                <Text style={[styles.noticeTitle, { color: colors.foreground }]}>AI model not configured</Text>
+                <Text style={[styles.noticeText, { color: colors.mutedForeground }]}>
+                  Add a model name and API key in AI settings before generating content.
+                </Text>
+                <ActionButton label="Open AI settings" variant="outline" onPress={() => router.push("/admin/settings")} />
+              </Panel>
+            )}
 
-          {children}
-        </ScrollView>
+            {children}
+          </ScrollView>
+        </ToolScrollContext.Provider>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

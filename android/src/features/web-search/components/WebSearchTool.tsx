@@ -1,6 +1,6 @@
 // src/features/web-search/components/WebSearchTool.tsx
-/** Web Search tool: the search form on top, then result cards with a Load more pager. */
-import type { ReactNode } from "react";
+/** Web Search tool: result cards with a Load more pager, then the search form that opens on tap. */
+import { useEffect, type ReactNode } from "react";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Globe, ListPlus, SearchX } from "lucide-react-native";
@@ -8,6 +8,8 @@ import { spacing, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
+import { SettingsToggle } from "@/components/tool/SettingsToggle";
+import { useCollapsibleForm } from "@/hooks/useCollapsibleForm";
 import { DEFAULT_FORM, SEARCH_FORM_KEY, hasAdvancedFilters } from "../options";
 import { useSearxngUrl } from "../hooks/useSearxngUrl";
 import { useWebSearch } from "../hooks/useWebSearch";
@@ -20,6 +22,11 @@ export function WebSearchTool() {
   const [form, setForm] = usePersistedState<SearchFormValues>(SEARCH_FORM_KEY, DEFAULT_FORM);
   const { searxngUrl, setSearxngUrl } = useSearxngUrl();
   const { results, meta, isPending, error, submit, loadMore } = useWebSearch(searxngUrl);
+  const panel = useCollapsibleForm(results.length > 0);
+
+  useEffect(() => {
+    if (meta) panel.reset();
+  }, [meta]);
 
   function handleSearch() {
     void submit(form);
@@ -31,16 +38,6 @@ export function WebSearchTool() {
 
   return (
     <Section>
-      <SearchForm
-        form={form}
-        setForm={setForm}
-        searxngUrl={searxngUrl}
-        onSearxngUrlChange={setSearxngUrl}
-        pending={isPending}
-        error={error}
-        onSubmit={handleSearch}
-      />
-
       {isPending && results.length === 0 ? (
         <StatePanel>
           <ActivityIndicator color={colors.primary} />
@@ -77,10 +74,29 @@ export function WebSearchTool() {
         <StatePanel>
           <SectionTitle icon={Globe} title="Search the web" />
           <Text style={[styles.body, { color: colors.mutedForeground }]}>
-            Type a query above to find pages, posts, and docs. Results link straight to their sources.
+            Open the search form below to find pages, posts, and docs. Results link straight to their sources.
           </Text>
         </StatePanel>
       )}
+
+      <SettingsToggle
+        title="Search form"
+        summary={form.query.trim() || "Query and filters"}
+        expanded={panel.expanded}
+        onToggle={panel.toggle}
+      />
+
+      {panel.expanded ? (
+        <SearchForm
+          form={form}
+          setForm={setForm}
+          searxngUrl={searxngUrl}
+          onSearxngUrlChange={setSearxngUrl}
+          pending={isPending}
+          error={error}
+          onSubmit={handleSearch}
+        />
+      ) : null}
     </Section>
   );
 }

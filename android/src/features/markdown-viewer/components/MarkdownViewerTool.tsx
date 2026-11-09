@@ -1,10 +1,11 @@
 // src/features/markdown-viewer/components/MarkdownViewerTool.tsx
 /** Markdown Viewer: edit a draft on top and preview the rendered result below. The draft persists on the device. */
 import { useState } from "react";
-import { Share, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { BookOpen, Eraser, FileText, RotateCcw, Share2 } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { CopyButton } from "@/components/tool/CopyButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -60,9 +61,16 @@ export function MarkdownViewerTool() {
       </Panel>
 
       <Panel>
-        <SectionTitle icon={BookOpen} title="Preview" />
+        <View style={styles.previewHeader}>
+          <SectionTitle icon={BookOpen} title="Preview" />
+          {content.trim() !== "" && <CopyButton text={content} label="Copy Markdown" />}
+        </View>
         {content.trim() ? (
-          <MarkdownText content={content} />
+          <View style={[styles.viewer, { borderColor: colors.border, backgroundColor: colors.background }]}>
+            <ScrollView nestedScrollEnabled contentContainerStyle={styles.viewerContent}>
+              <MarkdownText content={content} />
+            </ScrollView>
+          </View>
         ) : (
           <Text style={[styles.empty, { color: colors.mutedForeground }]}>Nothing to preview yet.</Text>
         )}
@@ -89,6 +97,21 @@ const styles = StyleSheet.create({
   action: {
     flexGrow: 1,
     minWidth: 140,
+  },
+  previewHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  viewer: {
+    height: 360,
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    overflow: "hidden",
+  },
+  viewerContent: {
+    padding: spacing.md,
   },
   empty: {
     fontSize: 14,

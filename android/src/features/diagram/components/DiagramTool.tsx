@@ -1,10 +1,14 @@
 // src/features/diagram/components/DiagramTool.tsx
-/** Diagram Generator screen body: the instruction form, the generated diagram, and version restore. */
+/** Diagram Generator screen body: the generated diagram, the instruction form, and version restore. */
 import { useEffect, useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { RefreshCcw, Sparkles, X } from "lucide-react-native";
+import { spacing } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Field, Panel, TextField, ChoiceChips } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
+import { SettingsToggle } from "@/components/tool/SettingsToggle";
+import { useCollapsibleForm } from "@/hooks/useCollapsibleForm";
 import { useRequest } from "@/hooks/useRequest";
 import { usePersistedDiagram } from "../hooks/usePersistedDiagram";
 import { useDiagramHistory } from "../hooks/useDiagramHistory";
@@ -33,6 +37,7 @@ export function DiagramTool() {
   const { form, result, previewMermaid, previewDrawio } = draft;
   const isMermaid = form.format === "mermaid";
   const previewCode = isMermaid ? previewMermaid : previewDrawio;
+  const panel = useCollapsibleForm(result !== null);
 
   function updateForm<K extends keyof DiagramFormValues>(key: K, value: DiagramFormValues[K]) {
     setDraft((prev) => ({ ...prev, form: { ...prev.form, [key]: value } }));
@@ -46,6 +51,7 @@ export function DiagramTool() {
     if (!next) return;
     applyGenerated(next);
     addVersion(next.code, next.format);
+    panel.reset();
   }
 
   function applyGenerated(next: DiagramResult) {
@@ -65,6 +71,7 @@ export function DiagramTool() {
 
   function handleReset() {
     reset();
+    panel.reset();
     request.reset();
   }
 
@@ -97,73 +104,7 @@ export function DiagramTool() {
 
   return (
     <Section>
-      <Panel>
-        <Field label="Format">
-          <ChoiceChips
-            options={DIAGRAM_FORMAT_OPTIONS}
-            value={form.format}
-            onChange={(value) => updateForm("format", value)}
-          />
-        </Field>
-        <TextField
-          label="Instruction"
-          placeholder="e.g. Flowchart of the login flow"
-          value={form.instruction}
-          onChangeText={(text) => updateForm("instruction", text)}
-          editable={!request.pending}
-          maxLength={INSTRUCTION_MAX}
-          multiline
-          voice
-        />
-        <TextField
-          label="Context (optional)"
-          placeholder="Business logic or technical context…"
-          value={form.context}
-          onChangeText={(text) => updateForm("context", text)}
-          editable={!request.pending}
-          maxLength={CONTEXT_MAX}
-          multiline
-          voice
-        />
-        {isMermaid ? (
-          <TextField
-            label="Existing Mermaid code (optional)"
-            placeholder="Paste existing Mermaid code to refine it…"
-            hint={FEEDBACK_HINT}
-            value={form.existingMermaid}
-            onChangeText={(text) => updateForm("existingMermaid", text)}
-            editable={!request.pending}
-            maxLength={EXISTING_CODE_MAX}
-            multiline
-          />
-        ) : (
-          <TextField
-            label="Existing Draw.io code (optional)"
-            placeholder="Paste existing Draw.io XML to refine it…"
-            hint={FEEDBACK_HINT}
-            value={form.existingDrawio}
-            onChangeText={(text) => updateForm("existingDrawio", text)}
-            editable={!request.pending}
-            maxLength={EXISTING_CODE_MAX}
-            multiline
-          />
-        )}
-        <ErrorText message={request.error} />
-        <ActionButton
-          label={request.pending ? "Drawing…" : "Generate diagram"}
-          icon={Sparkles}
-          loading={request.pending}
-          onPress={handleGenerate}
-        />
-        {request.pending && <ActionButton label="Cancel" icon={X} variant="outline" onPress={handleCancel} />}
-      </Panel>
-
-      <VersionList
-        format={form.format}
-        versions={versions}
-        disabled={request.pending}
-        onRestore={handleRestore}
-      />
+      <ErrorText message={request.error} />
 
       {result && (
         <DiagramResultPanel
@@ -177,7 +118,90 @@ export function DiagramTool() {
         />
       )}
 
-      {!request.pending && <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />}
+      <SettingsToggle
+        title="Diagram form"
+        summary={form.instruction.trim() || "Format and instruction"}
+        expanded={panel.expanded}
+        onToggle={panel.toggle}
+      />
+
+      {panel.expanded ? (
+        <Panel>
+          <View style={styles.formBody}>
+            <Field label="Format">
+              <ChoiceChips
+                options={DIAGRAM_FORMAT_OPTIONS}
+                value={form.format}
+                onChange={(value) => updateForm("format", value)}
+              />
+            </Field>
+            <TextField
+              label="Instruction"
+              placeholder="e.g. Flowchart of the login flow"
+              value={form.instruction}
+              onChangeText={(text) => updateForm("instruction", text)}
+              editable={!request.pending}
+              maxLength={INSTRUCTION_MAX}
+              multiline
+              voice
+            />
+            <TextField
+              label="Context (optional)"
+              placeholder="Business logic or technical context…"
+              value={form.context}
+              onChangeText={(text) => updateForm("context", text)}
+              editable={!request.pending}
+              maxLength={CONTEXT_MAX}
+              multiline
+              voice
+            />
+            {isMermaid ? (
+              <TextField
+                label="Existing Mermaid code (optional)"
+                placeholder="Paste existing Mermaid code to refine it…"
+                hint={FEEDBACK_HINT}
+                value={form.existingMermaid}
+                onChangeText={(text) => updateForm("existingMermaid", text)}
+                editable={!request.pending}
+                maxLength={EXISTING_CODE_MAX}
+                multiline
+              />
+            ) : (
+              <TextField
+                label="Existing Draw.io code (optional)"
+                placeholder="Paste existing Draw.io XML to refine it…"
+                hint={FEEDBACK_HINT}
+                value={form.existingDrawio}
+                onChangeText={(text) => updateForm("existingDrawio", text)}
+                editable={!request.pending}
+                maxLength={EXISTING_CODE_MAX}
+                multiline
+              />
+            )}
+            <ActionButton
+              label={request.pending ? "Drawing…" : "Generate diagram"}
+              icon={Sparkles}
+              loading={request.pending}
+              onPress={handleGenerate}
+            />
+            {request.pending && <ActionButton label="Cancel" icon={X} variant="outline" onPress={handleCancel} />}
+            {!request.pending && <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />}
+          </View>
+        </Panel>
+      ) : null}
+
+      <VersionList
+        format={form.format}
+        versions={versions}
+        disabled={request.pending}
+        onRestore={handleRestore}
+      />
     </Section>
   );
 }
+
+const styles = StyleSheet.create({
+  formBody: {
+    gap: spacing.xl,
+  },
+});

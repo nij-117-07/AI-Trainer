@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Code, Eye, GitBranch, Lightbulb, Play, RotateCcw } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { CopyButton } from "@/components/tool/CopyButton";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
@@ -75,9 +76,12 @@ export function DiagramResultPanel({
       <Panel>
         <View style={styles.codeHeader}>
           <SectionTitle icon={Code} title="Diagram code" />
-          <Text style={[styles.badge, { color: colors.mutedForeground, backgroundColor: colors.muted }]}>
-            {formatLabel(result.format)}
-          </Text>
+          <View style={styles.codeActions}>
+            <Text style={[styles.badge, { color: colors.mutedForeground, backgroundColor: colors.muted }]}>
+              {formatLabel(result.format)}
+            </Text>
+            <CopyButton text={codeToShow} label="Copy diagram code" />
+          </View>
         </View>
         <View style={[styles.codeBox, { backgroundColor: colors.muted, borderColor: colors.border }]}>
           <Text selectable style={[styles.code, { color: colors.foreground }]}>
@@ -95,6 +99,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  codeActions: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
   },
   badge: {
