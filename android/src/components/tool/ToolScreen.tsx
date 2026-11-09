@@ -18,9 +18,10 @@ import { ToolScrollContext } from "./ToolScrollContext";
 interface ToolScreenProps {
   title: string;
   children: ReactNode;
+  footer?: ReactNode;
 }
 
-export function ToolScreen({ title, children }: ToolScreenProps) {
+export function ToolScreen({ title, children, footer }: ToolScreenProps) {
   const colors = useThemeColors();
   const router = useRouter();
   const goBack = useGoBack();
@@ -60,6 +61,7 @@ export function ToolScreen({ title, children }: ToolScreenProps) {
 
             {children}
           </ScrollView>
+          {footer ? <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>{footer}</View> : null}
         </ToolScrollContext.Provider>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -101,6 +103,10 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing["2xl"],
     gap: spacing.lg,
+  },
+  footer: {
+    padding: spacing.lg,
+    borderTopWidth: 1,
   },
   noticeTitle: {
     fontSize: 16,

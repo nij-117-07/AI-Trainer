@@ -1,4 +1,4 @@
-// src/features/voice-notes/lib/audio.ts
+// src/features/speech-input/lib/audio.ts
 /** Reads a finished recording from its URI as base64, with the format the endpoint needs. */
 
 export interface RecordedAudio {

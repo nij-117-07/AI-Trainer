@@ -1,28 +1,28 @@
 // src/features/brain-dump/components/BrainDumpTool.tsx
 /**
- * Brain dump and notes: get everything on your mind into one box, then search, filter by #tag,
- * pin, and edit notes later. Everything stays on the device.
+ * Notes list: search, filter by #tag, pin, and open notes to edit later. Everything stays on the
+ * device. The new-note form lives in the screen footer (see BrainDumpComposer).
  */
 import { useState } from "react";
 import { StyleSheet, Text } from "react-native";
-import { Save } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
-import { ActionButton, ChoiceChips, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ChoiceChips, TextField } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
-import { useNotes } from "../hooks/useNotes";
-import { allTags, createNote, filterNotes } from "../lib/notes";
+import type { NotesStore } from "../hooks/useNotes";
+import { allTags, filterNotes } from "../lib/notes";
 import { NoteEditor } from "./NoteEditor";
 import { NoteRow } from "./NoteRow";
 
-export function BrainDumpTool() {
-  const colors = useThemeColors();
-  const store = useNotes();
+interface BrainDumpToolProps {
+  store: NotesStore;
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+}
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [dump, setDump] = useState("");
+export function BrainDumpTool({ store, selectedId, onSelect }: BrainDumpToolProps) {
+  const colors = useThemeColors();
   const [query, setQuery] = useState("");
   const [tag, setTag] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const selected = store.notes.find((note) => note.id === selectedId) ?? null;
   if (selected) {
@@ -30,12 +30,12 @@ export function BrainDumpTool() {
       <NoteEditor
         key={selected.id}
         note={selected}
-        onBack={() => setSelectedId(null)}
+        onBack={() => onSelect(null)}
         onSave={(patch) => store.updateNote(selected.id, patch)}
         onTogglePin={() => store.togglePin(selected.id)}
         onDelete={() => {
           store.removeNote(selected.id);
-          setSelectedId(null);
+          onSelect(null);
         }}
       />
     );
@@ -47,40 +47,11 @@ export function BrainDumpTool() {
   const emptyText = store.loaded
     ? query.trim() || activeTag
       ? "No notes match this search."
-      : "No notes yet. Dump something above."
+      : "No notes yet. Use New note below."
     : "Loading notes…";
-
-  function capture() {
-    const text = dump.trim();
-    if (!text) {
-      setError("Type something first. Anything counts.");
-      return;
-    }
-    store.addNote(createNote({ body: text }));
-    setDump("");
-    setError(null);
-  }
 
   return (
     <Section>
-      <Panel>
-        <TextField
-          label="Brain dump"
-          hint="Get it out of your head. Use #tags to group ideas later."
-          value={dump}
-          onChangeText={(value) => {
-            setDump(value);
-            setError(null);
-          }}
-          multiline
-          voice
-          style={styles.dump}
-          placeholder="What's on your mind?"
-        />
-        <ErrorText message={error} />
-        <ActionButton label="Save to notes" icon={Save} onPress={capture} />
-      </Panel>
-
       <TextField
         label="Search notes"
         value={query}
@@ -103,7 +74,7 @@ export function BrainDumpTool() {
         <NoteRow
           key={note.id}
           note={note}
-          onOpen={() => setSelectedId(note.id)}
+          onOpen={() => onSelect(note.id)}
           onTogglePin={() => store.togglePin(note.id)}
         />
       ))}
@@ -112,9 +83,6 @@ export function BrainDumpTool() {
 }
 
 const styles = StyleSheet.create({
-  dump: {
-    minHeight: 140,
-  },
   hint: {
     fontSize: 14,
     lineHeight: 20,

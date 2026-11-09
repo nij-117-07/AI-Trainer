@@ -1,4 +1,4 @@
-// src/features/voice-notes/lib/transcribe.ts
+// src/features/speech-input/lib/transcribe.ts
 /**
  * Sends one recording to an OpenAI-compatible speech-to-text endpoint (for example OpenRouter's
  * /api/v1/audio/transcriptions) and returns the transcript text.

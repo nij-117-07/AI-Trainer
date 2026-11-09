@@ -27,7 +27,6 @@ import {
   ListTodo,
   MapPinned,
   Megaphone,
-  Mic,
   MessageCircleQuestion,
   MessagesSquare,
   Network,
@@ -308,15 +307,6 @@ export const APPS: AppCard[] = [
     icon: Bot,
     group: "tools",
     tone: "sky",
-  },
-  {
-    key: "voice-notes",
-    title: "Voice Notes",
-    description: "Record a voice memo, transcribe it with your voice model, and keep the text as a note.",
-    route: "/tools/voice-notes",
-    icon: Mic,
-    group: "tools",
-    tone: "rose",
   },
   {
     key: "tasks",

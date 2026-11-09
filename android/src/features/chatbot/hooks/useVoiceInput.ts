@@ -7,8 +7,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder, useAudioRecorderState } from "expo-audio";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { isVoiceConfigured, resolveVoiceConnection } from "@/features/ai-settings/lib/voice";
-import { readRecording } from "@/features/voice-notes/lib/audio";
-import { transcribeAudio } from "@/features/voice-notes/lib/transcribe";
+import { readRecording } from "@/features/speech-input/lib/audio";
+import { transcribeAudio } from "@/features/speech-input/lib/transcribe";
 import type { AiSettings } from "@/features/ai-settings/types";
 
 function messageOf(cause: unknown, fallback: string): string {

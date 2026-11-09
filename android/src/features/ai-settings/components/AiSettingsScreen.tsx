@@ -155,7 +155,7 @@ export function AiSettingsScreen() {
                   <Text style={[styles.cardTitle, { color: colors.foreground }]}>Voice model</Text>
                 </View>
                 <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-                  The speech-to-text model used by Voice Notes. Its base URL and key are optional. Leave them empty to use the chat connection above.
+                  The speech-to-text model used by voice input. Its base URL and key are optional. Leave them empty to use the chat connection above.
                 </Text>
 
                 <SelectField

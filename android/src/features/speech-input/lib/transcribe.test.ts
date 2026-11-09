@@ -1,4 +1,4 @@
-// src/features/voice-notes/lib/transcribe.test.ts
+// src/features/speech-input/lib/transcribe.test.ts
 import { isVoiceConfigured, resolveVoiceConnection } from "@/features/ai-settings/lib/voice";
 import type { AiSettings } from "@/features/ai-settings/types";
 import { extractErrorMessage } from "@/lib/provider-errors";

@@ -47,3 +47,5 @@ export function useNotes() {
 
   return { notes, loaded, addNote, updateNote, togglePin, removeNote };
 }
+
+export type NotesStore = ReturnType<typeof useNotes>;
