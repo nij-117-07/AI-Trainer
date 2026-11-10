@@ -1,8 +1,8 @@
 // src/features/roadmap/components/SubtopicRow.tsx
-/** A single subpoint: done toggle, title, inline rename, and delete. */
+/** A single subpoint: done toggle, title, inline rename, move up or down, and delete. */
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Pencil, Trash2 } from "lucide-react-native";
+import { ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { ROADMAP_LIMITS } from "../lib/validation";
 import type { RoadmapSubtopic } from "../types";
@@ -10,12 +10,15 @@ import { DoneToggle, IconButton, InlineEdit } from "./ItemControls";
 
 interface SubtopicRowProps {
   subtopic: RoadmapSubtopic;
+  isFirst: boolean;
+  isLast: boolean;
   onToggle: () => void;
   onRename: (title: string) => void;
+  onMove: (direction: -1 | 1) => void;
   onDelete: () => void;
 }
 
-export function SubtopicRow({ subtopic, onToggle, onRename, onDelete }: SubtopicRowProps) {
+export function SubtopicRow({ subtopic, isFirst, isLast, onToggle, onRename, onMove, onDelete }: SubtopicRowProps) {
   const colors = useThemeColors();
   const [editing, setEditing] = useState(false);
 
@@ -43,6 +46,12 @@ export function SubtopicRow({ subtopic, onToggle, onRename, onDelete }: Subtopic
           >
             {subtopic.title}
           </Text>
+          {!isFirst ? (
+            <IconButton icon={ChevronUp} label={`Move "${subtopic.title}" up`} onPress={() => onMove(-1)} />
+          ) : null}
+          {!isLast ? (
+            <IconButton icon={ChevronDown} label={`Move "${subtopic.title}" down`} onPress={() => onMove(1)} />
+          ) : null}
           <IconButton icon={Pencil} label="Rename subtopic" onPress={() => setEditing(true)} />
           <IconButton icon={Trash2} label="Delete subtopic" onPress={onDelete} />
         </>
@@ -55,7 +64,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: spacing.xs,
     paddingVertical: spacing.xs,
   },
   title: {

@@ -26,7 +26,6 @@ export interface SuggestTopicsFormValues {
   broaderTopic: string;
   specificInterest: string;
   learnedBefore: string;
-  previousSuggestions: string;
   customUserInput: string;
   topicLevel: string;
 }

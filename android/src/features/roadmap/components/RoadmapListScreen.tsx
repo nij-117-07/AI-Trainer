@@ -1,15 +1,16 @@
 // src/features/roadmap/components/RoadmapListScreen.tsx
-/** Roadmap Planner home: the create form, then every saved roadmap with open and delete actions. */
+/** Roadmap Planner home: a New roadmap button, then every saved roadmap with its next step. */
 import { useCallback, useState } from "react";
 import { Alert, StyleSheet, Text } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useThemeColors } from "@/theme";
-import { ToolScreen } from "@/components/tool/ToolScreen";
-import { ErrorText, Panel } from "@/components/tool/FormControls";
+import { MapPinned, Plus } from "lucide-react-native";
+import { spacing, useThemeColors } from "@/theme";
+import { ActionButton, ErrorText } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
+import { ToolScreen } from "@/components/tool/ToolScreen";
 import { deleteRoadmap, loadRoadmaps } from "../lib/roadmap-store";
 import type { Roadmap } from "../types";
-import { CreateRoadmapPanel } from "./CreateRoadmapPanel";
 import { RoadmapCard } from "./RoadmapCard";
 
 function messageOf(err: unknown, fallback: string): string {
@@ -66,17 +67,24 @@ export function RoadmapListScreen() {
   return (
     <ToolScreen title="Roadmap Planner">
       <Section>
-        <CreateRoadmapPanel onCreated={openRoadmap} />
+        <Text style={[styles.lead, { color: colors.mutedForeground }]}>
+          Break a subject into main points, then tick them off as you learn.
+        </Text>
+
+        <ActionButton
+          label="New roadmap"
+          icon={Plus}
+          onPress={() => router.push("/learning/roadmap/new" as never)}
+        />
 
         <ErrorText message={error} />
 
         {loaded && roadmaps.length === 0 ? (
-          <Panel>
-            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No roadmaps yet</Text>
-            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-              Create your first learning roadmap and start planning a subject.
-            </Text>
-          </Panel>
+          <EmptyHint
+            icon={MapPinned}
+            title="No roadmaps yet"
+            hint="Tap New roadmap to plan your first subject."
+          />
         ) : null}
 
         {roadmaps.map((roadmap) => (
@@ -93,12 +101,9 @@ export function RoadmapListScreen() {
 }
 
 const styles = StyleSheet.create({
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  emptyText: {
+  lead: {
     fontSize: 14,
     lineHeight: 21,
+    paddingHorizontal: spacing.xs,
   },
 });

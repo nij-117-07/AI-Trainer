@@ -1,16 +1,6 @@
 // src/features/guides/lib/persistence.ts
-/** Storage keys and saved-draft helpers for the Learning Guides tools. */
+/** Saved-draft helpers for the Learning Guides tools. */
 import { isRecord } from "./text";
-
-export interface SavedGuideState<TForm, TResult> {
-  form: TForm;
-  result: TResult | null;
-}
-
-export const GUIDE_STORAGE_KEYS = {
-  task: "learning.guides.task.v1",
-  suggestTopics: "learning.guides.suggest-topics.v1",
-} as const;
 
 /**
  * Takes each saved field only when its type matches the default, so an old or damaged draft

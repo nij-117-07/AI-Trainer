@@ -61,6 +61,11 @@ export const SUBTOPIC_DESCRIPTIONS = {
     currentModule: "The specific topic we are currently expanding.",
     // roadmap_type
     roadmapType: "Detailed or Short (influences number of sub-bullets).",
+    // user_instructions
+    userInstructions: "Optional request from the user about how the subpoints should be written or focused. Follow it.",
+    // existing_subtopics
+    existingSubtopics:
+      "Subpoints already listed for this module. Do not repeat them. Keep the useful ones and apply the user's request when there is one.",
   },
   outputs: {
     // subtopics

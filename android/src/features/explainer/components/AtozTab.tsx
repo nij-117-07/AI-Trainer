@@ -1,51 +1,63 @@
 // src/features/explainer/components/AtozTab.tsx
 /** A-to-Z Tutorial: one cohesive markdown document that covers a topic from basics to mastery. */
-import { usePersistedState } from "@/hooks/usePersistedState";
-import { BookOpenText, RefreshCcw, Sparkles } from "lucide-react-native";
-import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { BookOpenText, Sparkles } from "lucide-react-native";
+import { spacing } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
-import { SelectField } from "@/components/tool/SelectField";
+import { EmptyHint } from "@/components/tool/EmptyHint";
+import { ListenButton } from "@/components/tool/ListenButton";
+import { MarkdownText } from "@/components/tool/MarkdownText";
 import { Section } from "@/components/tool/Section";
-import { useRequest } from "@/hooks/useRequest";
+import { SectionTitle } from "@/components/tool/SectionTitle";
+import { SelectField } from "@/components/tool/SelectField";
+import { useExplainerTool } from "../hooks/useExplainerTool";
+import { LIMITS, parseTutorial, TUTORIAL_DEFAULTS, TUTORIAL_KEY } from "../lib/drafts";
 import { generateTutorial } from "../lib/generators";
 import { explanationStyleOptions, expertiseLevelOptions } from "../options";
-import type { TutorialFormValues } from "../types";
-import { MarkdownText } from "@/components/tool/MarkdownText";
-import { ListenButton } from "@/components/tool/ListenButton";
-import { SectionTitle } from "@/components/tool/SectionTitle";
 
-const DEFAULTS: TutorialFormValues = {
-  topic: "FastAPI Architecture",
-  expertiseLevel: "intermediate",
-  explanationStyle: "practical",
-};
+export function useTutorial() {
+  return useExplainerTool(TUTORIAL_KEY, TUTORIAL_DEFAULTS, parseTutorial, generateTutorial);
+}
 
-const STORAGE_KEY = "learning.explainer.atoz.form.v1";
+export type TutorialState = ReturnType<typeof useTutorial>;
 
-export function AtozTab() {
-  const { settings } = useAiSettings();
-  const [form, setForm] = usePersistedState<TutorialFormValues>(STORAGE_KEY, DEFAULTS);
-  const request = useRequest(generateTutorial);
+export function TutorialResults({ state }: { state: TutorialState }) {
+  const { result } = state;
 
-  function update<K extends keyof TutorialFormValues>(key: K, value: TutorialFormValues[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }
-
-  function reset() {
-    setForm(DEFAULTS);
-    request.reset();
+  if (!result) {
+    return (
+      <EmptyHint
+        icon={BookOpenText}
+        title="Write a full tutorial"
+        hint="Enter a topic in the form below, then tap Write tutorial."
+      />
+    );
   }
 
   return (
     <Section>
       <Panel>
+        <SectionTitle icon={BookOpenText} title="Full A-to-Z tutorial" />
+        <MarkdownText content={result.fullExplanation} />
+        <ListenButton text={result.fullExplanation} label="Tutorial" />
+      </Panel>
+    </Section>
+  );
+}
+
+export function TutorialFooter({ state }: { state: TutorialState }) {
+  const { form, pending, error, update, submit } = state;
+
+  return (
+    <View style={styles.footer}>
+      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
         <TextField
           label="Topic"
-          placeholder="e.g. FastAPI Architecture"
+          placeholder="e.g. FastAPI architecture"
           value={form.topic}
           onChangeText={(text) => update("topic", text)}
-          editable={!request.pending}
-          maxLength={200}
+          editable={!pending}
+          maxLength={LIMITS.topic}
         />
         <SelectField
           label="Expertise level"
@@ -61,25 +73,20 @@ export function AtozTab() {
           onChange={(value) => update("explanationStyle", value)}
           customPlaceholder="e.g. history-first"
         />
-        <ActionButton
-          label={request.pending ? "Writing…" : "Generate tutorial"}
-          icon={Sparkles}
-          loading={request.pending}
-          onPress={() => request.run(settings, form)}
-        />
-      </Panel>
-
-      <ErrorText message={request.error} />
-
-      {request.data && (
-        <Panel>
-          <SectionTitle icon={BookOpenText} title="Full A-to-Z tutorial" />
-          <MarkdownText content={request.data.fullExplanation} />
-          <ListenButton text={request.data.fullExplanation} label="Tutorial" />
-        </Panel>
-      )}
-
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={reset} />
-    </Section>
+      </ScrollView>
+      <ErrorText message={error} />
+      <ActionButton
+        label={pending ? "Writing…" : "Write tutorial"}
+        icon={Sparkles}
+        loading={pending}
+        onPress={submit}
+      />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  footer: { gap: spacing.md },
+  fields: { maxHeight: 340 },
+  fieldsContent: { gap: spacing.md },
+});

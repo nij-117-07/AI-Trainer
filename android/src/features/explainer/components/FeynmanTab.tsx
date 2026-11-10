@@ -1,90 +1,100 @@
 // src/features/explainer/components/FeynmanTab.tsx
 /** Feynman: simplify a jargon-heavy idea with metaphors, pitched to an age the user picks. */
-import { usePersistedState } from "@/hooks/usePersistedState";
-import { MessageCircleHeart, Puzzle, RefreshCcw, Sparkles } from "lucide-react-native";
-import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { MessageCircleHeart, Puzzle, Sparkles } from "lucide-react-native";
+import { spacing } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { CountSlider } from "@/components/tool/CountSlider";
-import { Section } from "@/components/tool/Section";
-import { useRequest } from "@/hooks/useRequest";
-import { simplifyTopic } from "../lib/generators";
-import type { FeynmanFormValues } from "../types";
+import { EmptyHint } from "@/components/tool/EmptyHint";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
-import { ListenButton } from "@/components/tool/ListenButton";
+import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
+import { useExplainerTool } from "../hooks/useExplainerTool";
+import { FEYNMAN_AGE, FEYNMAN_DEFAULTS, FEYNMAN_KEY, LIMITS, parseFeynman } from "../lib/drafts";
+import { simplifyTopic } from "../lib/generators";
 
-const DEFAULTS: FeynmanFormValues = {
-  complexTopic: "Quantum Entanglement",
-  targetAge: 5,
-};
+export function useFeynman() {
+  return useExplainerTool(FEYNMAN_KEY, FEYNMAN_DEFAULTS, parseFeynman, simplifyTopic);
+}
 
-const STORAGE_KEY = "learning.explainer.feynman.form.v1";
+export type FeynmanState = ReturnType<typeof useFeynman>;
 
-export function FeynmanTab() {
-  const { settings } = useAiSettings();
-  const [form, setForm] = usePersistedState<FeynmanFormValues>(STORAGE_KEY, DEFAULTS);
-  const request = useRequest(simplifyTopic);
+export function FeynmanResults({ state }: { state: FeynmanState }) {
+  const { result } = state;
 
-  function reset() {
-    setForm(DEFAULTS);
-    request.reset();
+  if (!result) {
+    return (
+      <EmptyHint
+        icon={Puzzle}
+        title="Make it simple"
+        hint="Enter a complex topic and pick an age in the form below, then tap Simplify it."
+      />
+    );
   }
-
-  const result = request.data;
 
   return (
     <Section>
       <Panel>
-        <TextField
-          label="Complex topic"
-          placeholder="e.g. Quantum Entanglement"
-          value={form.complexTopic}
-          onChangeText={(text) => setForm((prev) => ({ ...prev, complexTopic: text }))}
-          editable={!request.pending}
-          maxLength={200}
-        />
-        <CountSlider
-          label="Target age (years)"
-          min={3}
-          max={25}
-          value={form.targetAge}
-          onChange={(value) => setForm((prev) => ({ ...prev, targetAge: value }))}
-        />
-        <ActionButton
-          label={request.pending ? "Simplifying…" : "Simplify concept"}
-          icon={Sparkles}
-          loading={request.pending}
-          onPress={() => request.run(settings, form)}
-        />
+        <SectionTitle icon={Puzzle} title="Simplified explanation" />
+        <MarkdownText content={result.explanation} />
+        <ListenButton text={result.explanation} label="Explanation" />
       </Panel>
 
-      <ErrorText message={request.error} />
-
-      {result && (
-        <>
-          <Panel>
-            <SectionTitle icon={Puzzle} title="Simplified explanation" />
-            <MarkdownText content={result.explanation} />
-            <ListenButton text={result.explanation} label="Explanation" />
-          </Panel>
-
-          {result.keyMetaphors.length > 0 && (
-            <Panel>
-              <SectionTitle icon={Sparkles} title="Key metaphors" />
-              <TagList items={result.keyMetaphors} />
-            </Panel>
-          )}
-
-          <ResultCallout icon={MessageCircleHeart} title="Fun analogy" tone="amber">
-            <MarkdownText content={result.funAnalogy} />
-            <ListenButton text={result.funAnalogy} label="Fun analogy" />
-          </ResultCallout>
-        </>
+      {result.keyMetaphors.length > 0 && (
+        <Panel>
+          <SectionTitle icon={Sparkles} title="Key metaphors" />
+          <TagList items={result.keyMetaphors} />
+        </Panel>
       )}
 
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={reset} />
+      {result.funAnalogy.trim() !== "" && (
+        <ResultCallout icon={MessageCircleHeart} title="Fun analogy" tone="amber">
+          <MarkdownText content={result.funAnalogy} />
+          <ListenButton text={result.funAnalogy} label="Fun analogy" />
+        </ResultCallout>
+      )}
     </Section>
   );
 }
+
+export function FeynmanFooter({ state }: { state: FeynmanState }) {
+  const { form, pending, error, update, submit } = state;
+
+  return (
+    <View style={styles.footer}>
+      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
+        <TextField
+          label="Complex topic"
+          placeholder="e.g. Quantum entanglement"
+          value={form.complexTopic}
+          onChangeText={(text) => update("complexTopic", text)}
+          editable={!pending}
+          maxLength={LIMITS.topic}
+        />
+        <CountSlider
+          label="Target age (years)"
+          min={FEYNMAN_AGE.min}
+          max={FEYNMAN_AGE.max}
+          value={form.targetAge}
+          onChange={(value) => update("targetAge", value)}
+        />
+      </ScrollView>
+      <ErrorText message={error} />
+      <ActionButton
+        label={pending ? "Simplifying…" : "Simplify it"}
+        icon={Sparkles}
+        loading={pending}
+        onPress={submit}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  footer: { gap: spacing.md },
+  fields: { maxHeight: 340 },
+  fieldsContent: { gap: spacing.md },
+});

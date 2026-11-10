@@ -60,6 +60,8 @@ export async function generateSubtopics(settings: AiSettings, request: Expansion
   const subject = requireText(request.subject, "Subject", ROADMAP_LIMITS.subject);
   const targetLevel = requireText(request.targetLevel, "Target level", ROADMAP_LIMITS.level);
   const currentModule = requireText(request.currentModule, "Main point", ROADMAP_LIMITS.title);
+  const userInstructions = optionalText(request.instructions ?? "", ROADMAP_LIMITS.instructions);
+  const existingSubtopics = nonEmptyLines(request.existingSubtopics);
 
   const llm = createLlm(settings);
   const result = await ax(subtopicSignature).forward(
@@ -71,6 +73,8 @@ export async function generateSubtopics(settings: AiSettings, request: Expansion
       fullTopicList: request.fullTopicList.join("\n"),
       currentModule,
       roadmapType: normalizeMode(request.mode),
+      userInstructions,
+      existingSubtopics: existingSubtopics.length > 0 ? existingSubtopics.join("\n") : undefined,
     },
     { modelConfig: { temperature: TEMPERATURE } },
   );

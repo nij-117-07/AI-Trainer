@@ -3,7 +3,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ArrowRight, MapPinned, Trash2 } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { computeProgress, countSubtopics } from "../lib/progress";
+import { computeProgress, countSubtopics, nextMainPoint } from "../lib/progress";
 import type { Roadmap } from "../types";
 import { IconButton } from "./ItemControls";
 import { ProgressBar } from "./ProgressBar";
@@ -22,6 +22,13 @@ export function RoadmapCard({ roadmap, onOpen, onDelete }: RoadmapCardProps) {
   const colors = useThemeColors();
   const progress = computeProgress(roadmap);
   const subtopicCount = countSubtopics(roadmap);
+  const next = nextMainPoint(roadmap);
+  const nextLine =
+    roadmap.mainPoints.length === 0
+      ? "No main points yet"
+      : next
+        ? `Next up: ${next.title}`
+        : "All main points done";
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -46,6 +53,9 @@ export function RoadmapCard({ roadmap, onOpen, onDelete }: RoadmapCardProps) {
           {plural(roadmap.mainPoints.length, "main point")} · {plural(subtopicCount, "subpoint")}
         </Text>
         <ProgressBar {...progress} />
+        <Text style={[styles.next, { color: colors.foreground }]} numberOfLines={1}>
+          {nextLine}
+        </Text>
         <View style={styles.openRow}>
           <Text style={[styles.openText, { color: colors.primary }]}>Open roadmap</Text>
           <ArrowRight size={16} color={colors.primary} />
@@ -87,6 +97,10 @@ const styles = StyleSheet.create({
   },
   counts: {
     fontSize: 13,
+  },
+  next: {
+    fontSize: 14,
+    fontWeight: "500",
   },
   openRow: {
     flexDirection: "row",

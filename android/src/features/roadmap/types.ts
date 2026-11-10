@@ -58,6 +58,8 @@ export interface ExpansionRequest {
   fullTopicList: string[];
   currentModule: string;
   mode: RoadmapMode;
+  existingSubtopics: string[];
+  instructions?: string;
 }
 
 export interface RoadmapExpansion {

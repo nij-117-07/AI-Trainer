@@ -4,13 +4,24 @@
  */
 import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ChevronDown, ChevronUp, GitBranch, Lightbulb, ListChecks, Unlock, type LucideIcon } from "lucide-react-native";
+import {
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Circle,
+  GitBranch,
+  Lightbulb,
+  ListChecks,
+  Unlock,
+  type LucideIcon,
+} from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ErrorBoundary } from "@/components/tool/ErrorBoundary";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { Panel } from "@/components/tool/FormControls";
 import type { SkillLevel } from "../types";
+import { levelProgress } from "../lib/progress";
 
 type SectionKey = "rootSkills" | "howItWorks" | "proofOfMastery" | "unlockCondition";
 
@@ -24,19 +35,23 @@ interface LevelSection {
 interface LevelCardProps {
   level: SkillLevel;
   index: number;
+  completedSkills?: string[];
+  onToggleSkill?: (skill: string) => void;
 }
 
-export function LevelCard({ level, index }: LevelCardProps) {
+export function LevelCard(props: LevelCardProps) {
   return (
-    <ErrorBoundary label={`Level ${index + 1}`}>
-      <LevelCardBody level={level} index={index} />
+    <ErrorBoundary label={`Level ${props.index + 1}`}>
+      <LevelCardBody {...props} />
     </ErrorBoundary>
   );
 }
 
-function LevelCardBody({ level, index }: LevelCardProps) {
+function LevelCardBody({ level, index, completedSkills, onToggleSkill }: LevelCardProps) {
   const colors = useThemeColors();
   const [open, setOpen] = useState<Partial<Record<SectionKey, boolean>>>({ rootSkills: true });
+  const completed = completedSkills ?? [];
+  const progress = levelProgress(level, completed);
 
   const sections: LevelSection[] = [];
   if (level.rootSkills.length > 0) {
@@ -46,12 +61,36 @@ function LevelCardBody({ level, index }: LevelCardProps) {
       icon: GitBranch,
       body: (
         <View style={styles.bullets}>
-          {level.rootSkills.map((skill, skillIndex) => (
-            <View key={`${skill}-${skillIndex}`} style={styles.bulletRow}>
-              <Text style={[styles.bullet, { color: colors.primary }]}>•</Text>
-              <Text style={[styles.bulletText, { color: colors.foreground }]}>{skill}</Text>
-            </View>
-          ))}
+          {level.rootSkills.map((skill, skillIndex) => {
+            if (!onToggleSkill) {
+              return (
+                <View key={`${skill}-${skillIndex}`} style={styles.bulletRow}>
+                  <Text style={[styles.bullet, { color: colors.primary }]}>•</Text>
+                  <Text style={[styles.bulletText, { color: colors.foreground }]}>{skill}</Text>
+                </View>
+              );
+            }
+            const done = completed.includes(skill);
+            return (
+              <Pressable
+                key={`${skill}-${skillIndex}`}
+                onPress={() => onToggleSkill(skill)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: done }}
+                accessibilityLabel={skill}
+                style={styles.bulletRow}
+              >
+                {done ? (
+                  <CheckCircle2 size={18} color={colors.primary} />
+                ) : (
+                  <Circle size={18} color={colors.mutedForeground} />
+                )}
+                <Text style={[styles.bulletText, { color: done ? colors.mutedForeground : colors.foreground }]}>
+                  {skill}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       ),
     });
@@ -109,6 +148,11 @@ function LevelCardBody({ level, index }: LevelCardProps) {
         <Text style={[styles.levelName, { color: colors.foreground }]}>
           {level.levelName.trim() || `Level ${index + 1}`}
         </Text>
+        {progress.total > 0 && (
+          <Text style={[styles.progress, { color: colors.mutedForeground }]}>
+            {progress.done}/{progress.total}
+          </Text>
+        )}
       </View>
 
       <View style={[styles.sections, { borderColor: colors.border }]}>
@@ -162,6 +206,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  progress: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
   sections: {
     borderTopWidth: 1,
   },
@@ -187,6 +235,7 @@ const styles = StyleSheet.create({
   },
   bulletRow: {
     flexDirection: "row",
+    alignItems: "flex-start",
     gap: spacing.sm,
   },
   bullet: {

@@ -46,3 +46,26 @@ export const ROOT_SKILL_DESCRIPTIONS = {
     unlockCondition: "The exact prerequisite needed to transition to the next level.",
   },
 };
+
+/**
+ * Android-only progress update. The learner has finished some skills and asks what to do next, so
+ * the model returns the updated tree with the completed skills and the next steps.
+ */
+export const PROGRESS_UPDATE_DESCRIPTIONS = {
+  instruction:
+    "You are a Skill Architect coaching a learner through their skill tree. The learner reports what they have done and asks what comes next. Update the tree, keeping the same levels and skills wherever they still fit. Add or reword skills only when the learner's progress shows a real gap. Respect the learner's own edits in currentTree and do not drop unfinished skills unless they are clearly redundant. Be concrete and encouraging.",
+  inputs: {
+    topic: "The subject of the skill tree.",
+    currentTree:
+      "JSON of the current skill tree: skillTreeLevels and completedSkills. Keep the learner's wording where possible.",
+    progressNote: "What the learner has done since the last update, and where they are stuck or what they want next.",
+  },
+  outputs: {
+    summary: "A short read of the learner's progress, in two or three sentences.",
+    skillTreeLevels:
+      "The updated level-wise progression tree, in the same shape as currentTree. Each level must contain exactly level_name, root_skills, how_it_works, proof_of_mastery, and unlock_condition.",
+    completedSkills:
+      "Every root skill from skillTreeLevels that the learner has finished, copied exactly as written there.",
+    nextSteps: "The next two or three concrete actions, and the proof of mastery to aim for.",
+  },
+};

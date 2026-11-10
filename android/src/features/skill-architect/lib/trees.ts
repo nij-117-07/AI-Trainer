@@ -3,7 +3,7 @@
  * Pure tree-library logic: building, sorting, updating, and removing saved skill trees. No
  * device storage is touched here, so it can be tested directly. Storage lives in store.ts.
  */
-import type { SkillArchitectResponse, SkillArchitectTree, SkillLevel, SkillTreeStats } from "../types";
+import type { SkillArchitectResponse, SkillArchitectTree, SkillLevel, SkillTreeStats, TreeUpdate } from "../types";
 import { isRecord, listOf, normaliseResponse, textOf } from "./normalise";
 
 export function createTreeId(now: number, random: () => number = Math.random): string {
@@ -22,6 +22,8 @@ export function buildTree(input: {
     createdAt: input.now,
     updatedAt: input.now,
     response: input.response,
+    completedSkills: [],
+    lastUpdate: null,
   };
 }
 
@@ -53,6 +55,17 @@ export function findTree(trees: SkillArchitectTree[], id: string): SkillArchitec
   return trees.find((tree) => tree.id === id);
 }
 
+function parseLastUpdate(raw: unknown): TreeUpdate | null {
+  if (!isRecord(raw)) return null;
+  const update: TreeUpdate = {
+    progressNote: textOf(raw.progressNote),
+    summary: textOf(raw.summary),
+    nextSteps: textOf(raw.nextSteps),
+    createdAt: textOf(raw.createdAt),
+  };
+  return update.summary || update.nextSteps ? update : null;
+}
+
 /** Keeps only stored documents that have an id and topic. Responses are normalised on the way in. */
 export function parseStoredTrees(raw: unknown): SkillArchitectTree[] {
   return sortTrees(
@@ -69,6 +82,10 @@ export function parseStoredTrees(raw: unknown): SkillArchitectTree[] {
           createdAt: textOf(item.createdAt) || updatedAt,
           updatedAt,
           response: normaliseResponse(item.response),
+          completedSkills: listOf<unknown>(item.completedSkills)
+            .map(textOf)
+            .filter((skill) => skill.trim() !== ""),
+          lastUpdate: parseLastUpdate(item.lastUpdate),
         },
       ];
     }),

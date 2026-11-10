@@ -1,5 +1,5 @@
 // src/features/roadmap/lib/progress.test.ts
-import { computeProgress, countSubtopics } from "./progress";
+import { computeProgress, countSubtopics, nextMainPoint, stageStatuses } from "./progress";
 import type { Roadmap } from "../types";
 
 function roadmapWith(mainPoints: Roadmap["mainPoints"]): Pick<Roadmap, "mainPoints"> {
@@ -58,5 +58,27 @@ describe("countSubtopics", () => {
         ]),
       ),
     ).toBe(1);
+  });
+});
+
+describe("nextMainPoint and stageStatuses", () => {
+  const point = (id: string, done: boolean): Roadmap["mainPoints"][number] => ({
+    id,
+    title: id,
+    done,
+    milestone: "",
+    subtopics: [],
+  });
+
+  it("picks the first unfinished point", () => {
+    const points = [point("a", true), point("b", false), point("c", false)];
+    expect(nextMainPoint({ mainPoints: points })?.id).toBe("b");
+    expect(nextMainPoint({ mainPoints: [point("a", true)] })).toBeNull();
+  });
+
+  it("marks done, one current, and the rest upcoming", () => {
+    const points = [point("a", true), point("b", false), point("c", false)];
+    expect(stageStatuses(points)).toEqual(["done", "current", "upcoming"]);
+    expect(stageStatuses([point("a", true)])).toEqual(["done"]);
   });
 });

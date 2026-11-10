@@ -153,7 +153,11 @@ export function removeSubtopic(roadmap: Roadmap, pointId: string, subtopicId: st
 }
 
 /** Builds the expand-topic request for one main point, or null when the point is missing. */
-export function buildExpansionRequest(roadmap: Roadmap, pointId: string): ExpansionRequest | null {
+export function buildExpansionRequest(
+  roadmap: Roadmap,
+  pointId: string,
+  instructions?: string,
+): ExpansionRequest | null {
   const point = roadmap.mainPoints.find((item) => item.id === pointId);
   if (!point) return null;
   return {
@@ -163,6 +167,8 @@ export function buildExpansionRequest(roadmap: Roadmap, pointId: string): Expans
     fullTopicList: roadmap.mainPoints.map((item) => item.title),
     currentModule: point.title,
     mode: roadmap.mode,
+    existingSubtopics: point.subtopics.map((item) => item.title),
+    instructions,
   };
 }
 
@@ -181,6 +187,52 @@ export function applyExpansion(
       milestone: expansion.milestone || point.milestone,
       subtopics: expansion.subtopics.map((title) => ({ id: ctx.newId(), title, done: false })),
     }),
+    ctx,
+  );
+}
+
+/** Sets the milestone of one main point. An empty value clears it. */
+export function setMilestone(roadmap: Roadmap, pointId: string, milestone: string, ctx: OpContext): Roadmap {
+  return changePoint(
+    roadmap,
+    pointId,
+    (point) => ({ ...point, milestone: cleanText(milestone, ROADMAP_LIMITS.milestone) }),
+    ctx,
+  );
+}
+
+/** Moves a list item one place up (-1) or down (+1). Moves past either end do nothing. */
+export function moveItem<T>(items: T[], index: number, direction: -1 | 1): T[] {
+  const target = index + direction;
+  if (index < 0 || index >= items.length || target < 0 || target >= items.length) return items;
+  const next = [...items];
+  [next[index], next[target]] = [next[target], next[index]];
+  return next;
+}
+
+export function moveMainPoint(roadmap: Roadmap, pointId: string, direction: -1 | 1, ctx: OpContext): Roadmap {
+  const index = roadmap.mainPoints.findIndex((point) => point.id === pointId);
+  if (index < 0) return roadmap;
+  const moved = moveItem(roadmap.mainPoints, index, direction);
+  if (moved === roadmap.mainPoints) return roadmap;
+  return withPoints(roadmap, moved, ctx);
+}
+
+export function moveSubtopic(
+  roadmap: Roadmap,
+  pointId: string,
+  subtopicId: string,
+  direction: -1 | 1,
+  ctx: OpContext,
+): Roadmap {
+  return changePoint(
+    roadmap,
+    pointId,
+    (point) => {
+      const index = point.subtopics.findIndex((item) => item.id === subtopicId);
+      if (index < 0) return point;
+      return changeSubtopics(point, (subtopics) => moveItem(subtopics, index, direction));
+    },
     ctx,
   );
 }

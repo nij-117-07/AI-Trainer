@@ -7,6 +7,7 @@ export const SKILL_LIMITS = {
   currentProficiency: 500,
   targetMasteryLevel: 200,
   learningConstraints: 1000,
+  progressNote: 1000,
   topic: 200,
 } as const;
 

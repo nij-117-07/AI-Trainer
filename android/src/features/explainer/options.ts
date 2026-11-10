@@ -18,20 +18,6 @@ export const explanationStyleOptions: ChoiceItem[] = [
   { value: "with examples", label: "With Examples" },
 ];
 
-export const roadmapStyleOptions: ChoiceItem[] = [
-  { value: "academic", label: "Academic" },
-  { value: "practical", label: "Practical" },
-  { value: "with examples", label: "With Examples" },
-  { value: "conceptual", label: "Conceptual" },
-];
-
-export const userLevelOptions: ChoiceItem[] = [
-  { value: "beginner", label: "Beginner" },
-  { value: "intermediate", label: "Intermediate" },
-  { value: "advanced", label: "Advanced" },
-  { value: "expert", label: "Expert" },
-];
-
 export const questionCategoryOptions: ChoiceItem[] = [
   { value: "conceptual-bridge", label: "Conceptual Bridge" },
   { value: "counterfactual", label: "Counterfactual" },

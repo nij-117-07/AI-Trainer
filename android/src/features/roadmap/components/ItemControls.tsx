@@ -21,7 +21,7 @@ export function DoneToggle({ done, label, disabled, onToggle }: DoneToggleProps)
       accessibilityRole="checkbox"
       accessibilityLabel={label}
       accessibilityState={{ checked: done, disabled }}
-      hitSlop={6}
+      hitSlop={10}
       style={[
         styles.checkbox,
         {
@@ -148,16 +148,16 @@ export function AddRow({ placeholder, label, maxLength, disabled, onAdd }: AddRo
 
 const styles = StyleSheet.create({
   checkbox: {
-    width: 22,
-    height: 22,
+    width: 24,
+    height: 24,
     borderWidth: 1,
     borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",
   },
   iconButton: {
-    width: 30,
-    height: 30,
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -41,6 +41,8 @@ export const subtopicSignature = f()
   .input("fullTopicList", f.string(subtopic.inputs.fullTopicList))
   .input("currentModule", f.string(subtopic.inputs.currentModule))
   .input("roadmapType", f.string(subtopic.inputs.roadmapType))
+  .input("userInstructions", f.string(subtopic.inputs.userInstructions).optional())
+  .input("existingSubtopics", f.string(subtopic.inputs.existingSubtopics).optional())
   .output("subtopics", f.string(subtopic.outputs.subtopics).array())
   .output("milestone", f.string(subtopic.outputs.milestone))
   .build();

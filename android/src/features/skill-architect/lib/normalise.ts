@@ -3,7 +3,7 @@
  * Guards for model output and stored documents. Missing or malformed fields become empty values
  * so the screens never read .length or .map on an unchecked field.
  */
-import type { SkillArchitectFormValues, SkillArchitectResponse, SkillLevel } from "../types";
+import type { ProgressUpdateResult, SkillArchitectFormValues, SkillArchitectResponse, SkillLevel } from "../types";
 
 export function listOf<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
@@ -48,6 +48,19 @@ export function normaliseResponse(raw: unknown): SkillArchitectResponse {
     skillTreeLevels: normaliseLevels(pick(data, "skillTreeLevels", "skill_tree_levels")),
     criticalBottleneck: textOf(pick(data, "criticalBottleneck", "critical_bottleneck")),
     strategicNavigation: textOf(pick(data, "strategicNavigation", "strategic_navigation")),
+  };
+}
+
+export function normaliseProgressUpdate(raw: unknown): ProgressUpdateResult {
+  const data = isRecord(raw) ? raw : {};
+  return {
+    summary: textOf(pick(data, "summary")),
+    skillTreeLevels: normaliseLevels(pick(data, "skillTreeLevels", "skill_tree_levels")),
+    completedSkills: listOf<unknown>(pick(data, "completedSkills", "completed_skills"))
+      .map(textOf)
+      .map((skill) => skill.trim())
+      .filter((skill) => skill !== ""),
+    nextSteps: textOf(pick(data, "nextSteps", "next_steps")),
   };
 }
 

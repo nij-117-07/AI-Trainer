@@ -41,28 +41,6 @@ export const TUTORIAL_DESCRIPTIONS = {
   },
 };
 
-export const ATOZ_ROADMAP_DESCRIPTIONS = {
-  instruction:
-    "You are an expert educator. Provide a comprehensive, structured 'A to Z' explanation of a topic. Structure the response from foundational concepts to advanced applications, ensuring the tone and complexity match the requested level and type.",
-  inputs: {
-    // topic
-    topic: "The subject or concept the user wants to understand.",
-    // expertise_level
-    expertiseLevel: "The depth of the explanation.",
-    // explanation_style
-    explanationStyle: "The format or lens used for the explanation.",
-  },
-  outputs: {
-    // summary
-    summary: "A high-level overview of the topic.",
-    // knowledge_roadmap
-    knowledgeRoadmap:
-      "A chronological list of key concepts (A to Z). Each item includes: 'concept': the name of the principle or step; 'explanation': a detailed description based on the style and level.",
-    // practical_takeaway
-    practicalTakeaway: "A final 'how-to' or conclusion for the user.",
-  },
-};
-
 export const FEYNMAN_DESCRIPTIONS = {
   instruction:
     "Explain complex topics using the Feynman Technique: simplify until it's understandable to a child. Avoid jargon, use vivid metaphors, and break down concepts into fundamental building blocks.",
@@ -79,44 +57,6 @@ export const FEYNMAN_DESCRIPTIONS = {
     keyMetaphors: "A list of the primary metaphors used.",
     // fun_analogy
     funAnalogy: "A creative 'Imagine if...' scenario.",
-  },
-};
-
-export const JOURNEY_PLAN_DESCRIPTIONS = {
-  instruction:
-    "You are a Master Educator. Your goal is to break down a complex topic into a logical progression from absolute beginner (A) to advanced expert (Z).",
-  inputs: {
-    // topic
-    topic: "The subject the user wants to understand.",
-    // depth_level
-    depthLevel: "Level of detail (e.g., Undergraduate, PhD, Hobbyist).",
-  },
-  outputs: {
-    // knowledge_graph_outline
-    chapterTitles: "A list of 5-8 chronological chapters to cover the topic fully.",
-    // core_prerequisites
-    corePrerequisites: "What the user needs to know before starting.",
-  },
-};
-
-export const JOURNEY_CHAPTER_DESCRIPTIONS = {
-  instruction:
-    "You are an Expert Subject Matter Specialist. Provide a high-density, clear, and structured explanation for a specific module of the topic.",
-  inputs: {
-    // full_topic
-    fullTopic: "The overall subject of the journey.",
-    // current_chapter
-    currentChapter: "The chapter to explain now.",
-    // context_of_other_chapters
-    otherChapters: "The titles of all chapters in the journey, one per line.",
-  },
-  outputs: {
-    // technical_explanation
-    technicalExplanation: "Deep dive into the 'how' and 'why'.",
-    // key_terms
-    keyTerms: "Glossary of essential jargon for this section.",
-    // mental_model_analogy
-    mentalModelAnalogy: "A simple analogy to help the user visualize the concept.",
   },
 };
 
@@ -143,37 +83,5 @@ export const SOCRATIC_DESCRIPTIONS = {
     // questions_for_discovery
     questionsForDiscovery:
       "A list of questions. Each includes: 'questionText': the Socratic inquiry; 'cognitiveChallenge': what part of the user's brain this tickles; 'guidingHint': a nudge or thought experiment (no answers).",
-  },
-};
-
-export const CURRICULUM_DESCRIPTIONS = {
-  instruction:
-    "You are the 'Curriculum Architect'. Your job is to synthesize the user's past knowledge, their current goals, and a new topic into a personalized learning session. You must identify the 'Crux' the user needs to master today.",
-  inputs: {
-    // topic
-    topic: "The main topic to be learned today.",
-    // context
-    context: "Source material, documents, or raw text for the topic.",
-    // past_learning
-    pastLearning: "Summary of what the user already knows or did in previous sessions.",
-    // user_level
-    userLevel: "Cognitive level.",
-    // user_hopes
-    userHopes: "What the user specifically wants to achieve today (e.g., 'I want to be able to code a basic loop').",
-    // seed
-    variationSeed: "A unique string to vary the pedagogical approach and avoid repetitive paths.",
-    // additional_instructions
-    additionalInstructions: "Any extra constraints like 'keep it brief' or 'use medical analogies'.",
-  },
-  outputs: {
-    // rationale
-    rationale: "Strategic reasoning: how are we connecting past knowledge to today's topic?",
-    // the_crux
-    theCrux: "The core 'Aha!' moment the user needs to reach today.",
-    // learning_roadmap
-    learningRoadmap:
-      "A step-by-step plan for the session. Each step includes: 'phase' (e.g., Bridge, Deep Dive, Challenge); 'description': what will be covered; 'learningObjective': the goal of this phase.",
-    // suggested_focus
-    suggestedFocus: "A one-sentence 'north star' for the user's session.",
   },
 };

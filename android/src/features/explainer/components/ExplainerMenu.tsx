@@ -4,16 +4,7 @@
  */
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
-import {
-  BookOpenText,
-  Compass,
-  GraduationCap,
-  Lightbulb,
-  ListTree,
-  Puzzle,
-  Route,
-  type LucideIcon,
-} from "lucide-react-native";
+import { BookOpenText, GraduationCap, Lightbulb, Puzzle, type LucideIcon } from "lucide-react-native";
 import { breakpoints, radius, spacing, useThemeColors, type Tone } from "@/theme";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 
@@ -44,14 +35,6 @@ const TOOLS: ExplainerTool[] = [
     tone: "sky",
   },
   {
-    key: "atozpointer",
-    title: "Knowledge Roadmap",
-    description: "A summary and an expandable roadmap of concepts, with a practical takeaway.",
-    route: "/learning/explainer/atozpointer",
-    icon: ListTree,
-    tone: "emerald",
-  },
-  {
     key: "feynman",
     title: "Feynman",
     description: "Simplify jargon-heavy ideas with metaphors, pitched to an age you choose.",
@@ -60,28 +43,12 @@ const TOOLS: ExplainerTool[] = [
     tone: "rose",
   },
   {
-    key: "orchestrate",
-    title: "Journey",
-    description: "Stream a chapter plan, then each chapter's deep dive, as they are written.",
-    route: "/learning/explainer/orchestrate",
-    icon: Compass,
-    tone: "sky",
-  },
-  {
     key: "socratic",
     title: "Socratic Mentor",
     description: "Discovery questions with hints that guide you to the crux without giving answers.",
     route: "/learning/explainer/socratic",
     icon: GraduationCap,
     tone: "rose",
-  },
-  {
-    key: "curriculum",
-    title: "Curriculum Path",
-    description: "A personal learning plan that builds on what you know and targets today's crux.",
-    route: "/learning/explainer/curriculum",
-    icon: Route,
-    tone: "emerald",
   },
 ];
 

@@ -1,8 +1,19 @@
 // src/app/learning/roadmap/[id].tsx
 import { useLocalSearchParams } from "expo-router";
-import { RoadmapDetailScreen } from "@/features/roadmap/components/RoadmapDetailScreen";
+import { ToolScreen } from "@/components/tool/ToolScreen";
+import { RoadmapDetailFooter, RoadmapDetailScreen } from "@/features/roadmap/components/RoadmapDetailScreen";
+import { useRoadmapDetail } from "@/features/roadmap/hooks/useRoadmapDetail";
 
 export default function RoadmapDetailRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  return <RoadmapDetailScreen roadmapId={String(id ?? "")} />;
+  const state = useRoadmapDetail(String(id ?? ""));
+
+  return (
+    <ToolScreen
+      title={state.roadmap?.subject ?? "Roadmap"}
+      footer={state.roadmap ? <RoadmapDetailFooter state={state} /> : undefined}
+    >
+      <RoadmapDetailScreen state={state} />
+    </ToolScreen>
+  );
 }

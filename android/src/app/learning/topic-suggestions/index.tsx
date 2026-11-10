@@ -1,11 +1,6 @@
 // src/app/learning/topic-suggestions/index.tsx
-import { SuggestTopicsTab } from "@/features/guides/components/SuggestTopicsTab";
-import { ToolScreen } from "@/components/tool/ToolScreen";
+import { TopicListScreen } from "@/features/topic-suggestions/components/TopicListScreen";
 
-export default function SuggestTopicsRoute() {
-  return (
-    <ToolScreen title="Topic Suggestions">
-      <SuggestTopicsTab />
-    </ToolScreen>
-  );
+export default function TopicSuggestionsRoute() {
+  return <TopicListScreen />;
 }

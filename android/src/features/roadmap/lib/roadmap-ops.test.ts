@@ -3,6 +3,9 @@ import {
   addMainPoint,
   addSubtopic,
   applyExpansion,
+  moveMainPoint,
+  moveSubtopic,
+  setMilestone,
   buildExpansionRequest,
   createRoadmap,
   removeMainPoint,
@@ -134,8 +137,14 @@ describe("AI expansion", () => {
       fullTopicList: ["Ownership", "Traits"],
       currentModule: "Ownership",
       mode: "detailed",
+      existingSubtopics: ["Moves"],
+      instructions: undefined,
     });
     expect(buildExpansionRequest(baseRoadmap(), "missing")).toBeNull();
+  });
+
+  it("passes the user's instructions through", () => {
+    expect(buildExpansionRequest(baseRoadmap(), "p1", "Focus on examples")?.instructions).toBe("Focus on examples");
   });
 
   it("replaces subpoints and keeps the old milestone when none comes back", () => {
@@ -160,5 +169,40 @@ describe("sortByUpdated", () => {
     const input = [older, newer];
     expect(sortByUpdated(input).map((item) => item.id)).toEqual(["b", "a"]);
     expect(input.map((item) => item.id)).toEqual(["a", "b"]);
+  });
+});
+
+describe("setMilestone", () => {
+  it("sets and clears the milestone of one main point", () => {
+    const changed = setMilestone(baseRoadmap(), "p2", "  Build a trait object demo  ", ctxFactory());
+    expect(changed.mainPoints[1].milestone).toBe("Build a trait object demo");
+    expect(changed.mainPoints[0].milestone).toBe("Write a borrow checker quiz");
+    const cleared = setMilestone(changed, "p2", "   ", ctxFactory());
+    expect(cleared.mainPoints[1].milestone).toBe("");
+  });
+
+  it("returns the same roadmap for an unknown point", () => {
+    const base = baseRoadmap();
+    expect(setMilestone(base, "missing", "x", ctxFactory())).toBe(base);
+  });
+});
+
+describe("moving items", () => {
+  it("swaps a main point with its neighbour and stamps updatedAt", () => {
+    const moved = moveMainPoint(baseRoadmap(), "p2", -1, ctxFactory());
+    expect(moved.mainPoints.map((point) => point.id)).toEqual(["p2", "p1"]);
+    expect(moved.updatedAt).toBe("2026-01-02T00:00:00.000Z");
+  });
+
+  it("does nothing at either end", () => {
+    const base = baseRoadmap();
+    expect(moveMainPoint(base, "p1", -1, ctxFactory())).toBe(base);
+    expect(moveMainPoint(base, "p2", 1, ctxFactory())).toBe(base);
+  });
+
+  it("moves a subpoint within its main point", () => {
+    let roadmap = addSubtopic(baseRoadmap(), "p1", "Borrows", ctxFactory());
+    roadmap = moveSubtopic(roadmap, "p1", "id-1", -1, ctxFactory());
+    expect(roadmap.mainPoints[0].subtopics.map((item) => item.title)).toEqual(["Borrows", "Moves"]);
   });
 });

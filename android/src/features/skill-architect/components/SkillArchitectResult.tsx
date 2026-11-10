@@ -17,7 +17,13 @@ function hasText(value: string): boolean {
   return value.trim() !== "";
 }
 
-export function SkillArchitectResult({ response }: { response: SkillArchitectResponse }) {
+interface SkillArchitectResultProps {
+  response: SkillArchitectResponse;
+  completedSkills?: string[];
+  onToggleSkill?: (skill: string) => void;
+}
+
+export function SkillArchitectResult({ response, completedSkills, onToggleSkill }: SkillArchitectResultProps) {
   const colors = useThemeColors();
   const levels = response.skillTreeLevels;
 
@@ -33,7 +39,15 @@ export function SkillArchitectResult({ response }: { response: SkillArchitectRes
       {levels.length === 0 ? (
         <Text style={{ color: colors.mutedForeground, fontSize: 14 }}>No skill tree levels returned.</Text>
       ) : (
-        levels.map((level, index) => <LevelCard key={`${level.levelName}-${index}`} level={level} index={index} />)
+        levels.map((level, index) => (
+          <LevelCard
+            key={`${level.levelName}-${index}`}
+            level={level}
+            index={index}
+            completedSkills={completedSkills}
+            onToggleSkill={onToggleSkill}
+          />
+        ))
       )}
 
       {hasText(response.criticalBottleneck) && (

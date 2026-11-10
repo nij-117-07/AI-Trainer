@@ -11,6 +11,7 @@ export const ROADMAP_LIMITS = {
   personaStyle: 100,
   instructions: 1000,
   title: 300,
+  milestone: 500,
   persona: 20000,
 } as const;
 

@@ -38,7 +38,11 @@ export async function generateGuideTasks(settings: AiSettings, values: GuideTask
   return normalizeGuideTasks(result);
 }
 
-export async function suggestTopics(settings: AiSettings, values: SuggestTopicsFormValues): Promise<SuggestTopicsResult> {
+export async function suggestTopics(
+  settings: AiSettings,
+  values: SuggestTopicsFormValues,
+  previousTopics: string,
+): Promise<SuggestTopicsResult> {
   const llm = createLlm(settings);
   const result = await ax(whatToLearnSignature).forward(
     llm,
@@ -46,7 +50,7 @@ export async function suggestTopics(settings: AiSettings, values: SuggestTopicsF
       broaderTopic: requireText(values.broaderTopic, "Broader topic", 200),
       specificInterest: requireText(values.specificInterest, "Specific interest", 200),
       learnedBefore: requireText(values.learnedBefore, "Background knowledge", 2000),
-      previousSuggestions: optionalLines(values.previousSuggestions, "Previously suggested topics", 2000),
+      previousSuggestions: optionalLines(previousTopics, "Topics already on your list", 2000),
       customUserInput: optionalText(values.customUserInput, "Custom input", 1000),
       topicLevel: requireOption(values.topicLevel, TOPIC_LEVELS, "Topic level"),
       seedUuid: variationSeed(),

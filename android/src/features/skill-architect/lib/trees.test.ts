@@ -35,7 +35,15 @@ const RESPONSE: SkillArchitectResponse = {
 };
 
 function tree(id: string, updatedAt: string): SkillArchitectTree {
-  return { id, topic: `Topic ${id}`, createdAt: updatedAt, updatedAt, response: RESPONSE };
+  return {
+    id,
+    topic: `Topic ${id}`,
+    createdAt: updatedAt,
+    updatedAt,
+    response: RESPONSE,
+    completedSkills: [],
+    lastUpdate: null,
+  };
 }
 
 describe("createTreeId", () => {
@@ -53,6 +61,8 @@ describe("buildTree", () => {
       createdAt: "2026-11-08T10:00:00.000Z",
       updatedAt: "2026-11-08T10:00:00.000Z",
       response: RESPONSE,
+      completedSkills: [],
+      lastUpdate: null,
     });
   });
 });
@@ -109,6 +119,25 @@ describe("parseStoredTrees", () => {
     expect(parsed[0].id).toBe("good");
     expect(parsed[0].createdAt).toBe("2026-02-01T00:00:00Z");
     expect(parsed[0].response.skillTreeLevels[0].rootSkills).toEqual(["R"]);
+  });
+
+  it("restores completed skills and the last update, and drops empty updates", () => {
+    const [restored] = parseStoredTrees([
+      {
+        id: "p",
+        topic: "Progress",
+        updatedAt: "2026-02-01T00:00:00Z",
+        response: {},
+        completedSkills: ["A", 7, ""],
+        lastUpdate: { summary: "Good week", nextSteps: "Build it", progressNote: "Did A" },
+      },
+    ]);
+    expect(restored.completedSkills).toEqual(["A", "7"]);
+    expect(restored.lastUpdate?.summary).toBe("Good week");
+
+    const [empty] = parseStoredTrees([{ id: "e", topic: "Empty", updatedAt: "2026-02-01", lastUpdate: {} }]);
+    expect(empty.completedSkills).toEqual([]);
+    expect(empty.lastUpdate).toBeNull();
   });
 
   it("returns an empty list for non-array storage", () => {
