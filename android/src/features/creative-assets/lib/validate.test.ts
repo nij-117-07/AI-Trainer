@@ -1,5 +1,5 @@
 // src/features/creative-assets/lib/validate.test.ts
-import { clampCount, optionalLines, optionalText, requireOption, requireText, throwIfAborted } from "./validate";
+import { clampCount, optionalLines, optionalText, requireText, throwIfAborted } from "./validate";
 
 describe("requireText", () => {
   it("trims and returns the value", () => {
@@ -32,15 +32,6 @@ describe("optionalLines", () => {
   it("checks the raw length against the limit", () => {
     expect(() => optionalLines("x".repeat(3001), "Examples", 3000)).toThrow(
       "Examples must be 3000 characters or fewer.",
-    );
-  });
-});
-
-describe("requireOption", () => {
-  it("returns a listed task type and rejects anything else", () => {
-    expect(requireOption("Hashtags", ["Hashtags", "Slogans"], "Task type")).toBe("Hashtags");
-    expect(() => requireOption("Poems", ["Hashtags", "Slogans"], "Task type")).toThrow(
-      "Task type must be one of: Hashtags, Slogans.",
     );
   });
 });

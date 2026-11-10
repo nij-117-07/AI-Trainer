@@ -1,18 +1,17 @@
 // src/features/markdown-viewer/hooks/useMarkdownDraft.ts
-/** Keeps the Markdown draft on the device so it is still there on the next visit. */
-import { useEffect, useState } from "react";
+/** Keeps the Markdown draft on the device. Saving waits until the stored draft has loaded. */
+import { useCallback, useEffect, useState } from "react";
 import { loadDocument, saveDocument } from "@/lib/document-store";
-import { SAMPLE_MARKDOWN } from "../lib/sample";
 
 export const MARKDOWN_DRAFT_KEY = "tools.markdown-viewer.content.v1";
 
 export function useMarkdownDraft() {
-  const [content, setContent] = useState(SAMPLE_MARKDOWN);
+  const [content, setContent] = useState("");
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let active = true;
-    loadDocument<unknown>(MARKDOWN_DRAFT_KEY, SAMPLE_MARKDOWN)
+    loadDocument<unknown>(MARKDOWN_DRAFT_KEY, "")
       .then((saved) => {
         if (active && typeof saved === "string") setContent(saved);
       })
@@ -30,5 +29,7 @@ export function useMarkdownDraft() {
     saveDocument(MARKDOWN_DRAFT_KEY, content).catch(() => undefined);
   }, [loaded, content]);
 
-  return { content, setContent };
+  const reset = useCallback(() => setContent(""), []);
+
+  return { content, setContent, reset, loaded };
 }

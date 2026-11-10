@@ -6,6 +6,15 @@
  * beside each key.
  */
 
+export const CREATIVE_MORE_DESCRIPTIONS = {
+  instruction:
+    "You are a Creative Marketing Expert. The user liked the suggestions listed in liked_suggestions. Generate new suggestions of the same kind and in the same spirit. Do not copy the liked suggestions. Follow the user's extra instructions when they are given.",
+  inputs: {
+    likedSuggestions: "Suggestions the user liked. Generate new items in the same spirit, not copies of these, one per line.",
+    userInstructions: "Optional extra instructions from the user for this round.",
+  },
+};
+
 export const CREATIVE_ASSET_DESCRIPTIONS = {
   instruction:
     "You are a Creative Marketing Expert. Your task is to generate high-impact product names, titles, hashtags, or marketing lines based on user input. You must align your suggestions with the provided context and the user's existing preferred style.",

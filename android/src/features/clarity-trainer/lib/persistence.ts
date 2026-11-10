@@ -11,7 +11,7 @@ export const CLARITY_STORAGE_KEYS = {
 export const FORM_DEFAULTS: ScenarioFormValues = {
   difficulty: "random",
   category: "random",
-  userContext: "Software engineer",
+  userContext: "",
 };
 
 /** Takes each saved field only when its type matches the default, so a damaged draft falls back per field. */

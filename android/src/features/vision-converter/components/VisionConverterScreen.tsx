@@ -1,17 +1,16 @@
 // src/features/vision-converter/components/VisionConverterScreen.tsx
 /**
  * Vision Converter: choose an image, add an optional instruction, and get structured Markdown.
- * Draft and last result are kept on the device, as the webui keeps them in local state.
+ * The form sits in the footer; the last Markdown is kept on the device and shown above it.
  */
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { RefreshCcw, Sparkles } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { ImagePlus, Sparkles } from "lucide-react-native";
+import { spacing } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
-import { SettingsToggle } from "@/components/tool/SettingsToggle";
-import { useCollapsibleForm } from "@/hooks/useCollapsibleForm";
 import { useRequest } from "@/hooks/useRequest";
 import type { ImageInput } from "@/lib/image";
 import { convertImage } from "../lib/generators";
@@ -20,91 +19,107 @@ import { usePersistedVision } from "../hooks/usePersistedVision";
 import { ConvertedMarkdown } from "./ConvertedMarkdown";
 import { ImageDropField } from "./ImageDropField";
 
-export function VisionConverterScreen() {
-  const colors = useThemeColors();
+export interface VisionConverterState {
+  image: ImageInput | null;
+  setImage: (image: ImageInput | null) => void;
+  instruction: string;
+  setInstruction: (instruction: string) => void;
+  markdownOutput: string | null;
+  pending: boolean;
+  error: string | null;
+  submit: () => Promise<void>;
+  reset: () => void;
+}
+
+export function useVisionConverter(): VisionConverterState {
   const { settings } = useAiSettings();
   const draft = usePersistedVision();
   const [image, setImage] = useState<ImageInput | null>(null);
-  const form = useCollapsibleForm(draft.markdownOutput !== null);
   const request = useRequest(convertImage);
   const controllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => controllerRef.current?.abort(), []);
 
-  async function handleConvert() {
+  async function submit() {
     controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
     const markdown = await request.run(settings, { image, instruction: draft.instruction }, controller.signal);
-    if (markdown !== null) {
-      draft.setMarkdownOutput(markdown);
-      form.reset();
-    }
+    if (markdown !== null && !controller.signal.aborted) draft.setMarkdownOutput(markdown);
   }
 
-  function handleReset() {
+  function reset() {
     controllerRef.current?.abort();
     draft.reset();
     setImage(null);
-    form.reset();
     request.reset();
   }
 
+  return {
+    image,
+    setImage,
+    instruction: draft.instruction,
+    setInstruction: draft.setInstruction,
+    markdownOutput: draft.markdownOutput,
+    pending: request.pending,
+    error: request.error,
+    submit,
+    reset,
+  };
+}
+
+export function VisionConverterResults({ vision }: { vision: VisionConverterState }) {
   return (
     <Section>
-      <ErrorText message={request.error} />
-
-      {draft.markdownOutput !== null ? (
-        <ConvertedMarkdown markdown={draft.markdownOutput} />
+      {vision.markdownOutput !== null ? (
+        <ConvertedMarkdown markdown={vision.markdownOutput} />
       ) : (
-        <Panel>
-          <Text style={[styles.empty, { color: colors.mutedForeground }]}>
-            Upload an image and the AI will convert it into structured Markdown.
-          </Text>
-        </Panel>
+        <EmptyHint
+          icon={ImagePlus}
+          title="No Markdown yet"
+          hint="Choose an image below, add an optional instruction, then tap Convert to Markdown."
+        />
       )}
-
-      <SettingsToggle
-        title="Conversion form"
-        summary={draft.instruction.trim() || "Image and instruction"}
-        expanded={form.expanded}
-        onToggle={form.toggle}
-      />
-
-      {form.expanded ? (
-        <Panel>
-          <View style={styles.formBody}>
-            <ImageDropField value={image} onChange={setImage} disabled={request.pending} />
-            <TextField
-              label="Instruction (optional)"
-              placeholder="e.g. Extract all tables and headings."
-              value={draft.instruction}
-              onChangeText={draft.setInstruction}
-              editable={!request.pending}
-              voice
-              maxLength={INSTRUCTION_MAX}
-            />
-            <ActionButton
-              label={request.pending ? "Converting image…" : "Convert to Markdown"}
-              icon={Sparkles}
-              loading={request.pending}
-              onPress={handleConvert}
-            />
-            <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />
-          </View>
-        </Panel>
-      ) : null}
     </Section>
   );
 }
 
+export function VisionConverterFooter({ vision }: { vision: VisionConverterState }) {
+  const { image, setImage, instruction, setInstruction, pending, error, submit } = vision;
+
+  return (
+    <View style={styles.footer}>
+      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
+        <ImageDropField value={image} onChange={setImage} disabled={pending} />
+        <TextField
+          label="Instruction (optional)"
+          placeholder="e.g. Extract all tables and headings."
+          value={instruction}
+          onChangeText={setInstruction}
+          editable={!pending}
+          maxLength={INSTRUCTION_MAX}
+          voice
+        />
+      </ScrollView>
+      <ErrorText message={error} />
+      <ActionButton
+        label={pending ? "Converting image…" : "Convert to Markdown"}
+        icon={Sparkles}
+        loading={pending}
+        onPress={submit}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  formBody: {
-    gap: spacing.xl,
+  footer: {
+    gap: spacing.md,
   },
-  empty: {
-    fontSize: 14,
-    lineHeight: 20,
-    paddingHorizontal: spacing.xs,
+  fields: {
+    maxHeight: 380,
+  },
+  fieldsContent: {
+    gap: spacing.md,
   },
 });

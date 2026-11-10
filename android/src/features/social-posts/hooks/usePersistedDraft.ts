@@ -1,22 +1,21 @@
 // src/features/social-posts/hooks/usePersistedDraft.ts
-/** Keeps the tool's form draft and last result on the device between visits. */
+/** Keeps the post form on the device, and the result tree for the result pages to reload on focus. */
 import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { loadDocument, saveDocument } from "@/lib/document-store";
-import { mergeSavedForm, type SavedSocialPostsState } from "../lib/persistence";
+import { restoreSocialPostResult } from "../lib/normalize";
+import { mergeSavedForm, SOCIAL_POSTS_DEFAULTS, SOCIAL_POSTS_FORM_KEY, SOCIAL_POSTS_RESULT_KEY } from "../lib/persistence";
+import type { SocialPostFormValues, SocialPostResult } from "../types";
 
-export function usePersistedDraft<TForm extends object, TResult>(storageKey: string, defaults: TForm) {
-  const [form, setForm] = useState<TForm>(defaults);
-  const [result, setResult] = useState<TResult | null>(null);
+export function usePersistedForm() {
+  const [form, setForm] = useState<SocialPostFormValues>(SOCIAL_POSTS_DEFAULTS);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let active = true;
-    loadDocument<unknown>(storageKey, null)
+    loadDocument<unknown>(SOCIAL_POSTS_FORM_KEY, null)
       .then((saved) => {
-        if (!active || typeof saved !== "object" || saved === null) return;
-        const record = saved as { form?: unknown; result?: unknown };
-        setForm(mergeSavedForm(defaults, record.form));
-        setResult(typeof record.result === "object" && record.result !== null ? (record.result as TResult) : null);
+        if (active) setForm(mergeSavedForm(SOCIAL_POSTS_DEFAULTS, saved));
       })
       .catch(() => undefined)
       .finally(() => {
@@ -25,18 +24,49 @@ export function usePersistedDraft<TForm extends object, TResult>(storageKey: str
     return () => {
       active = false;
     };
-  }, [storageKey, defaults]);
+  }, []);
 
   useEffect(() => {
     if (!loaded) return;
-    const state: SavedSocialPostsState<TForm, TResult> = { form, result };
-    saveDocument(storageKey, state).catch(() => undefined);
-  }, [loaded, storageKey, form, result]);
+    saveDocument(SOCIAL_POSTS_FORM_KEY, form).catch(() => undefined);
+  }, [loaded, form]);
 
   const reset = useCallback(() => {
-    setForm(defaults);
-    setResult(null);
-  }, [defaults]);
+    setForm(SOCIAL_POSTS_DEFAULTS);
+  }, []);
 
-  return { form, setForm, result, setResult, reset };
+  return { form, setForm, reset };
+}
+
+/** Reads the saved result tree now. Use it right before a write, so the write builds on the latest data. */
+export async function loadSocialPostsResult(): Promise<SocialPostResult | null> {
+  return restoreSocialPostResult(await loadDocument<unknown>(SOCIAL_POSTS_RESULT_KEY, null));
+}
+
+export function saveSocialPostsResult(result: SocialPostResult): Promise<void> {
+  return saveDocument(SOCIAL_POSTS_RESULT_KEY, result);
+}
+
+export function usePersistedResult(): { result: SocialPostResult | null; loaded: boolean } {
+  const [result, setResult] = useState<SocialPostResult | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadSocialPostsResult()
+        .then((next) => {
+          if (active) setResult(next);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (active) setLoaded(true);
+        });
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  return { result, loaded };
 }

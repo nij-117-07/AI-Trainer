@@ -1,9 +1,9 @@
 // src/features/interview/components/InterviewReport.tsx
-/** Final report: score summary, score breakdowns, profile areas, and the question-by-question log. */
+/** Final report: score summary, score breakdowns, profile areas, and the question-by-question log. The New interview button is in InterviewFooter. */
 import { StyleSheet, Text, View } from "react-native";
-import { Minus, RotateCcw, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react-native";
+import { Minus, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react-native";
 import { radius, spacing, useThemeColors, type Tone } from "@/theme";
-import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { TagList } from "@/components/tool/TagList";
 import { buildInterviewReport } from "../lib/report";
@@ -24,10 +24,9 @@ function clock(iso: string): string {
 
 interface InterviewReportProps {
   state: InterviewSessionState;
-  onRestart: () => void;
 }
 
-export function InterviewReport({ state, onRestart }: InterviewReportProps) {
+export function InterviewReport({ state }: InterviewReportProps) {
   const colors = useThemeColors();
   const report = buildInterviewReport(state, new Date().toISOString());
   const trend = TREND_META[report.performanceTrend];
@@ -104,8 +103,6 @@ export function InterviewReport({ state, onRestart }: InterviewReportProps) {
           ))
         )}
       </Panel>
-
-      <ActionButton label="New interview" icon={RotateCcw} onPress={onRestart} />
     </View>
   );
 }

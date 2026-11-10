@@ -6,8 +6,6 @@
 
 export const TEXT_MAX = 50_000;
 export const COMMENTS_MAX = 2_000;
-export const FEEDBACK_MAX = 5_000;
-export const TONE_MAX = 100;
 
 export function requireText(value: string, label: string, max: number): string {
   const trimmed = value.trim();

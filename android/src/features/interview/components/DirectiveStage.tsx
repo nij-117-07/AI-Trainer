@@ -1,60 +1,42 @@
 // src/features/interview/components/DirectiveStage.tsx
 /**
- * Step 1: the session manager's decision and directive. Gate: Proceed to the question generator,
- * Edit the directive, or Re-decide.
+ * Step 1: the session manager's decision and directive. The footer holds Proceed (or Save edits
+ * while editing). The body holds Edit directive and Re-decide.
  */
-import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Pencil, RotateCcw, StepForward } from "lucide-react-native";
+import { Pencil, RotateCcw } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { ActionButton, TextField } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
 import { DIFFICULTY_OPTIONS, QUESTION_TYPE_OPTIONS } from "../options";
+import type { InterviewScreen } from "../hooks/useInterviewScreen";
+import type { InterviewPending } from "../hooks/useInterviewSession";
 import type { Directive, SessionDecision } from "../types";
 import { BadgeRow, StageBadge, StagePanel } from "./StagePanel";
-import { useSyncedDraft } from "../hooks/useSyncedDraft";
 
 interface DirectiveStageProps {
   decision: SessionDecision;
-  isPending: boolean;
-  error: string | null;
-  onProceed: () => void;
-  onEdit: (directive: Directive) => void;
+  edit: InterviewScreen["directive"];
+  pending: InterviewPending;
   onRedecide: () => void;
 }
 
-export function DirectiveStage({ decision, isPending, error, onProceed, onEdit, onRedecide }: DirectiveStageProps) {
+export function DirectiveStage({ decision, edit, pending, onRedecide }: DirectiveStageProps) {
   const colors = useThemeColors();
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useSyncedDraft(decision.directive);
+  const { draft, editing } = edit;
+  const busy = pending !== null;
 
   function set(patch: Partial<Directive>) {
-    setDraft((prev) => ({ ...prev, ...patch }));
-  }
-
-  function save() {
-    onEdit(draft);
-    setEditing(false);
+    edit.setDraft((prev) => ({ ...prev, ...patch }));
   }
 
   const actions = editing ? (
-    <>
-      <ActionButton label="Save edits" icon={Pencil} onPress={save} />
-      <ActionButton
-        label="Cancel"
-        variant="outline"
-        onPress={() => {
-          setDraft(decision.directive);
-          setEditing(false);
-        }}
-      />
-    </>
+    <ActionButton label="Cancel" variant="outline" onPress={edit.cancel} />
   ) : (
     <>
-      <ActionButton label="Proceed" icon={StepForward} loading={isPending} onPress={onProceed} />
-      <ActionButton label="Edit directive" icon={Pencil} variant="outline" onPress={() => setEditing(true)} />
-      <ActionButton label="Re-decide" icon={RotateCcw} variant="outline" onPress={onRedecide} />
+      <ActionButton label="Edit directive" icon={Pencil} variant="outline" disabled={busy} onPress={edit.startEdit} />
+      <ActionButton label="Re-decide" icon={RotateCcw} variant="outline" disabled={busy} onPress={onRedecide} />
     </>
   );
 
@@ -66,12 +48,10 @@ export function DirectiveStage({ decision, isPending, error, onProceed, onEdit, 
 
   return (
     <StagePanel
-      step="Step 1"
       label="Session manager decision"
       hint={decision.actionReasoning || "The session manager picked the next move."}
-      isPending={isPending}
+      isPending={pending === "decide"}
       pendingLabel="Deciding the next move…"
-      error={error}
       actions={actions}
     >
       <BadgeRow>

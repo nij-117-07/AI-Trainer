@@ -1,5 +1,5 @@
 // src/features/ai-detector/lib/persistence.test.ts
-import { INITIAL_WIZARD_DRAFT, parseDraft } from "./persistence";
+import { INITIAL_AI_DETECTOR_STATE, parseSavedState } from "./persistence";
 
 const savedDetection = {
   aiScore: 0.6,
@@ -9,38 +9,30 @@ const savedDetection = {
   suggestedChanges: ["Shorten sentences"],
 };
 
-describe("parseDraft", () => {
-  it("returns the empty draft for missing or non-object data", () => {
-    expect(parseDraft(null)).toEqual(INITIAL_WIZARD_DRAFT);
-    expect(parseDraft("garbage")).toEqual(INITIAL_WIZARD_DRAFT);
+describe("parseSavedState", () => {
+  it("returns the empty state for missing or non-object data", () => {
+    expect(parseSavedState(null)).toEqual(INITIAL_AI_DETECTOR_STATE);
+    expect(parseSavedState("garbage")).toEqual(INITIAL_AI_DETECTOR_STATE);
   });
 
-  it("restores a full saved draft", () => {
-    const draft = parseDraft({
-      step: "recheck",
-      originalText: "Original",
-      detect: savedDetection,
-      humanize: { humanizedText: "Rewritten", changesMade: [], confidence: 0.7 },
-      recheck: savedDetection,
+  it("restores the saved form and result", () => {
+    const state = parseSavedState({
+      form: { textToCheck: "  Original  ", additionalComments: "From a blog" },
+      result: savedDetection,
     });
-    expect(draft.step).toBe("recheck");
-    expect(draft.originalText).toBe("Original");
-    expect(draft.detect?.aiScore).toBe(0.6);
-    expect(draft.humanize?.humanizedText).toBe("Rewritten");
-    expect(draft.recheck?.verdict).toBe("Mixed");
+    expect(state.form).toEqual({ textToCheck: "  Original  ", additionalComments: "From a blog" });
+    expect(state.result?.aiScore).toBe(0.6);
+    expect(state.result?.verdict).toBe("Mixed");
   });
 
-  it("falls back to detect for an unknown step", () => {
-    expect(parseDraft({ step: "publish" }).step).toBe("detect");
-  });
-
-  it("drops damaged results instead of keeping them", () => {
-    const draft = parseDraft({
-      step: "humanize",
-      detect: { aiScore: "nope" },
-      humanize: { humanizedText: "" },
+  it("fills missing or non-text form fields with empty strings", () => {
+    expect(parseSavedState({ form: { textToCheck: 7 } }).form).toEqual({
+      textToCheck: "",
+      additionalComments: "",
     });
-    expect(draft.detect).toBeNull();
-    expect(draft.humanize).toBeNull();
+  });
+
+  it("drops a damaged result instead of keeping it", () => {
+    expect(parseSavedState({ result: { aiScore: "nope" } }).result).toBeNull();
   });
 });

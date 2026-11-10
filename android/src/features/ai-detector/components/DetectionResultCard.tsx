@@ -1,6 +1,5 @@
 // src/features/ai-detector/components/DetectionResultCard.tsx
 /** Detection result: AI likelihood meter, verdict badge, reason, flagged patterns, and suggestions. */
-import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Flag, Lightbulb } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
@@ -11,12 +10,7 @@ import type { AiDetection } from "../types";
 import { BulletList } from "./BulletList";
 import { ScoreBar } from "./ScoreBar";
 
-interface DetectionResultCardProps {
-  result: AiDetection;
-  children?: ReactNode;
-}
-
-export function DetectionResultCard({ result, children }: DetectionResultCardProps) {
+export function DetectionResultCard({ result }: { result: AiDetection }) {
   const colors = useThemeColors();
   const verdict = verdictTone(result.verdict);
   const palette = colors.tone[verdict];
@@ -30,15 +24,22 @@ export function DetectionResultCard({ result, children }: DetectionResultCardPro
         </View>
       </View>
 
-      <ScoreBar value={result.aiScore} label="AI likelihood" tone={riskTone(result.aiScore)} />
+      <ScoreBar
+        value={result.aiScore}
+        label="AI likelihood"
+        caption="Higher means the text is more likely to have been written by AI."
+        tone={riskTone(result.aiScore)}
+      />
 
-      {result.reason ? <Text style={[styles.reason, { color: colors.foreground }]}>{result.reason}</Text> : null}
-      <ListenButton text={result.reason} label="Reason" />
+      {result.reason !== "" && (
+        <>
+          <Text style={[styles.reason, { color: colors.foreground }]}>{result.reason}</Text>
+          <ListenButton text={result.reason} label="Reason" />
+        </>
+      )}
 
       <BulletList icon={Flag} title="Flagged patterns" tone="amber" items={result.flaggedPatterns} />
       <BulletList icon={Lightbulb} title="Suggested changes" tone="sky" items={result.suggestedChanges} />
-
-      {children}
     </Panel>
   );
 }

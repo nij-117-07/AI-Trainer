@@ -1,22 +1,21 @@
 // src/features/creative-assets/hooks/usePersistedDraft.ts
-/** Keeps the tool's form draft and last result on the device between visits. */
+/** Keeps the Creative Assets form and the batch list on the device. The list reloads when its page is focused. */
 import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { loadDocument, saveDocument } from "@/lib/document-store";
-import { mergeSavedForm, type SavedCreativeAssetsState } from "../lib/persistence";
+import { restoreCreativeAssetsResult } from "../lib/normalize";
+import { CREATIVE_ASSETS_DEFAULTS, CREATIVE_ASSETS_FORM_KEY, CREATIVE_ASSETS_RESULT_KEY, mergeSavedForm } from "../lib/persistence";
+import type { CreativeAssetsFormValues, CreativeAssetsResult } from "../types";
 
-export function usePersistedDraft<TForm extends object, TResult>(storageKey: string, defaults: TForm) {
-  const [form, setForm] = useState<TForm>(defaults);
-  const [result, setResult] = useState<TResult | null>(null);
+export function usePersistedForm() {
+  const [form, setForm] = useState<CreativeAssetsFormValues>(CREATIVE_ASSETS_DEFAULTS);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let active = true;
-    loadDocument<unknown>(storageKey, null)
+    loadDocument<unknown>(CREATIVE_ASSETS_FORM_KEY, null)
       .then((saved) => {
-        if (!active || typeof saved !== "object" || saved === null) return;
-        const record = saved as { form?: unknown; result?: unknown };
-        setForm(mergeSavedForm(defaults, record.form));
-        setResult(typeof record.result === "object" && record.result !== null ? (record.result as TResult) : null);
+        if (active) setForm(mergeSavedForm(CREATIVE_ASSETS_DEFAULTS, saved));
       })
       .catch(() => undefined)
       .finally(() => {
@@ -25,18 +24,55 @@ export function usePersistedDraft<TForm extends object, TResult>(storageKey: str
     return () => {
       active = false;
     };
-  }, [storageKey, defaults]);
+  }, []);
 
   useEffect(() => {
     if (!loaded) return;
-    const state: SavedCreativeAssetsState<TForm, TResult> = { form, result };
-    saveDocument(storageKey, state).catch(() => undefined);
-  }, [loaded, storageKey, form, result]);
+    saveDocument(CREATIVE_ASSETS_FORM_KEY, form).catch(() => undefined);
+  }, [loaded, form]);
 
   const reset = useCallback(() => {
-    setForm(defaults);
-    setResult(null);
-  }, [defaults]);
+    setForm(CREATIVE_ASSETS_DEFAULTS);
+  }, []);
 
-  return { form, setForm, result, setResult, reset };
+  return { form, setForm, reset };
+}
+
+/** Reads the saved batch list now. Use it right before a write, so the write builds on the latest data. */
+export async function loadCreativeAssetsResult(): Promise<CreativeAssetsResult | null> {
+  return restoreCreativeAssetsResult(await loadDocument<unknown>(CREATIVE_ASSETS_RESULT_KEY, null));
+}
+
+export function saveCreativeAssetsResult(result: CreativeAssetsResult): Promise<void> {
+  return saveDocument(CREATIVE_ASSETS_RESULT_KEY, result);
+}
+
+/** The result page's view of the batch list. Every change is saved at once, so ticks survive leaving the app. */
+export function usePersistedResult() {
+  const [result, setResultState] = useState<CreativeAssetsResult | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadCreativeAssetsResult()
+        .then((next) => {
+          if (active) setResultState(next);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (active) setLoaded(true);
+        });
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  const setResult = useCallback((next: CreativeAssetsResult) => {
+    setResultState(next);
+    saveCreativeAssetsResult(next).catch(() => undefined);
+  }, []);
+
+  return { result, setResult, loaded };
 }

@@ -1,4 +1,4 @@
-import { DEFAULT_SETUP_FORM } from "../options";
+import { SAMPLE_SETUP_FORM } from "./test-fixtures";
 import type { AnswerReview, SessionHistoryEntry } from "../types";
 import { validateSetup } from "./validate";
 import { contextBlocks, historyLines, reviewJson, splitList } from "./wire";
@@ -27,7 +27,7 @@ describe("splitList", () => {
 
 describe("contextBlocks", () => {
   it("uses the backend's snake_case keys and omits an empty company", () => {
-    const blocks = contextBlocks(validateSetup(DEFAULT_SETUP_FORM));
+    const blocks = contextBlocks(validateSetup(SAMPLE_SETUP_FORM));
     const candidate = JSON.parse(blocks.candidateProfile);
     const position = JSON.parse(blocks.positionDetails);
     const context = JSON.parse(blocks.interviewContext);

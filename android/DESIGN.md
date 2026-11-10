@@ -222,7 +222,7 @@ Every tool page (Learning, Practice, Tools) follows the same layout, the same fi
 
 ### 12.1 Layout
 
-- Use `ToolScreen`. Header: round back button on the left, title in the middle, and the `ResetButton` on the right.
+- Use `ToolScreen`. Header: round back button on the left, title in the middle, and the `ResetButton` on the right. A tool that never calls the AI passes `usesAi={false}`, so the "AI model not configured" notice does not show.
 - The body scrolls and holds the results. When there is no result yet, show an `EmptyHint` with a title and one sentence about the next step.
 - The form sits in the **footer** (`ToolScreen` `footer` prop). The footer stays pinned at the bottom, has a 1px top border, and holds:
   1. The fields. Cap the height and let them scroll inside the footer if they are long.
@@ -346,6 +346,10 @@ Use this pattern for a multi-turn chat where the AI plays a character. The chat 
 
 The Socratic Challenger (`practice/socratic`) uses the same pattern. Its settings page is `practice/socratic/settings.tsx`, with focus and confidence as fixed choices (no Custom). Its "Reset chat" keeps the settings, and its settings page has "Reset settings".
 
+Negotiation Practice (`practice/negotiation`) uses the chat pattern with a setup page, like the Riddle. The practice page shows the brief, report, and transcript in the body, and the reply box in the footer. While ending, the footer asks for the outcome instead. A finished session shows "New negotiation" in the footer. The setup page is `practice/negotiation/new.tsx`, with Difficulty (no Custom) and Domain. Its Reset clears the form only.
+
+Executive EQ Trainer (`practice/executive-eq`) uses the chat pattern with a setup page (`practice/executive-eq/new.tsx`): role, narrative arc, learning focus, difficulty, and industry context. Learning focus and difficulty have no Custom, because validation enforces them. The practice page shows the scene, counterpart, briefing, and transcript in the body, and the reply box in the footer. Its header Reset clears the simulation only, and the setup page's Reset clears the form only.
+
 **Reference files (Roleplay)**
 
 - `src/app/language-learner/roleplay/index.tsx`: chat page
@@ -380,6 +384,12 @@ The Joke Lab (`practice/joke-coach`) uses the same pattern. Its joke box is the 
 
 The Guess Game (`practice/guess-game`) uses the same pattern. Its guess box is the footer answer box, and its setup page is `practice/guess-game/new.tsx`. Storage is in `src/features/guess-game/lib/persistence.ts`, with hooks `useGuessGameRound.ts` and `useGuessGameSetup.ts`. Difficulty has no Custom, because the guess limit comes from it. Hints and coaching are body actions, so the footer holds only the guess box.
 
+The Interview Simulator (`practice/interview`) is a multi-step session, so it follows this pattern with a stage-based footer. Its setup page is `practice/interview/new.tsx` (fields in the body, error and "Start interview" in the footer). The session page `practice/interview/index.tsx` shows the current stage in the body, with its secondary actions (Edit, Regenerate, Undo, End interview). The stages are: decision (Proceed), answer (the question, with its wording editable and Regenerate in the body, and the answer box in the footer), review (Track progress), and progress (Next question). The grading criteria, red flags, and sample answers are sent to the reviewer but are shown to the user only after the review, so the practice answer is not given away. The footer reads its edit buffers from `hooks/useInterviewScreen.ts`, so the body and footer stay in sync. The session reloads on focus, and the setup form and the session use separate keys (`practice.interview.setup.v1` and `practice.interview.session.v1`). Interview type and seniority have no Custom, because validation enforces them. Round allows Custom.
+
+The Foresight Trainer (`practice/foresight-trainer`) follows the same pattern. Its setup page is `practice/foresight-trainer/new.tsx` (context, theme, difficulty, and max scenes in the body; error and "Start scenario" in the footer). The scenario page `practice/foresight-trainer/index.tsx` shows the transcript and the current options in the body, with the option choice made in the body. The footer holds the reasoning box, whose submit is "Commit". Difficulty has no Custom, because validation enforces it. The header Reset clears the scenario only, and the setup page's Reset clears the form only. Storage is in `src/features/foresight-trainer/lib/persistence.ts`, with hooks `useForesightSetup.ts` and `useForesightRun.ts`.
+
+The Clarity Trainer (`practice/clarity-trainer`) follows the same pattern. Its setup page is `practice/clarity-trainer/new.tsx` (difficulty, scenario category, and context in the body; error and "Generate scenario" in the footer). The practice page shows the scenario and prompt in the body, with the reply box in the footer. After the review, the footer shows "New scenario" and the body shows the analysis, coach feedback, tightened rewrite, and gold standard. Difficulty and category have no Custom, because validation enforces them. The header has no Reset; the setup page's Reset clears the form only. Storage is in `src/features/clarity-trainer/lib/persistence.ts`, with hooks `useClaritySetup.ts` and `useClarityRound.ts`.
+
 **Reference files (Riddle)**
 
 - `src/app/practice/riddle/index.tsx`: game page
@@ -390,3 +400,71 @@ The Guess Game (`practice/guess-game`) uses the same pattern. Its guess box is t
 - `src/features/riddle/hooks/useRiddleSetup.ts`: setup form and generate
 - `src/features/riddle/lib/persistence.ts`: storage keys
 - Puzzle Generator follows the same pattern: `src/app/practice/puzzle/index.tsx` (game), `new.tsx` (setup), `src/features/puzzle/components/PuzzleForm.tsx`, `PuzzleRoundView.tsx`, `src/features/puzzle/hooks/usePuzzleRound.ts`, `usePuzzleSetup.ts`
+
+### 12.9 Revise a generated item (revision tree)
+
+Use this pattern when the user wants to change one generated item and keep the original to compare against. Revisions can be revised again, so the result is a tree. The Social Media Post Generator is the reference. This pattern extends 12.6: the result page shows the whole tree, not only the last result.
+
+**Pages**
+
+| Page | Route (example) | Body | Header | Footer |
+| --- | --- | --- | --- | --- |
+| Result | `tools/social-posts/index.tsx` | The tree. Each item is followed by its revisions, indented under it. Each card has an "Edit" button. `EmptyHint` when there is no result | Title, no Reset | One primary button, "New posts" |
+| Revise | `tools/social-posts/edit.tsx` | The item being revised (read-only), then "Changes you want" | Title, no Reset | Error, then one primary button, "Create revision" |
+
+**Rules**
+
+- A revision appears directly below the item it came from, never at the end of the list.
+- Any item can be revised, including a revision. Each revision stores `parentId` and a `label` such as "Variant 2 · Revision 1".
+- Originals are never overwritten. Each revision is a new item.
+- Each item keeps the context it was made with (for example platform and topic), saved with the result. Revisions use that saved context, not the current form.
+- "Changes you want" is required. An empty field shows a plain message above the button.
+- Each revision is saved before `router.back()`. The revise page reads the latest saved result at submit time, not the component state, so nothing is lost if two revisions are made in a row.
+- The result page reloads on focus.
+- The indent stops growing after three levels, so deep trees stay readable on a phone.
+- "New posts" generates a new result and replaces the whole tree, as in 12.8. The form page has no effect on revisions.
+- Stored items are read through a normaliser. An item whose parent is missing is shown at the top level, not dropped.
+
+**Reference files (Social Media Post Generator)**
+
+- `src/app/tools/social-posts/index.tsx`: result page (tree)
+- `src/app/tools/social-posts/edit.tsx`: revise page
+- `src/app/tools/social-posts/new.tsx`: form page
+- `src/features/social-posts/components/SocialPostsResult.tsx`: tree and cards
+- `src/features/social-posts/components/SocialPostsRevise.tsx`: revise hook, fields, footer
+- `src/features/social-posts/lib/normalize.ts`: model output and stored-result normaliser
+- `src/features/social-posts/lib/generators.ts`: `generateSocialPosts` and `reviseSocialPost`
+
+### 12.10 Keep liked items and generate more (select and extend)
+
+Use this pattern when the user picks the items they like from a generated list and asks for more in the same spirit. Each new round can be picked and extended again, so the result is a list of batches. Creative Assets is the reference. It extends 12.6 and 12.9: the result page shows all batches, and the extend step has its own page.
+
+**Pages**
+
+| Page | Route (example) | Body | Header | Footer |
+| --- | --- | --- | --- | --- |
+| Result | `tools/creative-assets/index.tsx` | Batches in order, each with a label. Each item has a checkbox. `EmptyHint` when there is no result | Title, no Reset | One primary button, "More like these (n)", disabled when nothing is ticked. One outline button, "New assets" |
+| More | `tools/creative-assets/more.tsx` | The ticked items (read-only), then "User instructions (optional)" | Title, no Reset | Error, then one primary button, "Generate more" |
+| New | `tools/creative-assets/new.tsx` | The fields (see 12.6) | Title, `ResetButton` (clears the form only) | Error, then "Generate assets" |
+
+**Rules**
+
+- A tick is a choice the user keeps. It is saved with the result after each change, so it survives leaving the app.
+- Items from a new round start ticked. The user unticks what they don't want, then extends again.
+- "More like these" uses every ticked item from every batch. Duplicate texts are sent once.
+- Each new round is added as a new batch at the end, labelled with its number and how many ticked items it was made from.
+- When a new round is generated, every unticked item is removed from the list, and batches left empty are removed too. Ticked items stay. This keeps the list from growing without limit.
+- The result keeps the form values it was made with. A round uses those values, not the current form.
+- "Generate more" needs at least one ticked item and says so on the page. The user instructions are optional and limited to 1000 characters.
+- Each round is saved before `router.back()`. The more page reads the latest saved result at submit time, not the component state.
+- "New assets" replaces the whole result, including every batch, as in 12.8.
+
+**Reference files (Creative Assets)**
+
+- `src/app/tools/creative-assets/index.tsx`: result page (batches and ticks)
+- `src/app/tools/creative-assets/more.tsx`: more page
+- `src/app/tools/creative-assets/new.tsx`: form page
+- `src/features/creative-assets/components/CreativeAssetsList.tsx`: batches and ticks
+- `src/features/creative-assets/components/CreativeAssetsMore.tsx`: more page hook, fields, footer
+- `src/features/creative-assets/lib/batches.ts`: batch and tick helpers
+- `src/components/tool/CheckboxRow.tsx`: shared tick row

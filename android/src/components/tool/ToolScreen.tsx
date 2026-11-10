@@ -20,9 +20,11 @@ interface ToolScreenProps {
   children: ReactNode;
   footer?: ReactNode;
   headerRight?: ReactNode;
+  /** Set to false for tools that never call the AI, so the "not configured" notice is hidden. */
+  usesAi?: boolean;
 }
 
-export function ToolScreen({ title, children, footer, headerRight }: ToolScreenProps) {
+export function ToolScreen({ title, children, footer, headerRight, usesAi = true }: ToolScreenProps) {
   const colors = useThemeColors();
   const router = useRouter();
   const goBack = useGoBack();
@@ -50,7 +52,7 @@ export function ToolScreen({ title, children, footer, headerRight }: ToolScreenP
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <ToolScrollContext.Provider value={scrollRef}>
           <ScrollView ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
-            {loaded && !configured && (
+            {usesAi && loaded && !configured && (
               <Panel>
                 <Text style={[styles.noticeTitle, { color: colors.foreground }]}>AI model not configured</Text>
                 <Text style={[styles.noticeText, { color: colors.mutedForeground }]}>

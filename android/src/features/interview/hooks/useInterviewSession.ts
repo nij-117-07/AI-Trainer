@@ -91,7 +91,7 @@ export function useInterviewSession() {
   }, []);
 
   const decide = useCallback(
-    async (current: InterviewSessionState) => {
+    async (current: InterviewSessionState): Promise<boolean> => {
       const decision = await run("decide", (signal) =>
         decideNextAction(
           settings,
@@ -105,12 +105,13 @@ export function useInterviewSession() {
           signal,
         ),
       );
-      if (!decision) return;
+      if (!decision) return false;
       update((prev) => ({
         ...prev,
         decision,
         stage: decision.nextAction === "end_session" ? "report" : "decide",
       }));
+      return true;
     },
     [run, settings, update],
   );
@@ -131,15 +132,15 @@ export function useInterviewSession() {
         ),
       );
       if (!question) return;
-      update((prev) => ({ ...prev, currentQuestion: question, stage: "question" }));
+      update((prev) => ({ ...prev, currentQuestion: question, stage: "answer" }));
     },
     [run, settings, update],
   );
 
   const review = useCallback(
-    async (current: InterviewSessionState, answer: string) => {
+    async (current: InterviewSessionState, answer: string): Promise<boolean> => {
       const question = current.currentQuestion;
-      if (!question) return;
+      if (!question) return false;
       const result = await run("review", (signal) =>
         reviewAnswer(
           settings,
@@ -158,7 +159,7 @@ export function useInterviewSession() {
           signal,
         ),
       );
-      if (!result) return;
+      if (!result) return false;
       const entry: SessionHistoryEntry = {
         question: question.question,
         answer,
@@ -175,6 +176,7 @@ export function useInterviewSession() {
         allQuestionsAsked: withAskedQuestion(prev.allQuestionsAsked, entry.question),
         stage: "review",
       }));
+      return true;
     },
     [run, settings, update],
   );
@@ -209,11 +211,11 @@ export function useInterviewSession() {
   );
 
   const start = useCallback(
-    async (setup: InterviewSetup) => {
-      if (pending) return;
+    async (setup: InterviewSetup): Promise<boolean> => {
+      if (pending) return false;
       const initial = createSession(setup, new Date().toISOString());
       setState(initial);
-      await decide(initial);
+      return decide(initial);
     },
     [decide, pending],
   );
@@ -222,24 +224,16 @@ export function useInterviewSession() {
     if (state) void generate(state);
   }, [generate, state]);
 
-  const proceedFromQuestion = useCallback(
+  const editQuestion = useCallback(
     (questionText: string) =>
       update((prev) =>
-        prev.currentQuestion
-          ? {
-              ...prev,
-              currentQuestion: { ...prev.currentQuestion, question: questionText || prev.currentQuestion.question },
-              stage: "answer",
-            }
-          : prev,
+        prev.currentQuestion ? { ...prev, currentQuestion: { ...prev.currentQuestion, question: questionText } } : prev,
       ),
     [update],
   );
 
   const submitAnswer = useCallback(
-    (answer: string) => {
-      if (state) void review(state, answer);
-    },
+    (answer: string): Promise<boolean> => (state ? review(state, answer) : Promise.resolve(false)),
     [review, state],
   );
 
@@ -280,14 +274,21 @@ export function useInterviewSession() {
     setState(null);
   }, []);
 
+  const reload = useCallback(() => {
+    loadDocument<unknown>(INTERVIEW_KEYS.session, null)
+      .then((saved) => setState(restoreSession(saved)))
+      .catch(() => undefined);
+  }, []);
+
   return {
     state,
     loaded,
     pending,
     error,
+    reload,
     start,
     proceedFromDecide,
-    proceedFromQuestion,
+    editQuestion,
     submitAnswer,
     proceedFromReview,
     proceedFromProgress,

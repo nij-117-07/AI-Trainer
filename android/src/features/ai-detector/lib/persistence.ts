@@ -1,43 +1,45 @@
 // src/features/ai-detector/lib/persistence.ts
-/** Storage key, empty draft, and the reader that rebuilds a saved wizard draft safely. */
-import type { AiDetection, HumanizedText, WizardDraft, WizardStep } from "../types";
-import { normalizeDetection, normalizeHumanized, textOf } from "./normalize";
+/** Storage key, empty state, and the reader that rebuilds the saved form and result safely. */
+import type { AiDetectorSavedState, DetectFormValues } from "../types";
+import { normalizeDetection } from "./normalize";
 
-export const AI_DETECTOR_STORAGE_KEY = "tools.ai-detector.wizard.v1";
+export const AI_DETECTOR_STORAGE_KEY = "tools.ai-detector.check.v1";
 
-export const INITIAL_WIZARD_DRAFT: WizardDraft = {
-  step: "detect",
-  originalText: "",
-  detect: null,
-  humanize: null,
-  recheck: null,
+export const AI_DETECTOR_DEFAULTS: DetectFormValues = {
+  textToCheck: "",
+  additionalComments: "",
+};
+
+export const INITIAL_AI_DETECTOR_STATE: AiDetectorSavedState = {
+  form: AI_DETECTOR_DEFAULTS,
+  result: null,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function readStep(value: unknown): WizardStep {
-  return value === "humanize" || value === "recheck" ? value : "detect";
+function stringOf(value: unknown): string {
+  return typeof value === "string" ? value : "";
 }
 
-function readResult<T>(value: unknown, parse: (raw: Record<string, unknown>) => T): T | null {
-  if (!isRecord(value)) return null;
-  try {
-    return parse(value);
-  } catch {
-    return null;
+/** Rebuilds the saved state. Anything unreadable falls back to the empty value for that field. */
+export function parseSavedState(saved: unknown): AiDetectorSavedState {
+  if (!isRecord(saved)) return INITIAL_AI_DETECTOR_STATE;
+  const form = isRecord(saved.form) ? saved.form : {};
+  let result: AiDetectorSavedState["result"] = null;
+  if (isRecord(saved.result)) {
+    try {
+      result = normalizeDetection(saved.result);
+    } catch {
+      result = null;
+    }
   }
-}
-
-/** Rebuilds a saved draft. Anything unreadable falls back to the empty value for that field. */
-export function parseDraft(saved: unknown): WizardDraft {
-  if (!isRecord(saved)) return INITIAL_WIZARD_DRAFT;
   return {
-    step: readStep(saved.step),
-    originalText: textOf(saved.originalText),
-    detect: readResult<AiDetection>(saved.detect, normalizeDetection),
-    humanize: readResult<HumanizedText>(saved.humanize, normalizeHumanized),
-    recheck: readResult<AiDetection>(saved.recheck, normalizeDetection),
+    form: {
+      textToCheck: stringOf(form.textToCheck),
+      additionalComments: stringOf(form.additionalComments),
+    },
+    result,
   };
 }

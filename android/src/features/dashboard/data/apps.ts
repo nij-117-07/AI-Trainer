@@ -100,6 +100,14 @@ export const HUBS: HubItem[] = [
     icon: Wrench,
     tone: "emerald",
   },
+  {
+    key: "chatbot",
+    title: "Chatbot",
+    description: "Chat with a persona. Each persona has its own system prompt, model settings, and saved chats.",
+    route: "/chatbot",
+    icon: Bot,
+    tone: "sky",
+  },
 ];
 
 /** Apps shown inside one area's hub menu, in registry order. */
@@ -300,7 +308,7 @@ export const APPS: AppCard[] = [
   {
     key: "ai-detector",
     title: "AI Detector",
-    description: "Detect AI-written text, humanize it, then re-check the result.",
+    description: "Score a text for AI likelihood and see the patterns behind it.",
     route: "/tools/ai-detector",
     icon: ScanSearch,
     group: "tools",
@@ -332,15 +340,6 @@ export const APPS: AppCard[] = [
     icon: AudioLines,
     group: "tools",
     tone: "amber",
-  },
-  {
-    key: "chatbot",
-    title: "Chatbot",
-    description: "Chat with a persona. Each persona has its own system prompt, model settings, and saved chats.",
-    route: "/chatbot",
-    icon: Bot,
-    group: "tools",
-    tone: "sky",
   },
   {
     key: "habit-tracker",

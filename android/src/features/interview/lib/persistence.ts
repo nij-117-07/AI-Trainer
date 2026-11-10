@@ -65,12 +65,12 @@ function restoreHistory(value: unknown): SessionHistoryEntry[] {
 export function restoreSession(value: unknown): InterviewSessionState | null {
   try {
     if (!isRecord(value)) return null;
-    const stage = pickOption<InterviewStage | "">(value.stage, STAGES, "");
+    const stored = pickOption<InterviewStage | "">(value.stage, STAGES, "");
     const setup = restoreSetup(value.setup);
-    if (!stage || !setup) return null;
+    if (!stored || !setup) return null;
     return {
       setup,
-      stage,
+      stage: stored === "question" ? "answer" : stored,
       sessionHistory: restoreHistory(value.sessionHistory),
       allQuestionsAsked: textList(value.allQuestionsAsked),
       progressState: normalizeProfile(value.progressState),

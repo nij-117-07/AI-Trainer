@@ -1,28 +1,23 @@
 // src/features/clarity-trainer/components/ScenarioPanel.tsx
-/** The active scenario and the reply box. The reply box hides once the reply has been reviewed. */
+/** The active scenario and its prompt. The reply box lives in the page footer. */
 import { StyleSheet, Text, View } from "react-native";
-import { BadgeCheck, Clock, MessageSquareText } from "lucide-react-native";
+import { Clock, MessageSquareText } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
-import { LIMITS } from "../options";
 import { textList, textOf } from "../lib/text";
 import type { ClarityRound } from "../types";
 
 interface ScenarioPanelProps {
   round: ClarityRound;
-  pending: boolean;
-  error: string | null;
-  onResponseChange: (text: string) => void;
-  onEvaluate: () => void;
 }
 
-export function ScenarioPanel({ round, pending, error, onResponseChange, onEvaluate }: ScenarioPanelProps) {
+export function ScenarioPanel({ round }: ScenarioPanelProps) {
   const colors = useThemeColors();
-  const { scenario, response, evaluation } = round;
+  const { scenario } = round;
   const characters = textList(scenario.characters);
   const constraints = textList(scenario.constraints);
 
@@ -56,28 +51,6 @@ export function ScenarioPanel({ round, pending, error, onResponseChange, onEvalu
         <Text style={[styles.body, { color: colors.foreground }]}>{scenario.promptToUser}</Text>
         <ListenButton text={scenario.promptToUser} label="Prompt" />
       </ResultCallout>
-
-      {!evaluation && (
-        <>
-          <TextField
-            label="Your response"
-            placeholder="Write your response…"
-            value={response}
-            onChangeText={onResponseChange}
-            editable={!pending}
-            maxLength={LIMITS.response}
-            multiline
-            voice
-          />
-          <ErrorText message={error} />
-          <ActionButton
-            label={pending ? "Analyzing response…" : "Evaluate my response"}
-            icon={BadgeCheck}
-            loading={pending}
-            onPress={onEvaluate}
-          />
-        </>
-      )}
     </Panel>
   );
 }

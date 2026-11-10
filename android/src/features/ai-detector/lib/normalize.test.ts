@@ -1,5 +1,5 @@
 // src/features/ai-detector/lib/normalize.test.ts
-import { normalizeDetection, normalizeHumanized, unitOf, verdictFromScore } from "./normalize";
+import { normalizeDetection, unitOf, verdictFromScore } from "./normalize";
 
 describe("unitOf", () => {
   it("keeps values already on the 0–1 scale", () => {
@@ -63,29 +63,5 @@ describe("normalizeDetection", () => {
       flaggedPatterns: [],
       suggestedChanges: [],
     });
-  });
-});
-
-describe("normalizeHumanized", () => {
-  it("returns the rewrite, changes, and confidence", () => {
-    expect(
-      normalizeHumanized({
-        humanizedText: "  I tried it last week.  ",
-        changesMade: ["Added a first-person anecdote"],
-        confidence: 0.75,
-      }),
-    ).toEqual({
-      humanizedText: "I tried it last week.",
-      changesMade: ["Added a first-person anecdote"],
-      confidence: 0.75,
-    });
-  });
-
-  it("throws when the rewrite is empty", () => {
-    expect(() => normalizeHumanized({ humanizedText: "  ", confidence: 0.5 })).toThrow("no rewritten text");
-  });
-
-  it("throws when the confidence is missing", () => {
-    expect(() => normalizeHumanized({ humanizedText: "Hello" })).toThrow("did not return a confidence");
   });
 });

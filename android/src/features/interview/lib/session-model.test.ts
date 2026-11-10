@@ -1,4 +1,4 @@
-import { DEFAULT_SETUP_FORM } from "../options";
+import { SAMPLE_SETUP_FORM } from "./test-fixtures";
 import type { AnswerReview, InterviewSessionState, SessionHistoryEntry } from "../types";
 import { validateSetup } from "./validate";
 import {
@@ -13,7 +13,7 @@ import {
   withAskedQuestion,
 } from "./session-model";
 
-const setup = validateSetup({ ...DEFAULT_SETUP_FORM, maxQuestions: 2, durationMinutes: "30" });
+const setup = validateSetup({ ...SAMPLE_SETUP_FORM, maxQuestions: 2, durationMinutes: "30" });
 const startedAt = "2026-11-08T10:00:00.000Z";
 
 const review: AnswerReview = {

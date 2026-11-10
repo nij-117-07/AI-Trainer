@@ -1,7 +1,7 @@
 // src/features/ai-detector/lib/signature-descriptions.ts
 /**
- * Instructions and field descriptions for the Ax signatures. The text is copied from the DSPy
- * signatures in Backend/tools/ai_detector/services.py, so both stacks give the model the same
+ * Instructions and field descriptions for the Ax signature. The text is copied from the DSPy
+ * signature in Backend/tools/ai_detector/services.py, so both stacks give the model the same
  * guidance. Keys use the Ax field names; the matching DSPy field is noted beside each key.
  */
 
@@ -45,45 +45,5 @@ Consider these AI tells:
     // suggested_changes
     suggestedChanges:
       "Actionable suggestions to rewrite the text so it sounds more human. Be specific — reference actual parts of the text.",
-  },
-};
-
-export const HUMANIZER_DESCRIPTIONS = {
-  instruction: `You are a Text Humanizer. Your job is to rewrite AI-sounding text so it reads
-like it was written by a real person.
-
-Rules:
-- Vary sentence length — mix short punchy sentences with longer ones.
-- Add natural imperfections: occasional contractions, colloquial phrases,
-  mild informality where appropriate.
-- Remove robotic transitions ("Furthermore", "Moreover", "In conclusion").
-- Add personality: opinions, anecdotes, rhetorical questions, or emotion.
-- Use specific examples instead of generic statements.
-- Break up uniform paragraph structures.
-- Keep the original meaning and key information intact.
-- Match the tone specified by the user (casual, professional, academic, etc.).
-- Honor any additional comments or constraints supplied by the user.`,
-  inputs: {
-    // ai_text
-    aiText: "The AI-sounding text that needs to be humanized.",
-    // target_tone
-    targetTone:
-      "Desired tone for the output (e.g., casual, professional, conversational, academic, witty).",
-    // detection_feedback
-    detectionFeedback:
-      "Optional feedback from the AI Detector — flagged patterns and suggested changes to specifically address.",
-    // additional_comments
-    additionalComments:
-      "Optional extra instructions from the user — e.g., preserve certain phrasing, target audience, or contextual constraints.",
-  },
-  outputs: {
-    // humanized_text
-    humanizedText: "The rewritten text that sounds natural and human-written.",
-    // changes_made
-    changesMade:
-      "List of specific changes made and why they help the text sound more human.",
-    // confidence
-    confidence:
-      "Your confidence (0.0 to 1.0) that this rewritten text would pass as human-written.",
   },
 };

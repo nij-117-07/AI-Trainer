@@ -1,9 +1,9 @@
 // src/features/ai-detector/lib/normalize.ts
 /**
- * Turns raw model output into the typed results the screens render. Lists and strings are read
- * defensively. A missing score or rewrite is reported as an error, since the screen cannot use it.
+ * Turns raw model output into the typed result the screen renders. Lists and strings are read
+ * defensively. A missing score is reported as an error, since the screen cannot use it.
  */
-import type { AiDetection, HumanizedText, Verdict } from "../types";
+import type { AiDetection, Verdict } from "../types";
 import { VERDICTS } from "../types";
 
 export interface DetectionRaw {
@@ -12,12 +12,6 @@ export interface DetectionRaw {
   reason?: unknown;
   flaggedPatterns?: unknown;
   suggestedChanges?: unknown;
-}
-
-export interface HumanizeRaw {
-  humanizedText?: unknown;
-  changesMade?: unknown;
-  confidence?: unknown;
 }
 
 export function listOf(value: unknown): unknown[] {
@@ -60,17 +54,5 @@ export function normalizeDetection(raw: DetectionRaw): AiDetection {
     reason: textOf(raw.reason),
     flaggedPatterns: textList(raw.flaggedPatterns),
     suggestedChanges: textList(raw.suggestedChanges),
-  };
-}
-
-export function normalizeHumanized(raw: HumanizeRaw): HumanizedText {
-  const humanizedText = textOf(raw.humanizedText);
-  if (!humanizedText) throw new Error("The model returned no rewritten text. Please try again.");
-  const confidence = unitOf(raw.confidence);
-  if (confidence === null) throw new Error("The model did not return a confidence score. Please try again.");
-  return {
-    humanizedText,
-    changesMade: textList(raw.changesMade),
-    confidence,
   };
 }

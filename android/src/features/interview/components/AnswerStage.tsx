@@ -1,69 +1,50 @@
-// src/features/interview/components/AnswerStage.tsx
-/** Step 3: the candidate's free-text answer to the current question, sent to the reviewer on submit. */
-import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Send } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+/**
+ * The question and the answer step. The wording can be edited and the question regenerated here.
+ * The answer box is in the footer (InterviewFooter). The grading criteria stay hidden until the review.
+ */
+import { RotateCcw } from "lucide-react-native";
 import { ActionButton, TextField } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
-import { ANSWER_MAX_LENGTH } from "../options";
+import type { InterviewPending } from "../hooks/useInterviewSession";
 import type { InterviewQuestion } from "../types";
-import { StagePanel } from "./StagePanel";
+import { BadgeRow, StageBadge, StagePanel } from "./StagePanel";
 
 interface AnswerStageProps {
   question: InterviewQuestion;
-  isPending: boolean;
-  error: string | null;
-  onSubmit: (answer: string) => void;
+  pending: InterviewPending;
+  onEditQuestion: (text: string) => void;
+  onRegenerate: () => void;
 }
 
-export function AnswerStage({ question, isPending, error, onSubmit }: AnswerStageProps) {
-  const colors = useThemeColors();
-  const [answer, setAnswer] = useState("");
-  const trimmed = answer.trim();
-
-  function submit() {
-    if (isPending || !trimmed) return;
-    onSubmit(trimmed);
-  }
+export function AnswerStage({ question, pending, onEditQuestion, onRegenerate }: AnswerStageProps) {
+  const busy = pending !== null;
+  const drafting = pending === "question" || pending === "review";
 
   return (
     <StagePanel
-      step="Step 3"
-      label="Your answer"
-      hint="Take your time — the reviewer scores completeness, depth, clarity and technical accuracy."
-      isPending={isPending}
-      pendingLabel="Reviewing your answer…"
-      error={error}
-      actions={<ActionButton label="Submit answer" icon={Send} loading={isPending} onPress={submit} />}
+      label="Interview question"
+      hint="Type your answer in the box below. Take your time."
+      isPending={drafting}
+      pendingLabel={pending === "question" ? "Crafting the question…" : "Reviewing your answer…"}
+      actions={
+        <ActionButton label="Regenerate" icon={RotateCcw} variant="outline" disabled={busy} onPress={onRegenerate} />
+      }
     >
-      <View style={[styles.question, { borderColor: colors.border, backgroundColor: colors.muted }]}>
-        <Text style={[styles.questionText, { color: colors.foreground }]}>{question.question}</Text>
-      </View>
-      <ListenButton text={question.question} label="Question" />
+      <BadgeRow>
+        <StageBadge label={question.topic || "general"} />
+        <StageBadge label={question.difficulty} />
+      </BadgeRow>
       <TextField
-        label="Your response"
-        placeholder="Type your answer…"
-        value={answer}
-        onChangeText={setAnswer}
-        editable={!isPending}
-        maxLength={ANSWER_MAX_LENGTH}
+        label="Question wording"
+        hint="Edit the question directly, or answer it as written."
+        value={question.question}
+        onChangeText={onEditQuestion}
+        editable={!busy}
+        maxLength={2000}
         multiline
         voice
       />
+      <ListenButton text={question.question} label="Question" />
     </StagePanel>
   );
 }
-
-const styles = StyleSheet.create({
-  question: {
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-  },
-  questionText: {
-    fontSize: 15,
-    fontWeight: "600",
-    lineHeight: 22,
-  },
-});

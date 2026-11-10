@@ -1,47 +1,33 @@
 // src/features/interview/components/SetupForm.tsx
-/** Setup form for a new interview: candidate profile, target position and interview context. */
-import { useState } from "react";
+/**
+ * New interview page. Body: candidate profile, target position and interview context. Footer: the
+ * error and the start button.
+ */
 import { StyleSheet, Text, View } from "react-native";
 import { Briefcase } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { CountSlider } from "@/components/tool/CountSlider";
+import { Section } from "@/components/tool/Section";
 import { MAX_QUESTIONS_LIMIT, POSITION_LEVEL_OPTIONS, QUESTION_TYPE_OPTIONS, ROUND_OPTIONS } from "../options";
-import { validateSetup } from "../lib/validate";
-import type { InterviewSetup, InterviewSetupForm as SetupValues, QuestionType } from "../types";
+import type { InterviewSetupState } from "../hooks/useInterviewSetup";
+import type { QuestionType } from "../types";
 
-interface SetupFormProps {
-  form: SetupValues;
-  onChange: <K extends keyof SetupValues>(key: K, value: SetupValues[K]) => void;
-  isPending: boolean;
-  error: string | null;
-  hasSession: boolean;
-  onStart: (setup: InterviewSetup) => void;
-}
-
-export function SetupForm({ form, onChange, isPending, error, hasSession, onStart }: SetupFormProps) {
+export function SetupFormFields({ setup }: { setup: InterviewSetupState }) {
   const colors = useThemeColors();
-  const [formError, setFormError] = useState<string | null>(null);
-
-  function handleStart() {
-    try {
-      const setup = validateSetup(form);
-      setFormError(null);
-      onStart(setup);
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Check the interview setup.");
-    }
-  }
+  const { form, updateField: onChange, hasSession } = setup;
+  const busy = setup.pending !== null;
 
   return (
-    <Panel>
+    <Section>
       <GroupTitle text="Candidate profile" />
       <TextField
         label="Name"
+        placeholder="e.g. Asha"
         value={form.candidateName}
         onChangeText={(text) => onChange("candidateName", text)}
-        editable={!isPending}
+        editable={!busy}
         maxLength={200}
       />
       <TextField
@@ -49,7 +35,7 @@ export function SetupForm({ form, onChange, isPending, error, hasSession, onStar
         placeholder="e.g. 3 years backend, led a payments migration"
         value={form.candidateExperience}
         onChangeText={(text) => onChange("candidateExperience", text)}
-        editable={!isPending}
+        editable={!busy}
         maxLength={1000}
         multiline
         voice
@@ -57,35 +43,37 @@ export function SetupForm({ form, onChange, isPending, error, hasSession, onStar
       <TextField
         label="Skills"
         hint="Comma-separated"
-        placeholder="Python, AWS, Kafka"
+        placeholder="e.g. Python, AWS, Kafka"
         value={form.candidateSkills}
         onChangeText={(text) => onChange("candidateSkills", text)}
-        editable={!isPending}
+        editable={!busy}
         maxLength={1000}
       />
 
       <GroupTitle text="Target position" />
       <TextField
         label="Role"
-        placeholder="Senior Backend Engineer"
+        placeholder="e.g. Senior Backend Engineer"
         value={form.positionRole}
         onChangeText={(text) => onChange("positionRole", text)}
-        editable={!isPending}
+        editable={!busy}
         maxLength={300}
       />
       <TextField
         label="Company (optional)"
+        placeholder="e.g. Acme Corp"
         value={form.positionCompany}
         onChangeText={(text) => onChange("positionCompany", text)}
-        editable={!isPending}
+        editable={!busy}
         maxLength={300}
       />
       <TextField
-        label="Required skills"
+        label="Required skills (optional)"
         hint="Comma-separated"
+        placeholder="e.g. Python, AWS, Distributed systems"
         value={form.positionSkills}
         onChangeText={(text) => onChange("positionSkills", text)}
-        editable={!isPending}
+        editable={!busy}
         maxLength={1000}
       />
       <SelectField
@@ -99,10 +87,10 @@ export function SetupForm({ form, onChange, isPending, error, hasSession, onStar
       <GroupTitle text="Interview context" />
       <TextField
         label="Interviewer role"
-        placeholder="Tech Lead"
+        placeholder="e.g. Tech Lead"
         value={form.interviewerRole}
         onChangeText={(text) => onChange("interviewerRole", text)}
-        editable={!isPending}
+        editable={!busy}
         maxLength={300}
       />
       <SelectField
@@ -117,14 +105,14 @@ export function SetupForm({ form, onChange, isPending, error, hasSession, onStar
         options={ROUND_OPTIONS}
         value={form.interviewRound}
         onChange={(value) => onChange("interviewRound", value)}
-        allowCustom={false}
+        customPlaceholder="e.g. panel with the CTO"
       />
       <TextField
         label="Format"
         placeholder="e.g. 60 min live"
         value={form.interviewFormat}
         onChangeText={(text) => onChange("interviewFormat", text)}
-        editable={!isPending}
+        editable={!busy}
         maxLength={300}
       />
       <CountSlider
@@ -139,7 +127,7 @@ export function SetupForm({ form, onChange, isPending, error, hasSession, onStar
         hint="From 5 to 480"
         value={form.durationMinutes}
         onChangeText={(text) => onChange("durationMinutes", text.replace(/[^0-9]/g, ""))}
-        editable={!isPending}
+        editable={!busy}
         keyboardType="number-pad"
         maxLength={3}
       />
@@ -151,15 +139,22 @@ export function SetupForm({ form, onChange, isPending, error, hasSession, onStar
           </Text>
         </View>
       ) : null}
+    </Section>
+  );
+}
 
-      <ErrorText message={formError ?? error} />
+export function SetupFormFooter({ setup }: { setup: InterviewSetupState }) {
+  const isPending = setup.pending === "decide";
+  return (
+    <>
+      <ErrorText message={setup.error} />
       <ActionButton
-        label={isPending ? "Deciding the first move…" : hasSession ? "Start a new interview" : "Start interview"}
+        label={isPending ? "Deciding the first move…" : setup.hasSession ? "Start a new interview" : "Start interview"}
         icon={Briefcase}
         loading={isPending}
-        onPress={handleStart}
+        onPress={() => void setup.start()}
       />
-    </Panel>
+    </>
   );
 }
 

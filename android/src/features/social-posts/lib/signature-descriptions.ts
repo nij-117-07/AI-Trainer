@@ -6,6 +6,21 @@
  * each key.
  */
 
+export const POST_REVISION_DESCRIPTIONS = {
+  instruction:
+    "You are a professional Content Strategist. Rewrite the given social media post so it applies the requested changes, keeping the platform's style and the original topic. Return only the revised post and a brief note on why it works for the platform.",
+  inputs: {
+    platform: "Target platform (e.g., LinkedIn, X, Instagram, Threads). The listed platforms are suggestions; any platform name is accepted.",
+    userQuery: "The core topic or goal of the original post.",
+    originalPost: "The post to revise.",
+    changeRequest: "The changes the user wants made to the post.",
+  },
+  outputs: {
+    content: "The revised post body.",
+    designerNotes: "A brief explanation of why the revised post works for the platform.",
+  },
+};
+
 export const POST_GENERATOR_DESCRIPTIONS = {
   instruction:
     "You are a professional Content Strategist. Generate high-quality social media post suggestions based on the platform, user query, and historical context. Maintain the tone specified in the system prompt.",
@@ -13,13 +28,10 @@ export const POST_GENERATOR_DESCRIPTIONS = {
     // system_prompt
     systemPrompt: "The persona and brand voice rules.",
     // platform
-    platform: "Target platform (e.g., LinkedIn, X, Instagram, Thread).",
+    platform:
+      "Target platform (e.g., LinkedIn, X, Instagram, Threads). The listed platforms are suggestions; any platform name is accepted.",
     // user_query
     userQuery: "The core topic or goal for the post.",
-    // chat_history
-    chatHistory: "Past interactions to maintain context.",
-    // liked_post_examples
-    likedPostExamples: "Examples of posts the user liked for style matching.",
     // num_suggestions
     numSuggestions: "Number of post variants to generate.",
   },

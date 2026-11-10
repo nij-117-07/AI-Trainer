@@ -1,5 +1,6 @@
 // src/features/negotiation/options.ts
 /** Difficulty options and allowed values for Negotiation Practice, matching the webui and backend. */
+import type { ScenarioFormValues } from "./types";
 
 export interface DifficultyChoice {
   value: string;
@@ -13,3 +14,9 @@ export const DIFFICULTY_OPTIONS: DifficultyChoice[] = [
 ];
 
 export const DIFFICULTIES = DIFFICULTY_OPTIONS.map((option) => option.value);
+
+/** Difficulty has a sensible default. The domain starts empty, and its placeholder shows examples. */
+export const DEFAULT_SCENARIO_FORM: ScenarioFormValues = {
+  difficulty: "intermediate",
+  domain: "",
+};

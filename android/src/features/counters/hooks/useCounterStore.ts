@@ -88,3 +88,5 @@ export function useCounterStore() {
     setTimer,
   };
 }
+
+export type CounterStore = ReturnType<typeof useCounterStore>;

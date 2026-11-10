@@ -1,12 +1,17 @@
 // src/features/creative-assets/lib/persistence.ts
-/** Storage key and saved-draft helper for the Creative Assets tool. */
+/** Storage keys, defaults, and saved-form merge for the Creative Assets tool. */
+import type { CreativeAssetsFormValues } from "../types";
 
-export interface SavedCreativeAssetsState<TForm, TResult> {
-  form: TForm;
-  result: TResult | null;
-}
+export const CREATIVE_ASSETS_FORM_KEY = "tools.creative-assets.form.v1";
+export const CREATIVE_ASSETS_RESULT_KEY = "tools.creative-assets.result.v2";
 
-export const CREATIVE_ASSETS_STORAGE_KEY = "tools.creative-assets.generate.v1";
+export const CREATIVE_ASSETS_DEFAULTS: CreativeAssetsFormValues = {
+  taskType: "Hashtags",
+  userQuery: "",
+  context: "",
+  referenceExamples: "",
+  numberOfSuggestions: 3,
+};
 
 /**
  * Takes each saved field only when its type matches the default, so an old or damaged draft

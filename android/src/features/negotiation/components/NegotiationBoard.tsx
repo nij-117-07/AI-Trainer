@@ -1,16 +1,16 @@
 // src/features/negotiation/components/NegotiationBoard.tsx
 /**
- * The negotiation in progress: scenario brief, transcript, composer, and the end-and-evaluate
- * step. A session moves from negotiating, to ending (asking for the outcome), to complete (with
- * the report).
+ * The negotiation on the practice page: scenario brief, the evaluation report, and the transcript.
+ * The reply box lives in the page footer. Ending asks for the outcome there, and the footer switches
+ * to the outcome box until the session is evaluated.
  */
-import { useState } from "react";
+import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Flag, Gavel, Send } from "lucide-react-native";
+import { Flag, Gavel } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
-import { Section } from "@/components/tool/Section";
+import { useToolScroll } from "@/components/tool/ToolScrollContext";
 import type { NegotiationSession } from "../types";
 import { NegotiationReport } from "./NegotiationReport";
 import { Transcript } from "./Transcript";
@@ -18,33 +18,22 @@ import { Transcript } from "./Transcript";
 interface NegotiationBoardProps {
   session: NegotiationSession;
   busy: boolean;
-  error: string | null;
-  onSend: (message: string) => Promise<boolean>;
-  onEvaluate: (outcome: string) => Promise<boolean>;
+  ending: boolean;
+  onEnd: () => void;
+  onKeepNegotiating: () => void;
 }
 
-export function NegotiationBoard({ session, busy, error, onSend, onEvaluate }: NegotiationBoardProps) {
+export function NegotiationBoard({ session, busy, ending, onEnd, onKeepNegotiating }: NegotiationBoardProps) {
   const colors = useThemeColors();
-  const [message, setMessage] = useState("");
-  const [ending, setEnding] = useState(false);
-  const [outcome, setOutcome] = useState("");
+  const scroll = useToolScroll();
   const { scenario } = session;
 
-  async function send() {
-    const text = message.trim();
-    if (!text || busy) return;
-    const sent = await onSend(text);
-    if (sent) setMessage("");
-  }
-
-  async function finish() {
-    const text = outcome.trim();
-    if (!text || busy) return;
-    await onEvaluate(text);
-  }
+  useEffect(() => {
+    scroll?.current?.scrollToEnd({ animated: true });
+  }, [session.log.length, busy, scroll]);
 
   return (
-    <Section>
+    <>
       <Panel>
         <View style={styles.headerRow}>
           <Text style={[styles.title, { color: colors.foreground }]}>{scenario.title || "Negotiation"}</Text>
@@ -78,8 +67,12 @@ export function NegotiationBoard({ session, busy, error, onSend, onEvaluate }: N
           </Text>
         ) : null}
 
-        {!session.complete && !ending ? (
-          <ActionButton label="End & evaluate" icon={Flag} variant="outline" onPress={() => setEnding(true)} />
+        {!session.complete ? (
+          ending ? (
+            <ActionButton label="Keep negotiating" variant="outline" onPress={onKeepNegotiating} />
+          ) : (
+            <ActionButton label="End & evaluate" icon={Flag} variant="outline" onPress={onEnd} />
+          )
         ) : null}
       </Panel>
 
@@ -95,49 +88,9 @@ export function NegotiationBoard({ session, busy, error, onSend, onEvaluate }: N
               Session closed — {session.finalOutcome}.
             </Text>
           </View>
-        ) : ending ? (
-          <View style={styles.composer}>
-            <TextField
-              label="How did the negotiation end?"
-              placeholder="e.g. agreement at $165k base plus two remote days"
-              value={outcome}
-              onChangeText={setOutcome}
-              editable={!busy}
-              maxLength={500}
-              voice
-            />
-            <ActionButton
-              label={busy ? "Evaluating…" : "Evaluate session"}
-              icon={Gavel}
-              loading={busy}
-              onPress={finish}
-            />
-            <ActionButton label="Keep negotiating" variant="outline" onPress={() => setEnding(false)} />
-          </View>
-        ) : (
-          <View style={styles.composer}>
-            <TextField
-              label="Your reply"
-              placeholder="Say something to the opponent…"
-              value={message}
-              onChangeText={setMessage}
-              editable={!busy}
-              maxLength={2000}
-              multiline
-              voice
-            />
-            <ActionButton
-              label={busy ? "Opponent is replying…" : "Send"}
-              icon={Send}
-              loading={busy}
-              onPress={send}
-            />
-          </View>
-        )}
-
-        <ErrorText message={error} />
+        ) : null}
       </Panel>
-    </Section>
+    </>
   );
 }
 
@@ -212,8 +165,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  composer: {
-    gap: spacing.md,
   },
 });

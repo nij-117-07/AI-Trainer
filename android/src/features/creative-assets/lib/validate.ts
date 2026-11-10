@@ -32,12 +32,6 @@ export function splitLines(value: string): string[] {
     .filter(Boolean);
 }
 
-export function requireOption<T extends string>(value: string, options: readonly T[], label: string): T {
-  const match = options.find((option) => option === value);
-  if (!match) throw new Error(`${label} must be one of: ${options.join(", ")}.`);
-  return match;
-}
-
 export function clampCount(value: number, min: number, max: number): number {
   const rounded = Math.round(Number.isFinite(value) ? value : min);
   return Math.min(max, Math.max(min, rounded));

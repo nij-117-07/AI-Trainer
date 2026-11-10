@@ -1,27 +1,26 @@
 // src/features/interview/components/ReviewStage.tsx
 /**
- * Step 4: the reviewer's scores and feedback. Gate: Track progress, or Edit the answer and re-review.
+ * Step 4: the reviewer's scores and feedback. The footer holds Track progress (or Re-review while
+ * editing the answer). The body holds Edit answer.
  */
-import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Flag, Lightbulb, Pencil, RotateCcw, StepForward } from "lucide-react-native";
+import { Flag, Lightbulb, Pencil } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, TextField } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import type { InterviewScreen } from "../hooks/useInterviewScreen";
+import type { InterviewPending } from "../hooks/useInterviewSession";
 import { ANSWER_MAX_LENGTH } from "../options";
-import type { AnswerReview } from "../types";
-import { useSyncedDraft } from "../hooks/useSyncedDraft";
+import type { AnswerReview, InterviewQuestion } from "../types";
 import { BadgeRow, BulletList, StageBadge, StagePanel, SubHeading } from "./StagePanel";
 
 interface ReviewStageProps {
   review: AnswerReview;
-  submittedAnswer: string;
-  isPending: boolean;
-  error: string | null;
-  onProceed: () => void;
-  onReReview: (answer: string) => void;
+  question: InterviewQuestion;
+  edit: InterviewScreen["review"];
+  pending: InterviewPending;
 }
 
 type ScoreKey = "overallScore" | "technicalAccuracy" | "completeness" | "clarityScore" | "depthScore";
@@ -34,48 +33,22 @@ const SCORE_ROWS: Array<{ key: ScoreKey; label: string }> = [
   { key: "depthScore", label: "Depth" },
 ];
 
-export function ReviewStage({ review, submittedAnswer, isPending, error, onProceed, onReReview }: ReviewStageProps) {
+export function ReviewStage({ review, question, edit, pending }: ReviewStageProps) {
   const colors = useThemeColors();
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useSyncedDraft(submittedAnswer);
+  const busy = pending !== null;
 
-  const actions = editing ? (
-    <>
-      <ActionButton
-        label="Re-review"
-        icon={RotateCcw}
-        loading={isPending}
-        onPress={() => {
-          const text = draft.trim();
-          if (!text) return;
-          onReReview(text);
-          setEditing(false);
-        }}
-      />
-      <ActionButton
-        label="Cancel"
-        variant="outline"
-        onPress={() => {
-          setDraft(submittedAnswer);
-          setEditing(false);
-        }}
-      />
-    </>
+  const actions = edit.editing ? (
+    <ActionButton label="Cancel" variant="outline" onPress={edit.cancel} />
   ) : (
-    <>
-      <ActionButton label="Track progress" icon={StepForward} loading={isPending} onPress={onProceed} />
-      <ActionButton label="Edit answer" icon={Pencil} variant="outline" onPress={() => setEditing(true)} />
-    </>
+    <ActionButton label="Edit answer" icon={Pencil} variant="outline" disabled={busy} onPress={edit.startEdit} />
   );
 
   return (
     <StagePanel
-      step="Step 4"
       label="Reviewer feedback"
       hint={`Recommendation: ${review.recommendation}`}
-      isPending={isPending}
+      isPending={pending === "review"}
       pendingLabel="Scoring again…"
-      error={error}
       actions={actions}
     >
       <View style={styles.scores}>
@@ -102,6 +75,19 @@ export function ReviewStage({ review, submittedAnswer, isPending, error, onProce
           );
         })}
       </View>
+
+      {question.evaluationCriteria ? (
+        <>
+          <SubHeading>How this answer was judged</SubHeading>
+          <Text style={[styles.criteria, { color: colors.mutedForeground }]}>{question.evaluationCriteria}</Text>
+        </>
+      ) : null}
+      {question.redFlags.length > 0 ? (
+        <>
+          <SubHeading>Red flags to watch for</SubHeading>
+          <BulletList items={question.redFlags} />
+        </>
+      ) : null}
 
       <SubHeading>Strengths</SubHeading>
       <BulletList items={review.strengths} />
@@ -132,13 +118,13 @@ export function ReviewStage({ review, submittedAnswer, isPending, error, onProce
         </ResultCallout>
       ) : null}
 
-      {editing ? (
+      {edit.editing ? (
         <View style={[styles.editBox, { borderTopColor: colors.border }]}>
           <TextField
             label="Your answer"
-            value={draft}
-            onChangeText={setDraft}
-            editable={!isPending}
+            value={edit.draft}
+            onChangeText={edit.setDraft}
+            editable={!busy}
             maxLength={ANSWER_MAX_LENGTH}
             multiline
             voice
@@ -187,6 +173,10 @@ const styles = StyleSheet.create({
   },
   fill: {
     height: "100%",
+  },
+  criteria: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   followUp: {
     flexShrink: 1,

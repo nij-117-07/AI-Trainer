@@ -1,45 +1,42 @@
 // src/features/executive-eq/components/SimulationBoard.tsx
 /**
- * The running Executive EQ simulation: the scene and NPC, the latest briefing, the transcript,
- * and a reply box. Grades for each reply are shown as chips at the top.
+ * The running Executive EQ simulation on the practice page: the scene and NPC, the latest
+ * briefing, and the transcript. The reply box lives in the page footer. Grades for each reply are
+ * shown as chips at the top.
  */
-import { useState } from "react";
+import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Bot, Eye, Send } from "lucide-react-native";
+import { Bot, Eye } from "lucide-react-native";
 import { spacing, useThemeColors, type Tone } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
+import { useToolScroll } from "@/components/tool/ToolScrollContext";
 import type { ExecutiveEqSession } from "../types";
 
 interface SimulationBoardProps {
   session: ExecutiveEqSession;
-  pending: boolean;
-  error: string | null;
-  onRespond: (response: string) => Promise<boolean>;
+  busy: boolean;
 }
 
 const GRADE_TONES: Record<string, Tone> = { A: "emerald", B: "sky", C: "amber", D: "rose", F: "rose" };
 
-export function SimulationBoard({ session, pending, error, onRespond }: SimulationBoardProps) {
+export function SimulationBoard({ session, busy }: SimulationBoardProps) {
   const colors = useThemeColors();
-  const [message, setMessage] = useState("");
+  const scroll = useToolScroll();
   const { scenario } = session;
   const npc = scenario.npcProfile;
   const npcLine = [npc.name, npc.title].filter(Boolean).join(" · ");
 
-  async function send() {
-    const trimmed = message.trim();
-    if (!trimmed || pending) return;
-    const sent = await onRespond(trimmed);
-    if (sent) setMessage("");
-  }
+  useEffect(() => {
+    scroll?.current?.scrollToEnd({ animated: true });
+  }, [session.log.length, busy, scroll]);
 
   return (
-    <View style={styles.stack}>
+    <>
       <Panel>
         <SectionTitle icon={Eye} title={scenario.scenarioTitle || "Simulation"} />
         {npcLine !== "" && <Text style={[styles.meta, { color: colors.mutedForeground }]}>{npcLine}</Text>}
@@ -112,28 +109,7 @@ export function SimulationBoard({ session, pending, error, onRespond }: Simulati
           ))
         )}
       </Panel>
-
-      <Panel>
-        <TextField
-          label="Your response"
-          placeholder="Say it without saying it…"
-          hint="Respond with subtext. Each reply is graded before the NPC answers."
-          value={message}
-          onChangeText={setMessage}
-          editable={!pending}
-          maxLength={2000}
-          multiline
-          voice
-        />
-        <ActionButton
-          label={pending ? "Reading the room…" : "Send response"}
-          icon={Send}
-          loading={pending}
-          onPress={send}
-        />
-        <ErrorText message={error} />
-      </Panel>
-    </View>
+    </>
   );
 }
 
@@ -149,9 +125,6 @@ function LabeledLine({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  stack: {
-    gap: spacing.lg,
-  },
   heading: {
     fontSize: 15,
     fontWeight: "600",

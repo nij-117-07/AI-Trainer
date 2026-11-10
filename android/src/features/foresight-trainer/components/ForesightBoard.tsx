@@ -1,50 +1,32 @@
 // src/features/foresight-trainer/components/ForesightBoard.tsx
 /**
- * The running Foresight scenario: the transcript, the current decision with its options, a custom
- * option, and the reasoning that the model will evaluate. Remounted for each scene.
+ * Scenario page body: the scene, the transcript, and the current decision's options with a custom
+ * option. The reasoning box and the commit button are in the footer (ForesightFooter).
  */
-import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Award, Flag, Timer } from "lucide-react-native";
 import { spacing, useThemeColors, radius } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { Panel, TextField } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
+import type { ForesightRunState } from "../hooks/useForesightRun";
+import { CUSTOM_CHOICE } from "../hooks/useForesightRun";
 import type { ChoiceOption, ForesightSession } from "../types";
 
 interface ForesightBoardProps {
   session: ForesightSession;
-  pending: boolean;
-  error: string | null;
-  onDecide: (choice: string, reasoning: string) => Promise<boolean>;
+  run: ForesightRunState;
 }
 
-const CUSTOM = "__custom__";
 const OPTION_LETTERS = ["A", "B", "C", "D", "E", "F"];
 
-export function ForesightBoard({ session, pending, error, onDecide }: ForesightBoardProps) {
+export function ForesightBoard({ session, run }: ForesightBoardProps) {
   const colors = useThemeColors();
-  const [selected, setSelected] = useState<string | null>(null);
-  const [customChoice, setCustomChoice] = useState("");
-  const [reasoning, setReasoning] = useState("");
-
   const complete = session.scenarioComplete;
-  const customSelected = selected === CUSTOM;
-  const choice = customSelected ? customChoice.trim() : (selected ?? "");
-  const canSubmit = choice.length > 0 && reasoning.trim().length > 0 && !pending;
+  const customSelected = run.selected === CUSTOM_CHOICE;
   const remaining = session.maxScenes - session.sceneNumber;
-
-  async function submit() {
-    if (!canSubmit) return;
-    const sent = await onDecide(choice, reasoning.trim());
-    if (sent) {
-      setReasoning("");
-      setCustomChoice("");
-      setSelected(null);
-    }
-  }
 
   return (
     <View style={styles.stack}>
@@ -98,17 +80,18 @@ export function ForesightBoard({ session, pending, error, onDecide }: ForesightB
                 key={`${option.id}-${index}`}
                 letter={OPTION_LETTERS[index] ?? String(index + 1)}
                 option={option}
-                selected={selected === option.id}
-                disabled={pending}
-                onPress={() => setSelected(option.id)}
+                selected={run.selected === option.id}
+                disabled={run.pending}
+                onPress={() => run.choose(option.id)}
               />
             ))}
           </View>
 
           <Pressable
-            onPress={() => setSelected(CUSTOM)}
-            disabled={pending}
+            onPress={() => run.choose(CUSTOM_CHOICE)}
+            disabled={run.pending}
             accessibilityRole="button"
+            accessibilityState={{ selected: customSelected }}
             style={[
               styles.custom,
               { borderColor: customSelected ? colors.primary : colors.border, backgroundColor: colors.card },
@@ -120,43 +103,25 @@ export function ForesightBoard({ session, pending, error, onDecide }: ForesightB
             <TextField
               label="Your own option"
               placeholder={session.customOptionPrompt || "Describe the action you would take."}
-              value={customChoice}
-              onChangeText={setCustomChoice}
-              editable={!pending}
+              value={run.customChoice}
+              onChangeText={run.setCustomChoice}
+              editable={!run.pending}
               maxLength={300}
               multiline
               voice
             />
           )}
 
-          <TextField
-            label="Your reasoning (the AI will evaluate this)"
-            placeholder="Walk through your trade-offs: who is affected, what could backfire, what are the second-order effects?"
-            value={reasoning}
-            onChangeText={setReasoning}
-            editable={!pending}
-            maxLength={2000}
-            multiline
-            voice
-          />
-
-          <ActionButton
-            label={pending ? "Weighing your decision…" : "Commit to this decision"}
-            icon={Flag}
-            loading={pending}
-            onPress={submit}
-          />
-          {!pending && !canSubmit && (
-            <Text style={[styles.meta, { color: colors.mutedForeground }]}>
-              Choose an option and explain your reasoning to continue.
-            </Text>
-          )}
-          {!pending && session.decisionHistory.length > 0 && (
+          <Text style={[styles.meta, { color: colors.mutedForeground }]}>
+            {run.choice === ""
+              ? "Choose an option. Then explain your reasoning and tap Commit at the bottom."
+              : "Explain your reasoning and tap Commit at the bottom to send your choice."}
+          </Text>
+          {remaining > 0 && session.decisionHistory.length > 0 && (
             <Text style={[styles.meta, { color: colors.mutedForeground }]}>
               {remaining} scene{remaining === 1 ? "" : "s"} remaining
             </Text>
           )}
-          <ErrorText message={error} />
         </Panel>
       )}
     </View>

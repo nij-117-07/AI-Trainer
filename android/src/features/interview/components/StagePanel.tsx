@@ -1,28 +1,24 @@
 // src/features/interview/components/StagePanel.tsx
-/** Shared frame for each interview stage: step badge, title, pending row, body, error and actions. */
+/** Shared frame for each interview stage: title, pending row, body and secondary actions. */
 import type { ReactNode } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { radius, spacing, useThemeColors, type Tone } from "@/theme";
-import { ErrorText, Panel } from "@/components/tool/FormControls";
+import { Panel } from "@/components/tool/FormControls";
 
 interface StagePanelProps {
-  step: string;
   label: string;
   hint?: string;
   isPending?: boolean;
   pendingLabel?: string;
-  error?: string | null;
   actions?: ReactNode;
   children?: ReactNode;
 }
 
 export function StagePanel({
-  step,
   label,
   hint,
   isPending = false,
   pendingLabel,
-  error,
   actions,
   children,
 }: StagePanelProps) {
@@ -30,7 +26,6 @@ export function StagePanel({
   return (
     <Panel>
       <View style={styles.titleRow}>
-        <StageBadge label={step} tone="sky" />
         <Text style={[styles.title, { color: colors.foreground }]}>{label}</Text>
       </View>
       {hint ? <Text style={[styles.hint, { color: colors.mutedForeground }]}>{hint}</Text> : null}
@@ -41,7 +36,6 @@ export function StagePanel({
         </View>
       ) : null}
       {children}
-      <ErrorText message={error ?? null} />
       {actions ? <View style={styles.actions}>{actions}</View> : null}
     </Panel>
   );

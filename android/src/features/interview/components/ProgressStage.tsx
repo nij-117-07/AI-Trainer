@@ -1,12 +1,14 @@
 // src/features/interview/components/ProgressStage.tsx
 /**
- * Step 5: the merged performance profile after the review. Gate: Next question, or Undo the merge.
+ * Step 5: the merged performance profile after the review. The footer holds Next question. The body
+ * holds Undo the merge.
  */
 import { StyleSheet, Text, View } from "react-native";
-import { StepForward, Undo2 } from "lucide-react-native";
+import { Undo2 } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton } from "@/components/tool/FormControls";
 import { TagList } from "@/components/tool/TagList";
+import type { InterviewPending } from "../hooks/useInterviewSession";
 import type { InterviewSessionState, PerformanceTrend } from "../types";
 import { BadgeRow, EmptyNote, StageBadge, StagePanel, SubHeading } from "./StagePanel";
 
@@ -18,31 +20,22 @@ const TREND_COPY: Record<PerformanceTrend, string> = {
 
 interface ProgressStageProps {
   state: InterviewSessionState;
-  isPending: boolean;
-  error: string | null;
-  onProceed: () => void;
+  pending: InterviewPending;
   onUndo: () => void;
 }
 
-export function ProgressStage({ state, isPending, error, onProceed, onUndo }: ProgressStageProps) {
+export function ProgressStage({ state, pending, onUndo }: ProgressStageProps) {
   const colors = useThemeColors();
   const profile = state.progressState;
   const answered = profile.questionsAnswered ?? 0;
 
   return (
     <StagePanel
-      step="Step 5"
       label="Performance profile updated"
       hint={TREND_COPY[state.performanceTrend]}
-      isPending={isPending}
+      isPending={pending === "progress"}
       pendingLabel="Updating your profile…"
-      error={error}
-      actions={
-        <>
-          <ActionButton label="Next question" icon={StepForward} loading={isPending} onPress={onProceed} />
-          <ActionButton label="Undo" icon={Undo2} variant="outline" onPress={onUndo} />
-        </>
-      }
+      actions={<ActionButton label="Undo" icon={Undo2} variant="outline" disabled={pending !== null} onPress={onUndo} />}
     >
       <View style={[styles.summary, { borderColor: colors.border, backgroundColor: colors.muted }]}>
         <View style={styles.stat}>

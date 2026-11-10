@@ -2,11 +2,10 @@
 /** Keeps the Vision Converter instruction and last Markdown on the device between visits. */
 import { useCallback, useEffect, useState } from "react";
 import { loadDocument, saveDocument } from "@/lib/document-store";
-import { DEFAULT_INSTRUCTION } from "../lib/validate";
 import { parseSavedState, VISION_STORAGE_KEY, type SavedVisionState } from "../lib/persistence";
 
 export function usePersistedVision() {
-  const [state, setState] = useState<SavedVisionState>({ instruction: DEFAULT_INSTRUCTION, markdownOutput: null });
+  const [state, setState] = useState<SavedVisionState>({ instruction: "", markdownOutput: null });
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -38,7 +37,7 @@ export function usePersistedVision() {
   }, []);
 
   const reset = useCallback(() => {
-    setState({ instruction: DEFAULT_INSTRUCTION, markdownOutput: null });
+    setState({ instruction: "", markdownOutput: null });
   }, []);
 
   return { ...state, setInstruction, setMarkdownOutput, reset };

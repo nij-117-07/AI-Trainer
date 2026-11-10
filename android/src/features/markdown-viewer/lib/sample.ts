@@ -1,5 +1,5 @@
 // src/features/markdown-viewer/lib/sample.ts
-/** Starter document shown on first open and by the Sample action. Uses only syntax the viewer renders. */
+/** Example document for the Load sample action. Uses only syntax the preview renders. */
 export const SAMPLE_MARKDOWN = [
   "# Markdown Viewer",
   "",

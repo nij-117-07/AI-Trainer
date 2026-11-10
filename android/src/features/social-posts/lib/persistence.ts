@@ -1,12 +1,15 @@
 // src/features/social-posts/lib/persistence.ts
-/** Storage key and saved-draft helper for the Social Media Post Generator. */
+/** Storage keys, defaults, and saved-form merge for the Social Media Post Generator. */
+import type { SocialPostFormValues } from "../types";
 
-export interface SavedSocialPostsState<TForm, TResult> {
-  form: TForm;
-  result: TResult | null;
-}
+export const SOCIAL_POSTS_FORM_KEY = "tools.social-posts.form.v2";
+export const SOCIAL_POSTS_RESULT_KEY = "tools.social-posts.result.v2";
 
-export const SOCIAL_POSTS_STORAGE_KEY = "tools.social-posts.generate.v1";
+export const SOCIAL_POSTS_DEFAULTS: SocialPostFormValues = {
+  platform: "LinkedIn",
+  userQuery: "",
+  numSuggestions: 3,
+};
 
 /**
  * Takes each saved field only when its type matches the default, so an old or damaged draft

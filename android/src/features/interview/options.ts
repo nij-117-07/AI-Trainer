@@ -56,17 +56,17 @@ export function optionValues(options: ChoiceOption[]): string[] {
 }
 
 export const DEFAULT_SETUP_FORM: InterviewSetupForm = {
-  candidateName: "Asha",
-  candidateExperience: "3 years building backend services",
-  candidateSkills: "Python, FastAPI, PostgreSQL, AWS",
-  positionRole: "Senior Backend Engineer",
+  candidateName: "",
+  candidateExperience: "",
+  candidateSkills: "",
+  positionRole: "",
   positionCompany: "",
-  positionSkills: "Python, AWS, Distributed systems",
+  positionSkills: "",
   positionLevel: "senior",
-  interviewerRole: "Tech Lead",
+  interviewerRole: "",
   interviewType: "technical",
   interviewRound: "technical round",
-  interviewFormat: "60 min live",
+  interviewFormat: "",
   maxQuestions: 8,
   durationMinutes: "60",
 };

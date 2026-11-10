@@ -1,4 +1,5 @@
 import { DEFAULT_SETUP_FORM } from "../options";
+import { SAMPLE_SETUP_FORM } from "./test-fixtures";
 import { mergeSavedSetup, restoreSession } from "./persistence";
 import { createSession } from "./session-model";
 import { validateSetup } from "./validate";
@@ -18,7 +19,7 @@ describe("mergeSavedSetup", () => {
 
 describe("restoreSession", () => {
   it("round-trips a saved session through JSON", () => {
-    const state = createSession(validateSetup(DEFAULT_SETUP_FORM), "2026-11-08T10:00:00.000Z");
+    const state = createSession(validateSetup(SAMPLE_SETUP_FORM), "2026-11-08T10:00:00.000Z");
     const restored = restoreSession(JSON.parse(JSON.stringify(state)));
     expect(restored).toEqual(state);
   });
@@ -26,6 +27,6 @@ describe("restoreSession", () => {
   it("returns null for data that is not a session", () => {
     expect(restoreSession(null)).toBeNull();
     expect(restoreSession({ stage: "decide" })).toBeNull();
-    expect(restoreSession({ ...createSession(validateSetup(DEFAULT_SETUP_FORM), "x"), stage: "dance" })).toBeNull();
+    expect(restoreSession({ ...createSession(validateSetup(SAMPLE_SETUP_FORM), "x"), stage: "dance" })).toBeNull();
   });
 });

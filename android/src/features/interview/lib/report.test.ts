@@ -1,4 +1,4 @@
-import { DEFAULT_SETUP_FORM } from "../options";
+import { SAMPLE_SETUP_FORM } from "./test-fixtures";
 import type { AnswerReview, InterviewSessionState, SessionHistoryEntry } from "../types";
 import { buildInterviewReport } from "./report";
 import { emptyProfile, createSession } from "./session-model";
@@ -31,7 +31,7 @@ function entry(question: string, overallScore: number): SessionHistoryEntry {
   };
 }
 
-const setup = validateSetup({ ...DEFAULT_SETUP_FORM, maxQuestions: 5 });
+const setup = validateSetup({ ...SAMPLE_SETUP_FORM, maxQuestions: 5 });
 
 describe("buildInterviewReport", () => {
   it("falls back to the average of the reviews when the profile has no overall score", () => {
