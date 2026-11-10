@@ -1,11 +1,8 @@
 // src/features/subtopic-lister/types.ts
 
-export type SubtopicLevel = "beginner" | "intermediate" | "advanced";
-
-export interface SubtopicFormValues {
-  topic: string;
-  level: SubtopicLevel;
-  count: number;
+export interface LearnedTopic {
+  subject: string;
+  items: string[];
 }
 
 export interface Subtopic {
@@ -14,6 +11,5 @@ export interface Subtopic {
 }
 
 export interface SubtopicResult {
-  topic: string;
   subtopics: Subtopic[];
 }

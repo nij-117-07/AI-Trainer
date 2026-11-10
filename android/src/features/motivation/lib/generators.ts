@@ -9,27 +9,43 @@ import type { AiSettings } from "@/features/ai-settings/types";
 import { createLlm } from "@/features/ai-settings/lib/llm";
 import { listOf, localDateString, optionalText, requireText, textOf } from "./normalise";
 import { motivationalQuoteSignature, reflectionPromptSignature } from "./signatures";
-import { isQuoteType, type QuoteFormValues, type QuoteResult, type ReflectionFormValues, type ReflectionResult } from "./types";
+import {
+  QUOTE_TYPES,
+  isQuoteStyleChoice,
+  isQuoteType,
+  type QuoteFormValues,
+  type QuoteResult,
+  type QuoteType,
+  type ReflectionFormValues,
+  type ReflectionResult,
+} from "./types";
 
 const TEMPERATURE = 0.5;
 const NO_PATTERNS = "No specific patterns recorded.";
+const NO_FEELING = "The user did not describe a feeling. Write a quote that suits someone who wants daily motivation.";
 
 function randomSeed(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function resolveQuoteType(choice: unknown): QuoteType {
+  if (!isQuoteStyleChoice(choice)) throw new Error("Choose a quote style.");
+  if (isQuoteType(choice)) return choice;
+  return QUOTE_TYPES[Math.floor(Math.random() * QUOTE_TYPES.length)];
+}
+
 export async function generateQuote(settings: AiSettings, values: QuoteFormValues): Promise<QuoteResult> {
   const llm = createLlm(settings);
-  if (!isQuoteType(values.quoteType)) throw new Error("Choose a quote style.");
+  const quoteType = resolveQuoteType(values.quoteType);
   const currentDate = localDateString();
   const result = await ax(motivationalQuoteSignature).forward(
     llm,
     {
       randomSeed: randomSeed(),
-      seedTopic: requireText(values.seedTopic, "Seed topic", 200),
+      seedTopic: optionalText(values.seedTopic, 200) ?? globalThis.crypto.randomUUID(),
       currentDate,
-      quoteType: values.quoteType,
-      userFeeling: requireText(values.userFeeling, "How you feel", 500),
+      quoteType,
+      userFeeling: optionalText(values.userFeeling, 500) ?? NO_FEELING,
     },
     { modelConfig: { temperature: TEMPERATURE } },
   );

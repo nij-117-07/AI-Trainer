@@ -8,10 +8,9 @@ function toSubtopic(raw: unknown): Subtopic {
   return { name: textOf(item.name), description: textOf(item.description) };
 }
 
-export function toSubtopicResult(topic: string, raw: unknown): SubtopicResult {
+export function toSubtopicResult(raw: unknown): SubtopicResult {
   const record = asRecord(raw);
   return {
-    topic,
     subtopics: listOf(record.subtopics as unknown[]).map(toSubtopic).filter((item) => item.name.trim() !== ""),
   };
 }

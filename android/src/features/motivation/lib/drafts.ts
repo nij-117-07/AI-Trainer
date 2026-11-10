@@ -5,7 +5,7 @@
  */
 import { isRecord, listOf, stringOr, textOf } from "./normalise";
 import {
-  isQuoteType,
+  isQuoteStyleChoice,
   type QuoteFormValues,
   type QuoteResult,
   type ReflectionFormValues,
@@ -16,9 +16,9 @@ export const QUOTE_DRAFT_KEY = "learning.motivation.quote.v1";
 export const REFLECTION_DRAFT_KEY = "learning.motivation.reflect.v1";
 
 export const QUOTE_DEFAULTS: QuoteFormValues = {
-  seedTopic: "Resilience",
-  quoteType: "stoic",
-  userFeeling: "I feel overwhelmed by a big deadline.",
+  seedTopic: "",
+  quoteType: "random",
+  userFeeling: "",
 };
 
 export const REFLECTION_DEFAULTS: ReflectionFormValues = {
@@ -38,7 +38,7 @@ export function restoreQuoteDraft(raw: unknown): Draft<QuoteFormValues, QuoteRes
   return {
     form: {
       seedTopic: stringOr(form.seedTopic, QUOTE_DEFAULTS.seedTopic),
-      quoteType: isQuoteType(form.quoteType) ? form.quoteType : QUOTE_DEFAULTS.quoteType,
+      quoteType: isQuoteStyleChoice(form.quoteType) ? form.quoteType : QUOTE_DEFAULTS.quoteType,
       userFeeling: stringOr(form.userFeeling, QUOTE_DEFAULTS.userFeeling),
     },
     result: readQuoteResult(record.result),

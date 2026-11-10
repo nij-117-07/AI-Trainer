@@ -1,91 +1,77 @@
-/** Subtopic Lister: break a topic into ordered subtopics for a chosen level. */
-import { useState } from "react";
+// src/features/subtopic-lister/components/SubtopicListerTab.tsx
+/** Subtopic Lister body: what the learner has finished at the top, suggested next subtopics below. */
 import { StyleSheet, Text, View } from "react-native";
-import { ListTree, RefreshCcw } from "lucide-react-native";
+import { BookOpen, ListTree, Sparkles } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
-import { SelectField } from "@/components/tool/SelectField";
-import { CountSlider } from "@/components/tool/CountSlider";
+import { ActionButton, ErrorText, Panel } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
-import { useRequest } from "@/hooks/useRequest";
-import { listSubtopics } from "../lib/generators";
-import { DEFAULT_COUNT, MAX_COUNT, MIN_COUNT, TOPIC_MAX } from "../lib/validate";
-import { subtopicLevelOptions } from "../options";
-import type { Subtopic, SubtopicFormValues } from "../types";
+import { TagList } from "@/components/tool/TagList";
+import type { SubtopicListerState } from "../hooks/useSubtopicLister";
+import type { LearnedTopic, Subtopic } from "../types";
 
-const DEFAULTS: SubtopicFormValues = {
-  topic: "",
-  level: "beginner",
-  count: DEFAULT_COUNT,
-};
-
-export function SubtopicListerTab() {
-  const colors = useThemeColors();
-  const { settings } = useAiSettings();
-  const request = useRequest(listSubtopics);
-  const [form, setForm] = useState<SubtopicFormValues>(DEFAULTS);
-
-  const update = <K extends keyof SubtopicFormValues>(key: K, value: SubtopicFormValues[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  function reset() {
-    setForm(DEFAULTS);
-    request.reset();
-  }
-
-  const result = request.data;
+export function SubtopicListerTab({ lister }: { lister: SubtopicListerState }) {
+  const { learned, result } = lister;
 
   return (
     <Section>
-      <Panel>
-        <TextField
-          label="Topic"
-          placeholder="e.g. Machine learning"
-          value={form.topic}
-          onChangeText={(text) => update("topic", text)}
-          editable={!request.pending}
-          maxLength={TOPIC_MAX}
-        />
-        <SelectField
-          label="Level"
-          options={subtopicLevelOptions}
-          value={form.level}
-          onChange={(value) => update("level", value as SubtopicFormValues["level"])}
-          allowCustom={false}
-        />
-        <CountSlider
-          label="Number of subtopics"
-          min={MIN_COUNT}
-          max={MAX_COUNT}
-          value={form.count}
-          onChange={(value) => update("count", value)}
-        />
-        <ActionButton
-          label={request.pending ? "Listing subtopics…" : "List subtopics"}
-          icon={ListTree}
-          loading={request.pending}
-          onPress={() => request.run(settings, form)}
-        />
-      </Panel>
+      <LearnedPanel learned={learned} />
 
-      <ErrorText message={request.error} />
-
-      {result && (
+      {result ? (
         <>
-          <SectionTitle icon={ListTree} title={`Subtopics of ${result.topic}`} />
+          <SectionTitle icon={ListTree} title="Suggested next subtopics" />
           {result.subtopics.length === 0 ? (
-            <Text style={[styles.empty, { color: colors.mutedForeground }]}>No subtopics returned.</Text>
+            <Text style={styles.empty}>No subtopics returned. Try again.</Text>
           ) : (
             result.subtopics.map((item, index) => <SubtopicCard key={`${item.name}-${index}`} item={item} index={index} />)
           )}
         </>
+      ) : (
+        <EmptyHint
+          icon={ListTree}
+          title="Your next subtopics"
+          hint="Tap Suggest next subtopics below. The AI picks what to study next from what you have finished."
+        />
       )}
-
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={reset} />
     </Section>
+  );
+}
+
+export function SubtopicFooter({ lister }: { lister: SubtopicListerState }) {
+  return (
+    <View style={styles.footer}>
+      <ErrorText message={lister.error} />
+      <ActionButton
+        label={lister.pending ? "Finding subtopics…" : "Suggest next subtopics"}
+        icon={Sparkles}
+        loading={lister.pending}
+        onPress={lister.suggest}
+      />
+    </View>
+  );
+}
+
+function LearnedPanel({ learned }: { learned: LearnedTopic[] | null }) {
+  const colors = useThemeColors();
+  if (learned === null) return null;
+
+  return (
+    <Panel>
+      <SectionTitle icon={BookOpen} title="What you've learned" />
+      {learned.length === 0 ? (
+        <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+          Nothing is marked as done yet. Tick off items in your roadmaps and they will appear here.
+        </Text>
+      ) : (
+        learned.map((topic) => (
+          <View key={topic.subject} style={styles.topic}>
+            <Text style={[styles.subject, { color: colors.foreground }]}>{topic.subject}</Text>
+            <TagList items={topic.items} />
+          </View>
+        ))
+      )}
+    </Panel>
   );
 }
 
@@ -107,6 +93,10 @@ function SubtopicCard({ item, index }: { item: Subtopic; index: number }) {
 }
 
 const styles = StyleSheet.create({
+  footer: { gap: spacing.md },
+  topic: { gap: spacing.sm },
+  subject: { fontSize: 15, fontWeight: "600" },
+  hint: { fontSize: 14, lineHeight: 20 },
   empty: { fontSize: 14, textAlign: "center", paddingVertical: spacing.md },
   cardHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   badge: { width: 28, height: 28, borderRadius: radius.full / 2, alignItems: "center", justifyContent: "center" },

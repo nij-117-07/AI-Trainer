@@ -1,25 +1,22 @@
 // src/features/subtopic-lister/lib/generators.ts
-/** Subtopic Lister generator. Validates the form, calls the model from the saved AI settings, and returns a normalised result. */
+/** Subtopic Lister generator. Sends the learner's completed items to the model and returns the suggested next subtopics. */
 import { ax } from "@ax-llm/ax";
 import type { AiSettings } from "@/features/ai-settings/types";
 import { createLlm } from "@/features/ai-settings/lib/llm";
-import type { SubtopicFormValues, SubtopicResult } from "../types";
-import { subtopicListerSignature } from "./signatures";
+import type { LearnedTopic, SubtopicResult } from "../types";
+import { formatLearned } from "./learned";
 import { toSubtopicResult } from "./normalise";
-import { clampCount, requireText, TOPIC_MAX } from "./validate";
+import { subtopicListerSignature } from "./signatures";
 
-const TEMPERATURE = 0.4;
+const TEMPERATURE = 0.7;
+const NOTHING_LEARNED = "Nothing yet";
 
-export async function listSubtopics(settings: AiSettings, values: SubtopicFormValues): Promise<SubtopicResult> {
-  const topic = requireText(values.topic, "Topic", TOPIC_MAX);
-  const input = {
-    topic,
-    level: values.level,
-    count: clampCount(values.count),
-  };
+export async function suggestSubtopics(settings: AiSettings, learned: LearnedTopic[]): Promise<SubtopicResult> {
   const llm = createLlm(settings);
-  const result = await ax(subtopicListerSignature).forward(llm, input, {
-    modelConfig: { temperature: TEMPERATURE },
-  });
-  return toSubtopicResult(topic, result);
+  const result = await ax(subtopicListerSignature).forward(
+    llm,
+    { learnedTopics: formatLearned(learned) || NOTHING_LEARNED },
+    { modelConfig: { temperature: TEMPERATURE } },
+  );
+  return toSubtopicResult(result);
 }

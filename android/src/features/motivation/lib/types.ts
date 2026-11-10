@@ -8,9 +8,17 @@ export function isQuoteType(value: unknown): value is QuoteType {
   return typeof value === "string" && (QUOTE_TYPES as readonly string[]).includes(value);
 }
 
+export const RANDOM_QUOTE_STYLE = "random";
+
+export type QuoteStyleChoice = QuoteType | typeof RANDOM_QUOTE_STYLE;
+
+export function isQuoteStyleChoice(value: unknown): value is QuoteStyleChoice {
+  return value === RANDOM_QUOTE_STYLE || isQuoteType(value);
+}
+
 export interface QuoteFormValues {
   seedTopic: string;
-  quoteType: QuoteType;
+  quoteType: QuoteStyleChoice;
   userFeeling: string;
 }
 

@@ -219,7 +219,7 @@ export const APPS: AppCard[] = [
   {
     key: "subtopic-lister",
     title: "Subtopic Lister",
-    description: "Break any topic into ordered subtopics for your level.",
+    description: "Suggest your next subtopics from what you have learned.",
     route: "/learning/subtopic-lister",
     icon: ListTree,
     group: "learning",
