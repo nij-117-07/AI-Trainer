@@ -1,29 +1,25 @@
-// src/features/socratic/hooks/useSocraticChat.ts
 /**
- * Socratic Challenger state: the discussion, the focus and confidence, the unsent draft, and the
- * two model calls (challenge turn and wrap-up). The discussion and settings are kept on the device.
+ * Socratic Challenger chat state: the discussion, the unsent draft, and the two model calls
+ * (challenge turn and wrap-up). The discussion is kept on the device. Focus and confidence come
+ * from the settings page.
  */
 import { useEffect, useRef, useState } from "react";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "@/hooks/useRequest";
-import { DEFAULT_CONFIDENCE, DEFAULT_FOCUS, HISTORY_LIMIT } from "../options";
+import { HISTORY_LIMIT } from "../options";
 import { challengeStatement, synthesizeDiscussion } from "../lib/generators";
-import { sanitizeConfidence, sanitizeFocus, sanitizeMessages } from "../lib/normalize";
+import { sanitizeMessages } from "../lib/normalize";
+import { SOCRATIC_STORAGE_KEYS } from "../lib/persistence";
 import { formatChallenge, formatSynthesis, toHistory } from "../lib/transcript";
-import type { ChatMessage, SocraticFocus } from "../types";
+import type { ChatMessage } from "../types";
 import { usePersistedDocument } from "./usePersistedDocument";
-
-export const SOCRATIC_STORAGE_KEYS = {
-  messages: "practice.socratic.messages.v1",
-  confidence: "practice.socratic.confidence.v1",
-  focus: "practice.socratic.focus.v1",
-} as const;
+import { useSocraticSettings } from "./useSocraticSettings";
 
 export function useSocraticChat() {
   const { settings } = useAiSettings();
+  const socraticSettings = useSocraticSettings();
+  const { focus, confidence } = socraticSettings;
   const messages = usePersistedDocument<ChatMessage[]>(SOCRATIC_STORAGE_KEYS.messages, [], sanitizeMessages);
-  const confidence = usePersistedDocument<string>(SOCRATIC_STORAGE_KEYS.confidence, DEFAULT_CONFIDENCE, sanitizeConfidence);
-  const focus = usePersistedDocument<SocraticFocus>(SOCRATIC_STORAGE_KEYS.focus, DEFAULT_FOCUS, sanitizeFocus);
   const [draft, setDraft] = useState("");
   const challenge = useRequest(challengeStatement);
   const synthesis = useRequest(synthesizeDiscussion);
@@ -54,8 +50,8 @@ export function useSocraticChat() {
       {
         statement: text,
         history: toHistory(next.slice(-HISTORY_LIMIT)),
-        confidence: confidence.value,
-        focus: focus.value,
+        confidence,
+        focus,
       },
       signal,
     );
@@ -74,14 +70,14 @@ export function useSocraticChat() {
     const signal = startRequest();
     const result = await synthesis.run(
       settings,
-      { history: toHistory(messages.value.slice(-HISTORY_LIMIT)), confidence: confidence.value },
+      { history: toHistory(messages.value.slice(-HISTORY_LIMIT)), confidence },
       signal,
     );
     if (!result || signal.aborted) return;
     messages.setValue((current) => [...current, { role: "assistant", content: formatSynthesis(result), kind: "summary" }]);
   }
 
-  /** Starts a new discussion. The focus and confidence the user chose are kept. */
+  /** Starts a new discussion. The focus and confidence from the settings page are kept. */
   function reset() {
     activeRequest.current?.abort();
     activeRequest.current = null;
@@ -95,10 +91,9 @@ export function useSocraticChat() {
     messages: messages.value,
     draft,
     setDraft,
-    confidence: confidence.value,
-    setConfidence: confidence.setValue,
-    focus: focus.value,
-    setFocus: focus.setValue,
+    focus,
+    confidence,
+    settingsLoaded: socraticSettings.loaded,
     pending,
     challengePending: challenge.pending,
     synthesisPending: synthesis.pending,
@@ -109,3 +104,5 @@ export function useSocraticChat() {
     reset,
   };
 }
+
+export type SocraticChatState = ReturnType<typeof useSocraticChat>;

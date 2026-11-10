@@ -32,14 +32,14 @@ describe("requireOption", () => {
 
 describe("resolveCategory", () => {
   it("returns a preset category as is", () => {
-    expect(resolveCategory({ category: "movie", customCategory: "" })).toBe("movie");
+    expect(resolveCategory({ category: "movie" })).toBe("movie");
   });
 
-  it("returns the trimmed custom text when Other is picked", () => {
-    expect(resolveCategory({ category: "other", customCategory: "  Board games " })).toBe("Board games");
+  it("returns the trimmed custom text", () => {
+    expect(resolveCategory({ category: "  Board games " })).toBe("Board games");
   });
 
-  it("requires custom text when Other is picked", () => {
-    expect(() => resolveCategory({ category: "other", customCategory: "   " })).toThrow("Custom category is required.");
+  it("requires a category", () => {
+    expect(() => resolveCategory({ category: "   " })).toThrow("Category is required.");
   });
 });

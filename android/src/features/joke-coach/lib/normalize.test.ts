@@ -1,12 +1,5 @@
 // src/features/joke-coach/lib/normalize.test.ts
-import {
-  normalizeClassification,
-  normalizeCrowd,
-  normalizeEvaluation,
-  normalizeGeneratedJoke,
-  normalizePracticeSession,
-  normalizeScenario,
-} from "./normalize";
+import { normalizeEvaluation, normalizeGeneratedJoke, normalizeScenario } from "./normalize";
 import { pickOption, scoreOf, textList, wholeOf } from "./text";
 
 describe("normalizeScenario", () => {
@@ -56,30 +49,6 @@ describe("normalizeGeneratedJoke", () => {
     expect(normalizeGeneratedJoke({ difficultyRating: 9 }).difficultyRating).toBe(5);
     expect(normalizeGeneratedJoke({ difficultyRating: 0 }).difficultyRating).toBe(1);
     expect(normalizeGeneratedJoke({}).difficultyRating).toBe(3);
-  });
-});
-
-describe("normalizeClassification", () => {
-  it("uses the backend defaults for unknown enum values", () => {
-    const result = normalizeClassification({ style: "haiku", humorMechanism: "magic", practiceCategory: "pro" });
-    expect(result.style).toBe("observational");
-    expect(result.humorMechanism).toBe("wordplay");
-    expect(result.practiceCategory).toBe("beginner");
-  });
-});
-
-describe("normalizePracticeSession", () => {
-  it("returns null for a blank practice joke", () => {
-    expect(normalizePracticeSession({ practiceJoke: "   " }).practiceJoke).toBeNull();
-  });
-});
-
-describe("normalizeCrowd", () => {
-  it("defaults the reaction to chuckles and the probability to 0.5", () => {
-    const result = normalizeCrowd({ predictedResponse: "wild", laughProbability: 4 });
-    expect(result.predictedResponse).toBe("chuckles");
-    expect(result.laughProbability).toBe(1);
-    expect(normalizeCrowd({}).laughProbability).toBe(0.5);
   });
 });
 

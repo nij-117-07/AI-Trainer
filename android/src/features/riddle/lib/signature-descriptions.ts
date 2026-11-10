@@ -1,8 +1,9 @@
 // src/features/riddle/lib/signature-descriptions.ts
 /**
- * Instructions and field descriptions for the Ax signatures. The text is copied from the DSPy
- * signatures in Backend/practice/riddle/services.py, so both stacks give the model the same
- * guidance. Keys use the Ax field names; the matching DSPy field is noted beside each key.
+ * Instructions and field descriptions for the Ax signatures. The text starts from the DSPy
+ * signatures in Backend/practice/riddle/services.py. The domain and difficulty descriptions, and
+ * the user_instructions input, are Android-only: custom choices and extra instructions are
+ * allowed here. Keys use the Ax field names; the matching DSPy field is noted beside each key.
  */
 
 export const ADAPTIVE_RIDDLE_DESCRIPTIONS = {
@@ -12,9 +13,14 @@ export const ADAPTIVE_RIDDLE_DESCRIPTIONS = {
     // field_of_interest
     fieldOfInterest: "The topic (e.g. Space, History).",
     // target_domain
-    targetDomain: "Cognitive domain. One of: verbal, mathematical, spatial, lateral.",
+    targetDomain:
+      "Cognitive domain, such as verbal, mathematical, spatial, or lateral. Other domains the user names are also valid.",
     // difficulty_level
-    difficultyLevel: "Difficulty tier. One of: novice, intermediate, expert, genius.",
+    difficultyLevel:
+      "Difficulty tier, such as novice, intermediate, expert, or genius. Other levels the user names are also valid.",
+    // user_instructions
+    userInstructions:
+      "Optional extra instructions from the user, such as style, length, or constraints. Follow them when they do not conflict with the riddle rules.",
     // seed
     seed: "A random seed for variety.",
   },

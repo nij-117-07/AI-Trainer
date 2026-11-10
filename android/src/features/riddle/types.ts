@@ -4,6 +4,7 @@ export interface RiddleFormValues {
   fieldOfInterest: string;
   targetDomain: string;
   difficultyLevel: string;
+  userInstructions: string;
 }
 
 export interface RiddleContent {

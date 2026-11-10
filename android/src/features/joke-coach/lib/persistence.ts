@@ -1,45 +1,66 @@
 // src/features/joke-coach/lib/persistence.ts
-/** Storage keys and saved-draft helpers for the Joke Coach modes. */
-import { DEFAULT_LAB_STATE } from "../options";
-import type { JokeLabAttempt, JokeLabExtra, JokeLabState, JokeScenario } from "../types";
-import { isRecord } from "./text";
+/**
+ * Storage keys and saved-value readers for the Joke Lab. The form and the round use separate keys,
+ * so the setup page and the game page never overwrite each other.
+ */
+import { DEFAULT_IMPROVEMENT_GOAL, DEFAULT_JOKE_STYLE, DEFAULT_LAB_FORM, IMPROVEMENT_GOALS, JOKE_STYLES } from "../options";
+import type { JokeLabAttempt, JokeLabExtra, JokeLabForm, JokeLabRound, JokeScenario } from "../types";
+import { asRecord, normalizeEvaluation, normalizeGeneratedJoke, normalizeRewrite } from "./normalize";
+import { isRecord, pickOption, textOf } from "./text";
+import { JOKE_MAX, LANGUAGE_MAX, THEME_MAX } from "./validate";
 
-export interface SavedModeState<TForm, TResult> {
-  form: TForm;
-  result: TResult | null;
-}
+export const JOKE_LAB_FORM_KEY = "practice.joke-coach.lab.form.v1";
+export const JOKE_LAB_ROUND_KEY = "practice.joke-coach.lab.round.v1";
 
-export const JOKE_LAB_STORAGE_KEY = "practice.joke-coach.lab.v1";
-
-export const JOKE_COACH_STORAGE_KEYS = {
-  classify: "practice.joke-coach.classify.v1",
-  practice: "practice.joke-coach.practice.v1",
-  crowd: "practice.joke-coach.crowd.v1",
-} as const;
-
-/** Reads the saved Joke Lab. Each field falls back to its default when the saved value is damaged. */
-export function parseSavedLab(saved: unknown): JokeLabState {
-  if (!isRecord(saved)) return DEFAULT_LAB_STATE;
-  const text = (value: unknown, fallback: string) => (typeof value === "string" ? value : fallback);
+/** Takes each saved field that is usable, and falls back to the default for the rest. */
+export function parseSavedForm(saved: unknown): JokeLabForm {
+  if (!isRecord(saved)) return DEFAULT_LAB_FORM;
   return {
-    language: text(saved.language, DEFAULT_LAB_STATE.language),
-    theme: text(saved.theme, DEFAULT_LAB_STATE.theme),
-    jokeStyle: text(saved.jokeStyle, DEFAULT_LAB_STATE.jokeStyle),
-    improvementGoal: text(saved.improvementGoal, DEFAULT_LAB_STATE.improvementGoal),
-    scenario: isRecord(saved.scenario) ? (saved.scenario as unknown as JokeScenario) : null,
-    draft: text(saved.draft, ""),
-    attempts: Array.isArray(saved.attempts) ? (saved.attempts.filter(isRecord) as unknown as JokeLabAttempt[]) : [],
-    extra: isRecord(saved.extra) ? (saved.extra as unknown as JokeLabExtra) : null,
+    language: textOf(saved.language).slice(0, LANGUAGE_MAX) || DEFAULT_LAB_FORM.language,
+    theme: textOf(saved.theme).slice(0, THEME_MAX),
   };
 }
 
-/** Takes each saved field only when its type matches the default, so a damaged draft falls back per field. */
-export function mergeSavedForm<T extends object>(defaults: T, saved: unknown): T {
-  if (!isRecord(saved)) return defaults;
-  const merged = { ...defaults };
-  for (const key of Object.keys(defaults) as (keyof T & string)[]) {
-    const value = saved[key];
-    if (typeof value === typeof defaults[key]) merged[key] = value as T[typeof key];
+function readScenario(value: unknown): JokeScenario | null {
+  if (!isRecord(value) || !textOf(value.situation)) return null;
+  return {
+    title: textOf(value.title) || "Untitled scenario",
+    situation: textOf(value.situation),
+    audience: textOf(value.audience) || "general audience",
+  };
+}
+
+function readAttempts(value: unknown): JokeLabAttempt[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(isRecord).flatMap((attempt) => {
+    const joke = textOf(attempt.joke);
+    return joke ? [{ joke, evaluation: normalizeEvaluation(asRecord(attempt.evaluation)) }] : [];
+  });
+}
+
+function readExtra(value: unknown): JokeLabExtra | null {
+  if (!isRecord(value)) return null;
+  if (value.kind === "joke" && isRecord(value.joke)) {
+    return { kind: "joke", joke: normalizeGeneratedJoke(value.joke) };
   }
-  return merged;
+  if (value.kind === "improved" && isRecord(value.rewrite)) {
+    return { kind: "improved", source: textOf(value.source), rewrite: normalizeRewrite(value.rewrite) };
+  }
+  return null;
+}
+
+/** Reads the saved round. A round with no usable scenario counts as no round. */
+export function readRound(saved: unknown): JokeLabRound | null {
+  if (!isRecord(saved)) return null;
+  const scenario = readScenario(saved.scenario);
+  if (!scenario) return null;
+  return {
+    language: textOf(saved.language).slice(0, LANGUAGE_MAX) || DEFAULT_LAB_FORM.language,
+    scenario,
+    draft: typeof saved.draft === "string" ? saved.draft.slice(0, JOKE_MAX) : "",
+    attempts: readAttempts(saved.attempts),
+    extra: readExtra(saved.extra),
+    jokeStyle: pickOption(saved.jokeStyle, JOKE_STYLES, DEFAULT_JOKE_STYLE),
+    improvementGoal: pickOption(saved.improvementGoal, IMPROVEMENT_GOALS, DEFAULT_IMPROVEMENT_GOAL),
+  };
 }

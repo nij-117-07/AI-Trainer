@@ -8,67 +8,51 @@ import {
 } from "./session-model";
 
 const setup = { mysteryItem: "Lighthouse", funFact: "Built in 1842.", firstHint: "Seven letters.", maxGuesses: 2 };
+const wrong = { correct: false, feedback: "Not quite.", closeness: 0.2, suggestion: "Think coastal." };
+const right = { correct: true, feedback: "Spot on.", closeness: 1, suggestion: "" };
 
 describe("startSession", () => {
-  it("starts unsolved with the first hint in the log", () => {
+  it("starts unsolved with the first hint and no attempts", () => {
     const session = startSession(setup, "word", "easy");
-    expect(session.hints).toEqual(["Seven letters."]);
-    expect(session.guesses).toEqual([]);
+    expect(session.hints).toEqual([{ hint: "Seven letters.", encouragement: "" }]);
+    expect(session.attempts).toEqual([]);
     expect(session.solved).toBe(false);
-    expect(session.log[0].content).toContain("**First hint:** Seven letters.");
+    expect(session.coaching).toBeNull();
   });
 });
 
 describe("recordGuess", () => {
-  it("marks the game solved and reveals the answer on a correct guess", () => {
-    const next = recordGuess(startSession(setup, "word", "easy"), "lighthouse", {
-      correct: true,
-      feedback: "Spot on.",
-      closeness: 1,
-      suggestion: "",
-    });
+  it("marks the game solved on a correct guess", () => {
+    const next = recordGuess(startSession(setup, "word", "easy"), "lighthouse", right);
     expect(next.solved).toBe(true);
-    expect(next.guesses).toEqual(["lighthouse"]);
-    expect(next.log.slice(-2)[1].content).toContain("**Correct!** The answer was **Lighthouse**.");
+    expect(next.attempts).toEqual([{ guess: "lighthouse", result: right }]);
   });
 
-  it("keeps the game open and nudges on a wrong guess", () => {
-    const next = recordGuess(startSession(setup, "word", "easy"), "castle", {
-      correct: false,
-      feedback: "Not quite.",
-      closeness: 0.2,
-      suggestion: "Think coastal.",
-    });
+  it("keeps the game open on a wrong guess", () => {
+    const next = recordGuess(startSession(setup, "word", "easy"), "castle", wrong);
     expect(next.solved).toBe(false);
-    expect(next.log.slice(-1)[0].content).toBe("Not quite.\n\n*Nudge: Think coastal.*");
+    expect(next.attempts).toEqual([{ guess: "castle", result: wrong }]);
   });
 });
 
 describe("recordHint and recordCoaching", () => {
-  it("numbers the new hint by the count of hints shown", () => {
+  it("appends the new hint with its encouragement", () => {
     const next = recordHint(startSession(setup, "word", "easy"), { hint: "Coastal.", encouragement: "Keep going." });
-    expect(next.hints).toEqual(["Seven letters.", "Coastal."]);
-    expect(next.log.slice(-1)[0].content).toBe("**Hint 2:** Coastal.\n\nKeep going.");
+    expect(next.hints).toEqual([
+      { hint: "Seven letters.", encouragement: "" },
+      { hint: "Coastal.", encouragement: "Keep going." },
+    ]);
   });
 
-  it("adds the partial reveal only when one was given", () => {
-    const base = startSession(setup, "word", "easy");
-    const withReveal = recordCoaching(base, {
-      coaching: "Stay calm.",
-      framework: "Think of buildings.",
-      partialReveal: "Starts with L.",
-      shouldHint: false,
-    });
-    expect(withReveal.log.slice(-1)[0].content).toContain("**Partial reveal:** Starts with L.");
-    const without = recordCoaching(base, { coaching: "Stay calm.", framework: "Think.", partialReveal: null, shouldHint: false });
-    expect(without.log.slice(-1)[0].content).not.toContain("Partial reveal");
+  it("keeps the latest coaching result", () => {
+    const coaching = { coaching: "Stay calm.", framework: "Think of buildings.", partialReveal: "Starts with L.", shouldHint: false };
+    expect(recordCoaching(startSession(setup, "word", "easy"), coaching).coaching).toEqual(coaching);
   });
 });
 
 describe("guessesLeft", () => {
   it("never goes below zero", () => {
     let session = startSession(setup, "word", "easy");
-    const wrong = { correct: false, feedback: "", closeness: 0, suggestion: "" };
     session = recordGuess(session, "a", wrong);
     session = recordGuess(session, "b", wrong);
     session = recordGuess(session, "c", wrong);
@@ -78,7 +62,10 @@ describe("guessesLeft", () => {
 
 describe("parseSavedSession", () => {
   it("accepts a well-formed saved game", () => {
-    const session = startSession(setup, "movie", "hard");
+    let session = startSession(setup, "movie", "hard");
+    session = recordGuess(session, "Jaws", wrong);
+    session = recordHint(session, { hint: "Water.", encouragement: "Good." });
+    session = recordCoaching(session, { coaching: "Calm.", framework: "Genres.", partialReveal: null, shouldHint: true });
     expect(parseSavedSession(JSON.parse(JSON.stringify(session)))).toEqual(session);
   });
 
@@ -88,8 +75,10 @@ describe("parseSavedSession", () => {
   });
 
   it("rejects damaged or missing data", () => {
+    const base = startSession(setup, "word", "easy");
     expect(parseSavedSession(null)).toBeNull();
-    expect(parseSavedSession({ ...startSession(setup, "word", "easy"), category: "   " })).toBeNull();
-    expect(parseSavedSession({ ...startSession(setup, "word", "easy"), log: [{ role: "bot", content: "x" }] })).toBeNull();
+    expect(parseSavedSession({ ...base, category: "   " })).toBeNull();
+    expect(parseSavedSession({ ...base, attempts: [{ guess: "x" }] })).toBeNull();
+    expect(parseSavedSession({ ...base, hints: [{ hint: 3, encouragement: "" }] })).toBeNull();
   });
 });

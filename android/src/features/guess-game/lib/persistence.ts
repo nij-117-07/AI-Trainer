@@ -1,10 +1,10 @@
 // src/features/guess-game/lib/persistence.ts
-/** Device storage keys and the saved-draft merge for the Guess Game setup form. */
+/** Device storage keys and the saved-draft merge for the Guess Game. The form and the game use separate keys. */
 import { isRecord } from "./guard";
 
 export const GUESS_GAME_KEYS = {
-  form: "practice.guess-game.form.v1",
-  session: "practice.guess-game.session.v1",
+  form: "practice.guess-game.form.v2",
+  session: "practice.guess-game.session.v2",
 } as const;
 
 /** Takes each saved field only when its type matches the default, so a damaged draft falls back. */

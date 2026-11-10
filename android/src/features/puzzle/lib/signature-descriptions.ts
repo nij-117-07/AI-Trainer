@@ -1,8 +1,9 @@
 // src/features/puzzle/lib/signature-descriptions.ts
 /**
- * Instructions and field descriptions for the Ax signatures. The text is copied from the DSPy
- * signatures in Backend/practice/puzzle/services.py, so both stacks give the model the same
- * guidance. Keys use the Ax field names; the matching DSPy field is noted beside each key.
+ * Instructions and field descriptions for the Ax signatures. The text starts from the DSPy
+ * signatures in Backend/practice/puzzle/services.py. The choice descriptions and the
+ * user_instructions input are Android-only: custom choices and extra instructions are allowed here.
+ * Keys use the Ax field names; the matching DSPy field is noted beside each key.
  */
 
 export const ADAPTIVE_PUZZLE_DESCRIPTIONS = {
@@ -13,13 +14,16 @@ export const ADAPTIVE_PUZZLE_DESCRIPTIONS = {
     fieldOfInterest: "The thematic topic (e.g., Cyberpunk, Ancient Egypt, Quantum Physics).",
     // puzzle_type
     puzzleType:
-      "The specific format of the puzzle. One of: riddle, logic grid, sequence, wordplay, cipher.",
+      "The specific format of the puzzle, such as riddle, logic grid, sequence, wordplay, or cipher. Other formats the user names are also valid.",
     // target_domain
     targetDomain:
-      "The primary cognitive skill the puzzle should exercise. One of: verbal, mathematical, spatial, lateral.",
+      "The primary cognitive skill the puzzle should exercise, such as verbal, mathematical, spatial, or lateral. Other skills the user names are also valid.",
     // difficulty_level
     difficultyLevel:
-      "The depth of reasoning required to solve the puzzle. One of: novice, intermediate, expert, genius.",
+      "The depth of reasoning required to solve the puzzle, such as novice, intermediate, expert, or genius. Other levels the user names are also valid.",
+    // user_instructions
+    userInstructions:
+      "Optional extra instructions from the user, such as style, length, or constraints. Follow them when they do not conflict with the puzzle rules.",
     // seed
     seed: "A numerical seed to ensure variety and uniqueness in generation.",
   },

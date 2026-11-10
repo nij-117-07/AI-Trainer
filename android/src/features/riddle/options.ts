@@ -1,7 +1,7 @@
 // src/features/riddle/options.ts
 /**
- * Dropdown presets and defaults for the Riddle Generator. Values match the webui options and the
- * backend Literal types. The choice fields do not accept custom text.
+ * Dropdown presets and defaults for the Riddle Generator. Values match the webui options. The
+ * dropdowns also accept custom text, which is sent to the model as written.
  */
 import type { RiddleFormValues } from "./types";
 
@@ -27,8 +27,12 @@ export const DIFFICULTY_OPTIONS: RiddleChoice[] = [
   { value: "genius", label: "Genius" },
 ];
 
+export const CHOICE_MAX = 100;
+export const USER_INSTRUCTIONS_MAX = 1000;
+
 export const DEFAULT_FORM: RiddleFormValues = {
-  fieldOfInterest: "Space",
+  fieldOfInterest: "",
   targetDomain: "lateral",
   difficultyLevel: "intermediate",
+  userInstructions: "",
 };

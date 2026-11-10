@@ -1,8 +1,9 @@
 // src/features/riddle/components/RiddleRoundView.tsx
 /**
- * The active riddle: the puzzle, the user's attempts, and the latest feedback. The solution is
- * hidden until the user asks for it. The answer box is in the screen footer.
+ * The active riddle in the page body: the puzzle, the user's attempts, and the latest feedback.
+ * The solution is hidden until the user asks for it. The answer box is in the screen footer.
  */
+import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Brain, CircleCheck, CircleX, Compass, Eye, EyeOff, Lightbulb, ListChecks, MessageSquare, Target, Trophy } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
@@ -11,6 +12,7 @@ import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
+import { useToolScroll } from "@/components/tool/ToolScrollContext";
 import type { RiddleRound } from "../types";
 
 interface RiddleRoundViewProps {
@@ -21,9 +23,14 @@ interface RiddleRoundViewProps {
 
 export function RiddleRoundView({ round, showSolution, onToggleSolution }: RiddleRoundViewProps) {
   const colors = useThemeColors();
+  const scroll = useToolScroll();
   const { riddle, attempts } = round;
   const latest = attempts.length > 0 ? attempts[attempts.length - 1] : null;
   const solved = latest?.evaluation.isCorrect ?? false;
+
+  useEffect(() => {
+    scroll?.current?.scrollToEnd({ animated: true });
+  }, [attempts.length, scroll]);
 
   return (
     <>
@@ -46,14 +53,13 @@ export function RiddleRoundView({ round, showSolution, onToggleSolution }: Riddl
           {attempts.map((attempt, index) => {
             const correct = attempt.evaluation.isCorrect;
             const Icon = correct ? CircleCheck : CircleX;
-            const tone = correct ? colors.tone.emerald : colors.tone.rose;
             return (
               <View
                 key={`${index}-${attempt.answer}`}
-                style={[styles.attempt, { backgroundColor: tone.bg, borderColor: tone.border }]}
+                style={[styles.attempt, { borderColor: colors.border, backgroundColor: colors.background }]}
               >
-                <Text style={[styles.attemptNumber, { color: colors.primary }]}>{index + 1}</Text>
-                <Icon size={16} color={tone.fg} />
+                <Text style={[styles.attemptNumber, { color: colors.mutedForeground }]}>{index + 1}</Text>
+                <Icon size={16} color={correct ? colors.foreground : colors.destructive} />
                 <Text style={[styles.attemptText, { color: colors.foreground }]} numberOfLines={2}>
                   {attempt.answer}
                 </Text>
@@ -68,7 +74,7 @@ export function RiddleRoundView({ round, showSolution, onToggleSolution }: Riddl
 
       {latest && (
         <Panel>
-          <Text style={[styles.verdict, { color: latest.evaluation.isCorrect ? colors.tone.emerald.fg : colors.tone.rose.fg }]}>
+          <Text style={[styles.verdict, { color: colors.foreground }]}>
             {latest.evaluation.isCorrect ? "Correct!" : "Not quite"}
           </Text>
           <ResultCallout icon={MessageSquare} title="Feedback" tone="sky">

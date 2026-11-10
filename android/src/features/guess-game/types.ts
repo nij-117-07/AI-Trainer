@@ -1,18 +1,12 @@
 // src/features/guess-game/types.ts
 /** Types for the Guess Game: form values, model results, and the game kept on the device. */
 
-export const GAME_CATEGORIES = ["word", "movie", "sentence", "book", "celebrity", "song"] as const;
-export type GameCategory = (typeof GAME_CATEGORIES)[number];
-
-/** Picked in the form to type a category of the user's own. */
-export const OTHER_CATEGORY = "other";
-
 export const GAME_DIFFICULTIES = ["easy", "medium", "hard", "expert"] as const;
 export type GameDifficulty = (typeof GAME_DIFFICULTIES)[number];
 
 export interface GameSetupFormValues {
-  category: GameCategory | typeof OTHER_CATEGORY;
-  customCategory: string;
+  /** A preset category, or the custom text the user typed. */
+  category: string;
   difficulty: GameDifficulty;
   vocabularyTheme: string;
 }
@@ -43,20 +37,25 @@ export interface CoachResult {
   shouldHint: boolean;
 }
 
-export interface GameMessage {
-  role: "user" | "assistant";
-  content: string;
+export interface GameHint {
+  hint: string;
+  encouragement: string;
 }
 
+export interface GuessAttempt {
+  guess: string;
+  result: GuessResult;
+}
+
+/** The running game. Saved on the device, and reloaded when the game page is focused. */
 export interface GuessGameSession {
-  /** A preset category, or the custom text the user typed. */
   category: string;
   difficulty: GameDifficulty;
   mysteryItem: string;
   funFact: string;
-  hints: string[];
+  hints: GameHint[];
   maxGuesses: number;
-  guesses: string[];
+  attempts: GuessAttempt[];
   solved: boolean;
-  log: GameMessage[];
+  coaching: CoachResult | null;
 }

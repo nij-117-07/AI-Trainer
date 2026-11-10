@@ -320,6 +320,7 @@ Use this pattern when the result is short and reads best on its own, and the for
 - Sentence of the Day: `src/app/language-learner/sentence-of-the-day/index.tsx` and `new.tsx`, with `src/features/sentence-of-the-day/components/SentenceOfTheDayForm.tsx`
 - Poet Engine: `src/app/language-learner/poet-engine/index.tsx` and `new.tsx`, with `src/features/poet-engine/components/PoetEngineForm.tsx` and `PoetEngineResultView.tsx`
 - Language Lesson: `src/app/language-learner/lesson/index.tsx` and `new.tsx`, with `src/features/lesson/components/LessonForm.tsx` and `LessonResultView.tsx`. Storage in `src/features/lesson/lib/persistence.ts`, hooks in `hooks/usePersistedDraft.ts`.
+- Observation Trainer: `src/app/practice/observation-trainer/index.tsx` (report) and `new.tsx` (form), with `src/features/observation-trainer/components/ObservationForm.tsx` and `ObservationResult.tsx`. Hooks are `hooks/useObservationForm.ts` and `hooks/usePersistedTraining.ts`. Its form (image search and picker) is long, so the form page holds the image and the fields, and the footer holds only the button.
 
 ### 12.7 Chat with a persona (Roleplay pattern)
 
@@ -343,6 +344,8 @@ Use this pattern for a multi-turn chat where the AI plays a character. The chat 
 - Defaults for the persona and instruction fields are empty. Placeholders show examples.
 - Roles management (`roles.tsx`) is a separate page for saving and editing personas by name. It also has "Write with AI".
 
+The Socratic Challenger (`practice/socratic`) uses the same pattern. Its settings page is `practice/socratic/settings.tsx`, with focus and confidence as fixed choices (no Custom). Its "Reset chat" keeps the settings, and its settings page has "Reset settings".
+
 **Reference files (Roleplay)**
 
 - `src/app/language-learner/roleplay/index.tsx`: chat page
@@ -352,3 +355,38 @@ Use this pattern for a multi-turn chat where the AI plays a character. The chat 
 - `src/features/roleplay/components/SystemPromptAssistant.tsx`: "Write with AI" block
 - `src/features/roleplay/hooks/useRoleplayChat.ts`, `usePersona.ts`, `useSystemPromptAssistant.ts`
 - `src/features/roleplay/lib/generators.ts`: `sendRoleplayTurn` and `generateSystemPrompt`
+
+### 12.8 Guess-and-check game (Riddle pattern)
+
+Use this pattern when the user works through one round at a time: the app gives a puzzle, the user answers, and the app gives feedback. The round stays on the page until it is solved. The setup form is a separate page, the same as 12.6 and 12.7.
+
+**Pages**
+
+| Page | Route (example) | Body | Header | Footer |
+| --- | --- | --- | --- | --- |
+| Game | `practice/riddle/index.tsx` | The round: puzzle, attempts, feedback, solution toggle. `EmptyHint` when there is no round | Title, no Reset | While the round is open: the answer box (`AnswerComposer`). Otherwise one primary button, "New riddle" |
+| Setup | `practice/riddle/new.tsx` | The fields (topic, dropdowns) | Title, `ResetButton` (clears the form only) | Error, then "Generate riddle" |
+
+**Rules**
+
+- While the round is open, the answer box is the only footer action. A "Start a different riddle" outline button sits in the body, so the user can leave a round without solving it.
+- The round is saved on the device after each attempt. The game page reloads it each time it is focused, so a round generated on the setup page appears when the user returns.
+- Generating a new round replaces the old one. The setup page saves the round before `router.back()`.
+- Attempts are coloured by icon and words, not by hub tones (section 2). A correct attempt uses the normal foreground colour with a check icon. A wrong one uses `destructive` with a cross icon.
+- The newest attempt scrolls into view through `useToolScroll`.
+- The game page resets its solution toggle and its last error when a new round loads.
+
+The Joke Lab (`practice/joke-coach`) uses the same pattern. Its joke box is the footer answer box, and its setup page is `practice/joke-coach/new.tsx`. Storage is in `src/features/joke-coach/lib/persistence.ts`, with hooks `useJokeLabRound.ts` and `useJokeLabSetup.ts`. Joke style and improvement goal are fixed choices (no Custom).
+
+The Guess Game (`practice/guess-game`) uses the same pattern. Its guess box is the footer answer box, and its setup page is `practice/guess-game/new.tsx`. Storage is in `src/features/guess-game/lib/persistence.ts`, with hooks `useGuessGameRound.ts` and `useGuessGameSetup.ts`. Difficulty has no Custom, because the guess limit comes from it. Hints and coaching are body actions, so the footer holds only the guess box.
+
+**Reference files (Riddle)**
+
+- `src/app/practice/riddle/index.tsx`: game page
+- `src/app/practice/riddle/new.tsx`: setup page
+- `src/features/riddle/components/RiddleForm.tsx`: setup fields and footer
+- `src/features/riddle/components/RiddleRoundView.tsx`: round body
+- `src/features/riddle/hooks/useRiddleRound.ts`: round state, attempts, focus reload
+- `src/features/riddle/hooks/useRiddleSetup.ts`: setup form and generate
+- `src/features/riddle/lib/persistence.ts`: storage keys
+- Puzzle Generator follows the same pattern: `src/app/practice/puzzle/index.tsx` (game), `new.tsx` (setup), `src/features/puzzle/components/PuzzleForm.tsx`, `PuzzleRoundView.tsx`, `src/features/puzzle/hooks/usePuzzleRound.ts`, `usePuzzleSetup.ts`

@@ -43,62 +43,21 @@ export type JokeLabExtra =
   | { kind: "joke"; joke: GeneratedJoke }
   | { kind: "improved"; source: string; rewrite: RewrittenJoke };
 
-export type LabTask = "scenario" | "evaluate" | "joke" | "improve";
+export type LabTask = "evaluate" | "joke" | "improve";
 
-/** Everything the Joke Lab keeps on the device between visits. */
-export interface JokeLabState {
+/** The scenario setup form. It is kept on the device between visits. */
+export interface JokeLabForm {
   language: string;
   theme: string;
-  jokeStyle: string;
-  improvementGoal: string;
-  scenario: JokeScenario | null;
+}
+
+/** The active scenario: the joke draft, every scored attempt, and the coach's extra. Saved on the device. */
+export interface JokeLabRound {
+  language: string;
+  scenario: JokeScenario;
   draft: string;
   attempts: JokeLabAttempt[];
   extra: JokeLabExtra | null;
+  jokeStyle: string;
+  improvementGoal: string;
 }
-
-export interface ClassifyJokeFormValues {
-  jokeText: string;
-}
-
-export interface JokeClassification {
-  style: string;
-  humorMechanism: string;
-  structure: string;
-  tags: string[];
-  practiceCategory: string;
-  similarJokeStyles: string[];
-}
-
-export interface PracticeFormValues {
-  currentSkillLevel: string;
-  practiceFocus: string;
-  sessionGoal: string;
-  userJoke: string;
-}
-
-export interface PracticeSession {
-  exerciseType: string;
-  exerciseInstructions: string;
-  practiceJoke: string | null;
-  drillPrompt: string;
-  successCriteria: string[];
-  nextSteps: string[];
-}
-
-export interface CrowdFormValues {
-  jokeText: string;
-  venueType: string;
-  audienceDemographic: string;
-}
-
-export interface CrowdSimulation {
-  predictedResponse: string;
-  laughProbability: number;
-  bestDeliveryStyle: string;
-  potentialRisks: string[];
-  alternativePunchline: string | null;
-  crowdWorkOpportunity: string;
-}
-
-export type JokeMode = "lab" | "classify" | "practice" | "crowd";

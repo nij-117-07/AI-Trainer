@@ -2,7 +2,7 @@
 import { AnswerComposer } from "@/components/tool/AnswerComposer";
 import { ResetButton } from "@/components/tool/ResetButton";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { SocraticTab } from "@/features/socratic/components/SocraticTab";
+import { SocraticChatView } from "@/features/socratic/components/SocraticChatView";
 import { useSocraticChat } from "@/features/socratic/hooks/useSocraticChat";
 import { STATEMENT_MAX } from "@/features/socratic/options";
 
@@ -12,7 +12,7 @@ export default function SocraticRoute() {
   return (
     <ToolScreen
       title="Socratic Challenger"
-      headerRight={<ResetButton onPress={chat.reset} />}
+      headerRight={<ResetButton label="Reset chat" onPress={chat.reset} />}
       footer={
         <AnswerComposer
           label="Your claim or rebuttal"
@@ -27,7 +27,7 @@ export default function SocraticRoute() {
         />
       }
     >
-      <SocraticTab chat={chat} />
+      <SocraticChatView chat={chat} />
     </ToolScreen>
   );
 }

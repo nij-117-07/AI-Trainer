@@ -1,8 +1,13 @@
 // src/features/joke-coach/lib/validate.ts
 /**
- * Input checks for the Joke Coach forms. Lengths match the webui zod schemas, so a request is
+ * Input checks for the Joke Lab forms. Lengths match the webui zod schemas, so a request is
  * rejected here before it reaches the model.
  */
+
+export const LANGUAGE_MAX = 60;
+export const THEME_MAX = 200;
+export const JOKE_MAX = 5000;
+export const SCENARIO_TEXT_MAX = 1000;
 
 export function requireText(value: string, label: string, max: number): string {
   const trimmed = value.trim();

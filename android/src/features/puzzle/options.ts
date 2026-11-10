@@ -1,5 +1,8 @@
 // src/features/puzzle/options.ts
-/** Form choices and defaults for the Puzzle Generator. Values match the webui options and backend enums. */
+/**
+ * Dropdown presets and defaults for the Puzzle Generator. Values match the webui options. The
+ * dropdowns also accept custom text, which is sent to the model as written.
+ */
 import type { CognitiveDomain, DifficultyLevel, PuzzleFormValues, PuzzleType } from "./types";
 
 export interface PuzzleChoice<T extends string> {
@@ -30,8 +33,9 @@ export const DIFFICULTY_OPTIONS: PuzzleChoice<DifficultyLevel>[] = [
 ];
 
 export const DEFAULT_PUZZLE_FORM: PuzzleFormValues = {
-  fieldOfInterest: "Ancient Egypt",
+  fieldOfInterest: "",
   puzzleType: "logic grid",
   targetDomain: "lateral",
   difficultyLevel: "intermediate",
+  userInstructions: "",
 };

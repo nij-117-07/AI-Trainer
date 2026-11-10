@@ -11,11 +11,11 @@ import { normalizeEvaluation, normalizePuzzle } from "./normalize";
 import { adaptivePuzzleSignature, puzzleEvaluatorSignature } from "./signatures";
 import {
   ANSWER_MAX,
+  CHOICE_MAX,
   PUZZLE_TEXT_MAX,
   TOPIC_MAX,
-  requireCognitiveDomain,
-  requireDifficulty,
-  requirePuzzleType,
+  USER_INSTRUCTIONS_MAX,
+  optionalText,
   requireText,
 } from "./validate";
 
@@ -34,9 +34,10 @@ export async function generatePuzzle(
   signal?: AbortSignal,
 ): Promise<Puzzle> {
   const fieldOfInterest = requireText(values.fieldOfInterest, "Field of interest", TOPIC_MAX);
-  const puzzleType = requirePuzzleType(values.puzzleType);
-  const targetDomain = requireCognitiveDomain(values.targetDomain);
-  const difficultyLevel = requireDifficulty(values.difficultyLevel);
+  const puzzleType = requireText(values.puzzleType, "Puzzle type", CHOICE_MAX);
+  const targetDomain = requireText(values.targetDomain, "Cognitive domain", CHOICE_MAX);
+  const difficultyLevel = requireText(values.difficultyLevel, "Difficulty", CHOICE_MAX);
+  const userInstructions = optionalText(values.userInstructions, "User instructions", USER_INSTRUCTIONS_MAX);
   throwIfCancelled(signal, "Puzzle generation cancelled.");
 
   const llm = createLlm(settings);
@@ -47,6 +48,7 @@ export async function generatePuzzle(
       puzzleType,
       targetDomain,
       difficultyLevel,
+      userInstructions,
       seed: Math.floor(Math.random() * SEED_RANGE),
     },
     { modelConfig: { temperature: TEMPERATURE }, abortSignal: signal },

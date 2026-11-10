@@ -1,5 +1,4 @@
-// src/features/puzzle/lib/validate.test.ts
-import { requireCognitiveDomain, requireDifficulty, requirePuzzleType, requireText } from "./validate";
+import { optionalText, requireText } from "./validate";
 
 describe("requireText", () => {
   it("trims and rejects blank or over-long text", () => {
@@ -9,18 +8,24 @@ describe("requireText", () => {
       "Field of interest must be 200 characters or fewer.",
     );
   });
+
+  it("accepts a custom choice that is not in any preset list", () => {
+    expect(requireText("Musical", "Cognitive domain", 100)).toBe("Musical");
+  });
 });
 
-describe("option checks", () => {
-  it("accepts the backend enum values", () => {
-    expect(requirePuzzleType("logic grid")).toBe("logic grid");
-    expect(requireCognitiveDomain("lateral")).toBe("lateral");
-    expect(requireDifficulty("genius")).toBe("genius");
+describe("optionalText", () => {
+  it("returns undefined for blank input", () => {
+    expect(optionalText("   ", "User instructions", 1000)).toBeUndefined();
   });
 
-  it("rejects values outside the backend enums", () => {
-    expect(() => requirePuzzleType("crossword")).toThrow("Puzzle type must be one of:");
-    expect(() => requireCognitiveDomain("musical")).toThrow("Cognitive domain must be one of:");
-    expect(() => requireDifficulty("easy")).toThrow("Difficulty must be one of:");
+  it("trims and returns the value", () => {
+    expect(optionalText("  Keep it short  ", "User instructions", 1000)).toBe("Keep it short");
+  });
+
+  it("rejects over-long input", () => {
+    expect(() => optionalText("x".repeat(1001), "User instructions", 1000)).toThrow(
+      "User instructions must be 1000 characters or fewer.",
+    );
   });
 });

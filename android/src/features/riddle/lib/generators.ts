@@ -6,11 +6,11 @@
 import { ax } from "@ax-llm/ax";
 import type { AiSettings } from "@/features/ai-settings/types";
 import { createLlm } from "@/features/ai-settings/lib/llm";
-import { COGNITIVE_DOMAINS, DIFFICULTY_LEVELS } from "../options";
+import { CHOICE_MAX, USER_INSTRUCTIONS_MAX } from "../options";
 import type { RiddleContent, RiddleEvaluation, RiddleFormValues } from "../types";
 import { adaptiveRiddleSignature, riddleEvaluatorSignature } from "./signatures";
 import { normalizeEvaluation, normalizeRiddle } from "./normalize";
-import { requireOption, requireText } from "./validate";
+import { optionalText, requireText } from "./validate";
 
 const GENERATOR_TEMPERATURE = 0.7;
 const EVALUATOR_TEMPERATURE = 0.2;
@@ -22,8 +22,9 @@ export async function generateRiddle(
   signal?: AbortSignal,
 ): Promise<RiddleContent> {
   const fieldOfInterest = requireText(values.fieldOfInterest, "Topic", 200);
-  const targetDomain = requireOption(values.targetDomain, COGNITIVE_DOMAINS, "Cognitive domain");
-  const difficultyLevel = requireOption(values.difficultyLevel, DIFFICULTY_LEVELS, "Difficulty");
+  const targetDomain = requireText(values.targetDomain, "Cognitive domain", CHOICE_MAX);
+  const difficultyLevel = requireText(values.difficultyLevel, "Difficulty", CHOICE_MAX);
+  const userInstructions = optionalText(values.userInstructions, "User instructions", USER_INSTRUCTIONS_MAX);
   const llm = createLlm(settings);
   if (signal?.aborted) throw new Error("Request cancelled.");
   const result = await ax(adaptiveRiddleSignature).forward(
@@ -32,6 +33,7 @@ export async function generateRiddle(
       fieldOfInterest,
       targetDomain,
       difficultyLevel,
+      userInstructions,
       seed: Math.floor(Math.random() * SEED_RANGE),
     },
     { modelConfig: { temperature: GENERATOR_TEMPERATURE }, abortSignal: signal },

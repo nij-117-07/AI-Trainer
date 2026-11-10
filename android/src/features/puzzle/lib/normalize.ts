@@ -3,8 +3,9 @@
  * Turns raw model output (and saved rounds) into the typed values the screen renders. Numbers are
  * clamped and booleans accept text, as the backend coercers do.
  */
-import { PUZZLE_TYPES, type Puzzle, type PuzzleAttempt, type PuzzleEvaluation, type PuzzleRound, type PuzzleType } from "../types";
+import type { Puzzle, PuzzleAttempt, PuzzleEvaluation, PuzzleRound, PuzzleType } from "../types";
 import { booleanOf, isRecord, listOf, numberOf, textOf } from "./text";
+import { CHOICE_MAX } from "./validate";
 
 const DEFAULT_ACCURACY = 0.5;
 
@@ -47,8 +48,7 @@ function readAttempt(raw: unknown): PuzzleAttempt | null {
 }
 
 function readPuzzleType(value: unknown): PuzzleType {
-  const text = textOf(value);
-  return (PUZZLE_TYPES as readonly string[]).includes(text) ? (text as PuzzleType) : "riddle";
+  return textOf(value).slice(0, CHOICE_MAX) || "riddle";
 }
 
 /** Reads a saved round. Returns null when the draft has no usable puzzle. */

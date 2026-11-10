@@ -1,12 +1,7 @@
 // src/features/observation-trainer/components/ResultParts.tsx
-/** Small pieces shared by the Observation Trainer report: empty notes, bullet lists, labelled text. */
+/** Small pieces shared by the Observation Trainer report: bullet lists and labelled text. */
 import { StyleSheet, Text, View } from "react-native";
 import { spacing, useThemeColors } from "@/theme";
-
-export function EmptyNote({ message }: { message: string }) {
-  const colors = useThemeColors();
-  return <Text style={[styles.muted, { color: colors.mutedForeground }]}>{message}</Text>;
-}
 
 export function BulletList({ items }: { items: string[] }) {
   const colors = useThemeColors();

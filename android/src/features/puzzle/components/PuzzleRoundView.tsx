@@ -1,17 +1,19 @@
 // src/features/puzzle/components/PuzzleRoundView.tsx
 /**
- * One puzzle round: the puzzle and its cognitive trigger, the attempts so far, and the latest
- * evaluation with feedback and a nudge. The answer box is in the screen footer.
+ * The active puzzle in the page body: the puzzle and its cognitive trigger, the attempts so far,
+ * and the latest evaluation with feedback and a nudge. The solution is hidden until the user asks
+ * for it. The answer box is in the screen footer.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { CircleCheck, CircleX, Eye, Lightbulb, Sparkles, Target, Trophy } from "lucide-react-native";
+import { CircleCheck, CircleX, Eye, EyeOff, Lightbulb, Sparkles, Target, Trophy } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
+import { useToolScroll } from "@/components/tool/ToolScrollContext";
 import type { PuzzleRound } from "../types";
 
 interface PuzzleRoundViewProps {
@@ -20,11 +22,16 @@ interface PuzzleRoundViewProps {
 
 export function PuzzleRoundView({ round }: PuzzleRoundViewProps) {
   const colors = useThemeColors();
+  const scroll = useToolScroll();
   const [showSolution, setShowSolution] = useState(false);
   const { puzzle, attempts } = round;
   const latest = attempts.length > 0 ? attempts[attempts.length - 1] : null;
   const solved = latest?.evaluation.isCorrect ?? false;
   const accuracyPct = latest ? Math.round(latest.evaluation.accuracyScore * 100) : 0;
+
+  useEffect(() => {
+    scroll?.current?.scrollToEnd({ animated: true });
+  }, [attempts.length, scroll]);
 
   return (
     <>
@@ -45,19 +52,14 @@ export function PuzzleRoundView({ round }: PuzzleRoundViewProps) {
           {attempts.map((attempt, index) => {
             const correct = attempt.evaluation.isCorrect;
             const pct = Math.round(attempt.evaluation.accuracyScore * 100);
-            const tone = correct ? colors.tone.emerald : colors.tone.rose;
+            const Icon = correct ? CircleCheck : CircleX;
             return (
               <View
                 key={`${index}-${attempt.answer}`}
-                style={[
-                  styles.attempt,
-                  { borderColor: correct ? colors.tone.emerald.border : colors.border, backgroundColor: correct ? colors.tone.emerald.bg : colors.muted },
-                ]}
+                style={[styles.attempt, { borderColor: colors.border, backgroundColor: colors.background }]}
               >
-                <View style={[styles.attemptNumber, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.attemptNumberText, { color: colors.foreground }]}>{index + 1}</Text>
-                </View>
-                {correct ? <CircleCheck size={18} color={tone.fg} /> : <CircleX size={18} color={tone.fg} />}
+                <Text style={[styles.attemptNumber, { color: colors.mutedForeground }]}>{index + 1}</Text>
+                <Icon size={16} color={correct ? colors.foreground : colors.destructive} />
                 <Text style={[styles.attemptAnswer, { color: colors.foreground }]} numberOfLines={1}>
                   {attempt.answer}
                 </Text>
@@ -71,20 +73,13 @@ export function PuzzleRoundView({ round }: PuzzleRoundViewProps) {
       {latest && (
         <Panel>
           <View style={styles.verdictRow}>
-            <View
-              style={[
-                styles.verdict,
-                solved
-                  ? { backgroundColor: colors.tone.emerald.bg, borderColor: colors.tone.emerald.border }
-                  : { backgroundColor: colors.tone.rose.bg, borderColor: colors.tone.rose.border },
-              ]}
-            >
-              {solved ? <CircleCheck size={16} color={colors.tone.emerald.fg} /> : <CircleX size={16} color={colors.tone.rose.fg} />}
-              <Text style={[styles.verdictText, { color: solved ? colors.tone.emerald.fg : colors.tone.rose.fg }]}>
-                {solved ? "Correct!" : "Not quite"}
-              </Text>
-            </View>
-            <Text style={[styles.accuracy, { color: colors.foreground }]}>Accuracy: {accuracyPct}%</Text>
+            {solved ? (
+              <CircleCheck size={16} color={colors.foreground} />
+            ) : (
+              <CircleX size={16} color={colors.destructive} />
+            )}
+            <Text style={[styles.verdictText, { color: colors.foreground }]}>{solved ? "Correct!" : "Not quite"}</Text>
+            <Text style={[styles.accuracy, { color: colors.mutedForeground }]}>Accuracy: {accuracyPct}%</Text>
           </View>
 
           <SectionTitle icon={Sparkles} title="Feedback" />
@@ -104,7 +99,7 @@ export function PuzzleRoundView({ round }: PuzzleRoundViewProps) {
 
           <ActionButton
             label={showSolution ? "Hide solution" : "Reveal solution"}
-            icon={Eye}
+            icon={showSolution ? EyeOff : Eye}
             variant="outline"
             onPress={() => setShowSolution((value) => !value)}
           />
@@ -144,15 +139,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   attemptNumber: {
-    width: 22,
-    height: 22,
-    borderRadius: radius.full,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  attemptNumberText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "700",
+    minWidth: 14,
   },
   attemptAnswer: {
     flex: 1,
@@ -165,20 +154,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
-    gap: spacing.md,
-  },
-  verdict: {
-    flexDirection: "row",
-    alignItems: "center",
     gap: spacing.sm,
-    borderWidth: 1,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
   },
   verdictText: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
   },
   accuracy: {
     fontSize: 14,

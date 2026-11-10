@@ -1,19 +1,19 @@
 // src/features/puzzle/types.ts
 
-export const PUZZLE_TYPES = ["riddle", "logic grid", "sequence", "wordplay", "cipher"] as const;
-export type PuzzleType = (typeof PUZZLE_TYPES)[number];
-
-export const COGNITIVE_DOMAINS = ["verbal", "mathematical", "spatial", "lateral"] as const;
-export type CognitiveDomain = (typeof COGNITIVE_DOMAINS)[number];
-
-export const DIFFICULTY_LEVELS = ["novice", "intermediate", "expert", "genius"] as const;
-export type DifficultyLevel = (typeof DIFFICULTY_LEVELS)[number];
+/**
+ * The form choices are suggestions from the dropdown presets (see options.ts). The dropdowns also
+ * accept custom text, so these are plain strings.
+ */
+export type PuzzleType = string;
+export type CognitiveDomain = string;
+export type DifficultyLevel = string;
 
 export interface PuzzleFormValues {
   fieldOfInterest: string;
   puzzleType: PuzzleType;
   targetDomain: CognitiveDomain;
   difficultyLevel: DifficultyLevel;
+  userInstructions: string;
 }
 
 export interface Puzzle {

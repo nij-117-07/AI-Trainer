@@ -1,4 +1,3 @@
-// src/features/puzzle/lib/persistence.test.ts
 import { DEFAULT_PUZZLE_FORM } from "../options";
 import { parseSavedForm } from "./persistence";
 
@@ -7,19 +6,27 @@ describe("parseSavedForm", () => {
     expect(parseSavedForm(null)).toEqual(DEFAULT_PUZZLE_FORM);
   });
 
-  it("keeps valid saved fields and falls back for invalid enum values", () => {
+  it("keeps saved fields, including custom choices and instructions", () => {
     expect(
       parseSavedForm({
         fieldOfInterest: "Quantum Physics",
-        puzzleType: "cipher",
+        puzzleType: "anagram",
         targetDomain: "musical",
         difficultyLevel: "expert",
+        userInstructions: "Keep it short",
       }),
     ).toEqual({
       fieldOfInterest: "Quantum Physics",
-      puzzleType: "cipher",
-      targetDomain: DEFAULT_PUZZLE_FORM.targetDomain,
+      puzzleType: "anagram",
+      targetDomain: "musical",
       difficultyLevel: "expert",
+      userInstructions: "Keep it short",
+    });
+  });
+
+  it("falls back to the default for blank or damaged choices", () => {
+    expect(parseSavedForm({ puzzleType: "   ", targetDomain: 7, difficultyLevel: "" })).toEqual({
+      ...DEFAULT_PUZZLE_FORM,
     });
   });
 });

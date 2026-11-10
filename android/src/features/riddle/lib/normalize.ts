@@ -3,7 +3,7 @@
  * Turns raw model output and saved drafts into the typed values the screens use. Missing or
  * wrongly typed fields fall back to empty values instead of crashing.
  */
-import { COGNITIVE_DOMAINS, DEFAULT_FORM, DIFFICULTY_LEVELS } from "../options";
+import { CHOICE_MAX, DEFAULT_FORM, USER_INSTRUCTIONS_MAX } from "../options";
 import type { RiddleAttempt, RiddleContent, RiddleEvaluation, RiddleFormValues, RiddleRound } from "../types";
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -48,17 +48,19 @@ export function normalizeEvaluation(raw: {
   };
 }
 
-/** Keeps saved draft fields only when they are still valid options, otherwise uses the default. */
+/** Keeps saved draft fields, including custom choices. Empty or damaged fields use the default. */
 export function sanitizeForm(saved: unknown): RiddleFormValues {
   if (!isRecord(saved)) return DEFAULT_FORM;
   const fieldOfInterest = typeof saved.fieldOfInterest === "string" ? saved.fieldOfInterest : DEFAULT_FORM.fieldOfInterest;
-  const targetDomain = (COGNITIVE_DOMAINS as readonly string[]).includes(String(saved.targetDomain))
-    ? String(saved.targetDomain)
-    : DEFAULT_FORM.targetDomain;
-  const difficultyLevel = (DIFFICULTY_LEVELS as readonly string[]).includes(String(saved.difficultyLevel))
-    ? String(saved.difficultyLevel)
-    : DEFAULT_FORM.difficultyLevel;
-  return { fieldOfInterest, targetDomain, difficultyLevel };
+  const targetDomain = choiceOf(saved.targetDomain, DEFAULT_FORM.targetDomain);
+  const difficultyLevel = choiceOf(saved.difficultyLevel, DEFAULT_FORM.difficultyLevel);
+  const userInstructions = typeof saved.userInstructions === "string" ? saved.userInstructions.slice(0, USER_INSTRUCTIONS_MAX) : "";
+  return { fieldOfInterest, targetDomain, difficultyLevel, userInstructions };
+}
+
+function choiceOf(value: unknown, fallback: string): string {
+  const text = typeof value === "string" ? value.trim().slice(0, CHOICE_MAX) : "";
+  return text || fallback;
 }
 
 export function sanitizeRound(saved: unknown): RiddleRound | null {

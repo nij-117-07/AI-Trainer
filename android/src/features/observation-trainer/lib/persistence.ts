@@ -1,16 +1,11 @@
 // src/features/observation-trainer/lib/persistence.ts
-/** Storage key and saved-session helpers for the Observation Trainer. */
+/** Storage keys and saved-value readers for the Observation Trainer. The form and the report use separate keys. */
 import { DEFAULT_OBSERVATION_FORM } from "../options";
-import type { ObservationFormValues, ObservationTrainResult } from "../types";
-import { readTrainResult } from "./normalize";
+import type { ObservationFormValues } from "../types";
 import { isRecord } from "./text";
 
-export const OBSERVATION_SESSION_KEY = "practice.observation-trainer.session.v1";
-
-export interface SavedObservationSession {
-  form: ObservationFormValues;
-  result: ObservationTrainResult | null;
-}
+export const OBSERVATION_FORM_KEY = "practice.observation-trainer.form.v1";
+export const OBSERVATION_RESULT_KEY = "practice.observation-trainer.result.v1";
 
 /** Takes each saved field only when its type matches the default, so a damaged draft falls back cleanly. */
 export function parseSavedForm(saved: unknown): ObservationFormValues {
@@ -23,9 +18,4 @@ export function parseSavedForm(saved: unknown): ObservationFormValues {
     }
   }
   return merged;
-}
-
-export function parseSavedSession(saved: unknown): SavedObservationSession {
-  if (!isRecord(saved)) return { form: DEFAULT_OBSERVATION_FORM, result: null };
-  return { form: parseSavedForm(saved.form), result: readTrainResult(saved.result) };
 }

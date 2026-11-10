@@ -1,19 +1,19 @@
 // src/features/guess-game/lib/session-model.ts
 /**
- * Pure rules for a running game: starting it, recording guesses, hints and coaching, and
- * reading a saved game back from the device. Nothing here touches storage or the network.
+ * Pure rules for a running game: starting it, recording guesses, hints and coaching, and reading a
+ * saved game back from the device. Nothing here touches storage or the network.
  */
-import { CUSTOM_CATEGORY_MAX_LENGTH } from "../options";
+import { CATEGORY_MAX_LENGTH } from "../options";
 import { GAME_DIFFICULTIES } from "../types";
 import type {
   CoachResult,
   GameDifficulty,
-  GameMessage,
   GameSetupResult,
   GuessGameSession,
   GuessResult,
   HintResult,
 } from "../types";
+import { isRecord } from "./guard";
 
 export function startSession(
   setup: GameSetupResult,
@@ -25,96 +25,95 @@ export function startSession(
     difficulty,
     mysteryItem: setup.mysteryItem,
     funFact: setup.funFact,
-    hints: [setup.firstHint],
+    hints: [{ hint: setup.firstHint, encouragement: "" }],
     maxGuesses: setup.maxGuesses,
-    guesses: [],
+    attempts: [],
     solved: false,
-    log: [
-      {
-        role: "assistant",
-        content: `**New game!** Category: ${category} · Difficulty: ${difficulty}\n\n**First hint:** ${setup.firstHint}`,
-      },
-    ],
+    coaching: null,
   };
 }
 
 export function guessesLeft(session: GuessGameSession): number {
-  return Math.max(0, session.maxGuesses - session.guesses.length);
+  return Math.max(0, session.maxGuesses - session.attempts.length);
 }
 
 export function recordGuess(session: GuessGameSession, guess: string, result: GuessResult): GuessGameSession {
-  const content = result.correct
-    ? `${result.feedback}\n\n**Correct!** The answer was **${session.mysteryItem}**.\n\n**Fun fact:** ${session.funFact}`
-    : `${result.feedback}\n\n*Nudge: ${result.suggestion}*`;
   return {
     ...session,
-    guesses: [...session.guesses, guess],
+    attempts: [...session.attempts, { guess, result }],
     solved: result.correct,
-    log: [...session.log, { role: "user", content: guess }, { role: "assistant", content }],
   };
 }
 
 export function recordHint(session: GuessGameSession, result: HintResult): GuessGameSession {
-  const hints = [...session.hints, result.hint];
   return {
     ...session,
-    hints,
-    log: [
-      ...session.log,
-      {
-        role: "assistant",
-        content: `**Hint ${hints.length}:** ${result.hint}\n\n${result.encouragement}`,
-      },
-    ],
+    hints: [...session.hints, { hint: result.hint, encouragement: result.encouragement }],
   };
 }
 
 export function recordCoaching(session: GuessGameSession, result: CoachResult): GuessGameSession {
-  const parts = [`**Coaching:** ${result.coaching}`, `**Framework:** ${result.framework}`];
-  if (result.partialReveal) parts.push(`**Partial reveal:** ${result.partialReveal}`);
-  return {
-    ...session,
-    log: [...session.log, { role: "assistant", content: parts.join("\n\n") }],
-  };
+  return { ...session, coaching: result };
 }
 
-function isMessage(value: unknown): value is GameMessage {
-  if (typeof value !== "object" || value === null) return false;
-  const message = value as Record<string, unknown>;
-  return (message.role === "user" || message.role === "assistant") && typeof message.content === "string";
+const isString = (value: unknown): value is string => typeof value === "string";
+
+function isGuessResult(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.correct === "boolean" &&
+    isString(value.feedback) &&
+    typeof value.closeness === "number" &&
+    isString(value.suggestion)
+  );
 }
 
-const isStringArray = (value: unknown): value is string[] =>
-  Array.isArray(value) && value.every((item) => typeof item === "string");
+function isHint(value: unknown): boolean {
+  return isRecord(value) && isString(value.hint) && isString(value.encouragement);
+}
+
+function isAttempt(value: unknown): boolean {
+  return isRecord(value) && isString(value.guess) && isGuessResult(value.result);
+}
+
+function isCoach(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isString(value.coaching) &&
+    isString(value.framework) &&
+    (value.partialReveal === null || isString(value.partialReveal)) &&
+    typeof value.shouldHint === "boolean"
+  );
+}
 
 /** Accepts a saved game only when every field has the expected type. Anything else starts fresh. */
 export function parseSavedSession(value: unknown): GuessGameSession | null {
-  if (typeof value !== "object" || value === null) return null;
-  const saved = value as Record<string, unknown>;
+  if (!isRecord(value)) return null;
   const valid =
-    typeof saved.category === "string" &&
-    saved.category.trim() !== "" &&
-    saved.category.length <= CUSTOM_CATEGORY_MAX_LENGTH &&
-    (GAME_DIFFICULTIES as readonly unknown[]).includes(saved.difficulty) &&
-    typeof saved.mysteryItem === "string" &&
-    saved.mysteryItem.trim() !== "" &&
-    typeof saved.funFact === "string" &&
-    isStringArray(saved.hints) &&
-    typeof saved.maxGuesses === "number" &&
-    isStringArray(saved.guesses) &&
-    typeof saved.solved === "boolean" &&
-    Array.isArray(saved.log) &&
-    saved.log.every(isMessage);
+    isString(value.category) &&
+    value.category.trim() !== "" &&
+    value.category.length <= CATEGORY_MAX_LENGTH &&
+    (GAME_DIFFICULTIES as readonly unknown[]).includes(value.difficulty) &&
+    isString(value.mysteryItem) &&
+    value.mysteryItem.trim() !== "" &&
+    isString(value.funFact) &&
+    Array.isArray(value.hints) &&
+    value.hints.every(isHint) &&
+    typeof value.maxGuesses === "number" &&
+    Array.isArray(value.attempts) &&
+    value.attempts.every(isAttempt) &&
+    typeof value.solved === "boolean" &&
+    (value.coaching === null || isCoach(value.coaching));
   if (!valid) return null;
   return {
-    category: saved.category as string,
-    difficulty: saved.difficulty as GameDifficulty,
-    mysteryItem: saved.mysteryItem as string,
-    funFact: saved.funFact as string,
-    hints: saved.hints as string[],
-    maxGuesses: saved.maxGuesses as number,
-    guesses: saved.guesses as string[],
-    solved: saved.solved as boolean,
-    log: saved.log as GameMessage[],
+    category: value.category as string,
+    difficulty: value.difficulty as GameDifficulty,
+    mysteryItem: value.mysteryItem as string,
+    funFact: value.funFact as string,
+    hints: value.hints as GuessGameSession["hints"],
+    maxGuesses: value.maxGuesses as number,
+    attempts: value.attempts as GuessGameSession["attempts"],
+    solved: value.solved as boolean,
+    coaching: value.coaching as CoachResult | null,
   };
 }

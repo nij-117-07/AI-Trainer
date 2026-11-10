@@ -39,12 +39,25 @@ describe("normalizeEvaluation", () => {
 });
 
 describe("sanitizeForm", () => {
-  it("falls back to defaults for invalid drafts", () => {
+  it("falls back to defaults for a missing draft", () => {
     expect(sanitizeForm(null)).toEqual(DEFAULT_FORM);
-    expect(sanitizeForm({ fieldOfInterest: "Art", targetDomain: "musical", difficultyLevel: "expert" })).toEqual({
+  });
+
+  it("keeps custom choices and instructions", () => {
+    expect(
+      sanitizeForm({ fieldOfInterest: "Art", targetDomain: "musical", difficultyLevel: "expert", userInstructions: " Short " }),
+    ).toEqual({
       fieldOfInterest: "Art",
-      targetDomain: DEFAULT_FORM.targetDomain,
+      targetDomain: "musical",
       difficultyLevel: "expert",
+      userInstructions: " Short ",
+    });
+  });
+
+  it("uses the default when a choice is blank or damaged", () => {
+    expect(sanitizeForm({ targetDomain: "  ", difficultyLevel: 3 })).toEqual({
+      ...DEFAULT_FORM,
+      fieldOfInterest: "",
     });
   });
 });

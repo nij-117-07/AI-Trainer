@@ -1,37 +1,74 @@
 // src/app/practice/riddle/index.tsx
+import { useRouter } from "expo-router";
+import { Brain, Sparkles } from "lucide-react-native";
+import { ActionButton } from "@/components/tool/FormControls";
 import { AnswerComposer } from "@/components/tool/AnswerComposer";
-import { ResetButton } from "@/components/tool/ResetButton";
+import { EmptyHint } from "@/components/tool/EmptyHint";
+import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { RiddleTab } from "@/features/riddle/components/RiddleTab";
-import { useRiddleGame } from "@/features/riddle/hooks/useRiddleGame";
+import { RiddleRoundView } from "@/features/riddle/components/RiddleRoundView";
+import { useRiddleRound } from "@/features/riddle/hooks/useRiddleRound";
 
 export default function RiddleRoute() {
-  const game = useRiddleGame();
+  const router = useRouter();
+  const game = useRiddleRound();
   const round = game.round;
   const attempts = round?.attempts ?? [];
   const solved = attempts.length > 0 && attempts[attempts.length - 1].evaluation.isCorrect;
+  const active = round !== null && !solved;
 
   return (
     <ToolScreen
       title="Riddle Generator"
-      headerRight={<ResetButton onPress={game.handleReset} />}
       footer={
-        round && !solved ? (
+        active ? (
           <AnswerComposer
             label="Your answer"
             value={round.userAnswer}
-            placeholder={attempts.length > 0 ? "Try a different answer…" : "Your answer (or ask for a hint)…"}
+            placeholder={attempts.length > 0 ? "Try a different answer…" : "Your answer…"}
             maxLength={2000}
             pending={game.evaluate.pending}
             error={game.evaluate.error}
             submitLabel={attempts.length > 0 ? "Check again" : "Submit"}
-            onChangeText={game.handleAnswerChange}
-            onSubmit={() => void game.handleSubmitAnswer()}
+            onChangeText={game.changeAnswer}
+            onSubmit={() => void game.submitAnswer()}
           />
-        ) : null
+        ) : (
+          <ActionButton
+            label="New riddle"
+            icon={Sparkles}
+            onPress={() => router.push("/practice/riddle/new")}
+          />
+        )
       }
     >
-      <RiddleTab game={game} />
+      <Section>
+        {round ? (
+          <>
+            <RiddleRoundView
+              round={round}
+              showSolution={game.showSolution}
+              onToggleSolution={game.toggleSolution}
+            />
+            {active && (
+              <ActionButton
+                label="Start a different riddle"
+                icon={Sparkles}
+                variant="outline"
+                onPress={() => router.push("/practice/riddle/new")}
+              />
+            )}
+          </>
+        ) : (
+          game.loaded && (
+            <EmptyHint
+              icon={Brain}
+              title="No riddle yet"
+              hint="Tap New riddle below, choose a topic and difficulty, then generate."
+            />
+          )
+        )}
+      </Section>
     </ToolScreen>
   );
 }

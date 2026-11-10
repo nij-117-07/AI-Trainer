@@ -471,7 +471,7 @@ export const APPS: AppCard[] = [
   {
     key: "guess-game",
     title: "Guess Game",
-    description: "Ask questions and narrow down a hidden answer with AI hints.",
+    description: "Guess a hidden answer, using AI hints and coaching along the way.",
     route: "/practice/guess-game",
     icon: Dice5,
     group: "practice",
@@ -489,7 +489,7 @@ export const APPS: AppCard[] = [
   {
     key: "joke-coach",
     title: "Joke Coach",
-    description: "Write, rate, and improve jokes with a coach and a simulated crowd.",
+    description: "Write a joke for a scenario, get it scored, and improve it with the coach.",
     route: "/practice/joke-coach",
     icon: Laugh,
     group: "practice",

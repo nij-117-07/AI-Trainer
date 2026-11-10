@@ -51,7 +51,7 @@ describe("readRound", () => {
     expect(readRound({ attempts: [] })).toBeNull();
   });
 
-  it("drops malformed attempts and an unknown puzzle type falls back to riddle", () => {
+  it("drops malformed attempts and keeps a custom puzzle type", () => {
     const round = readRound({
       puzzle: { puzzleText: "Riddle text", solution: "Answer" },
       puzzleType: "bingo",
@@ -62,7 +62,7 @@ describe("readRound", () => {
       ],
       userAnswer: "draft",
     });
-    expect(round?.puzzleType).toBe("riddle");
+    expect(round?.puzzleType).toBe("bingo");
     expect(round?.attempts).toHaveLength(1);
     expect(round?.attempts[0].answer).toBe("guess");
     expect(round?.userAnswer).toBe("draft");
