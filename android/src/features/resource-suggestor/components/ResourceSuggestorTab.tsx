@@ -1,143 +1,117 @@
 // src/features/resource-suggestor/components/ResourceSuggestorTab.tsx
-/** Resource Suggestor: a learning path summary, curated resources with reasons, and next steps. */
-import { useCallback } from "react";
-import { StyleSheet, Text, View } from "react-native";
+/** Resource Suggestor: a learning path summary, curated resources with reasons, and next steps. The form sits in the footer. */
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   BookMarked,
   Clock,
   ExternalLink,
   Lightbulb,
-  RefreshCcw,
-  Route,
   Sparkles,
-  Target,
   User,
   type LucideIcon,
 } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { SelectField } from "@/components/tool/SelectField";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
-import { useRequest } from "@/hooks/useRequest";
-import { suggestResources } from "../lib/generators";
-import { toResourceDraft } from "../lib/normalise";
 import { PREFERENCES_MAX, SUBJECT_MAX } from "../lib/validate";
-import { useSavedDraft } from "../hooks/useSavedDraft";
-import type { ResourceItem, ResourceSuggestorFormValues, ResourceSuggestorResult } from "../types";
+import { isResourceType, RESOURCE_TYPE_OPTIONS } from "../options";
+import type { ResourceSuggestorState } from "../hooks/useResourceSuggestor";
+import type { ResourceItem } from "../types";
 
-const STORAGE_KEY = "learning.resource-suggestor.suggest.v1";
-
-const DEFAULTS: ResourceSuggestorFormValues = {
-  backgroundSubject: "Python programming and basic statistics",
-  targetTopic: "Machine Learning and Deep Learning",
-  additionalPreferences: "",
-};
-
-const parseDraft = (raw: unknown) => toResourceDraft(raw, DEFAULTS);
-
-export function ResourceSuggestorTab() {
+export function ResourceSuggestorResults({ suggestor }: { suggestor: ResourceSuggestorState }) {
   const colors = useThemeColors();
-  const { settings } = useAiSettings();
-  const draft = useSavedDraft<ResourceSuggestorFormValues, ResourceSuggestorResult>(STORAGE_KEY, DEFAULTS, parseDraft);
-  const request = useRequest(suggestResources);
-  const { form, setForm, setResult } = draft;
+  const { result } = suggestor;
 
-  const update = useCallback(
-    <K extends keyof ResourceSuggestorFormValues>(key: K, value: ResourceSuggestorFormValues[K]) => {
-      setForm((prev) => ({ ...prev, [key]: value }));
-    },
-    [setForm],
-  );
-
-  function reset() {
-    draft.reset();
-    request.reset();
+  if (!result) {
+    return (
+      <EmptyHint
+        icon={BookMarked}
+        title="Find your resources"
+        hint="Describe what you know and what you want to learn in the form below, then tap Suggest resources."
+      />
+    );
   }
-
-  async function handleGenerate() {
-    const next = await request.run(settings, form);
-    if (next) setResult(next);
-  }
-
-  const result = request.data ?? draft.result;
 
   return (
     <Section>
       <Panel>
+        <SectionTitle icon={BookMarked} title="Recommended resources" />
+        {result.recommendedResources.length === 0 ? (
+          <Text style={[styles.empty, { color: colors.mutedForeground }]}>No resources returned.</Text>
+        ) : (
+          result.recommendedResources.map((resource, index) => (
+            <ResourceCard key={`${resource.title}-${index}`} resource={resource} index={index} />
+          ))
+        )}
+      </Panel>
+
+      {result.nextSteps.trim() !== "" && (
+        <ResultCallout icon={Lightbulb} title="Next steps" tone="emerald">
+          <MarkdownText content={result.nextSteps.trim()} />
+          <ListenButton text={result.nextSteps} label="Next steps" />
+        </ResultCallout>
+      )}
+    </Section>
+  );
+}
+
+export function ResourceSuggestorFooter({ suggestor }: { suggestor: ResourceSuggestorState }) {
+  const { form, pending, error, update, suggest } = suggestor;
+
+  return (
+    <View style={styles.footer}>
+      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
         <TextField
           label="Background subject"
           placeholder="e.g. Python programming and basic statistics"
-          hint="What you currently know or study"
           value={form.backgroundSubject}
           onChangeText={(text) => update("backgroundSubject", text)}
-          editable={!request.pending}
+          editable={!pending}
           maxLength={SUBJECT_MAX}
         />
         <TextField
           label="Target topic"
-          placeholder="e.g. Machine Learning and Deep Learning"
-          hint="What you want to learn"
+          placeholder="e.g. Machine learning and deep learning"
           value={form.targetTopic}
           onChangeText={(text) => update("targetTopic", text)}
-          editable={!request.pending}
+          editable={!pending}
           maxLength={SUBJECT_MAX}
+        />
+        <SelectField
+          label="Resource type"
+          options={RESOURCE_TYPE_OPTIONS}
+          value={form.resourceType}
+          onChange={(value) => {
+            if (isResourceType(value)) update("resourceType", value);
+          }}
+          allowCustom={false}
         />
         <TextField
           label="Additional preferences (optional)"
-          placeholder="e.g. I prefer video tutorials and hands-on projects. I can dedicate 10 hours per week."
-          hint="Learning style, time, format, difficulty, constraints"
+          placeholder="e.g. Hands-on projects, 10 hours per week"
           value={form.additionalPreferences}
           onChangeText={(text) => update("additionalPreferences", text)}
-          editable={!request.pending}
+          editable={!pending}
           maxLength={PREFERENCES_MAX}
           multiline
           voice
+          style={styles.compactInput}
         />
-        <ActionButton
-          label={request.pending ? "Finding resources…" : "Suggest resources"}
-          icon={Sparkles}
-          loading={request.pending}
-          onPress={handleGenerate}
-        />
-      </Panel>
-
-      <ErrorText message={request.error} />
-
-      {result && (
-        <>
-          {result.learningPathSummary.trim() !== "" && (
-            <ResultCallout icon={Route} title="Learning path summary" tone="sky">
-              <MarkdownText content={result.learningPathSummary.trim()} />
-              <ListenButton text={result.learningPathSummary} label="Learning path summary" />
-            </ResultCallout>
-          )}
-
-          <Panel>
-            <SectionTitle icon={BookMarked} title="Recommended resources" />
-            {result.recommendedResources.length === 0 ? (
-              <Text style={[styles.empty, { color: colors.mutedForeground }]}>No resources returned.</Text>
-            ) : (
-              result.recommendedResources.map((resource, index) => (
-                <ResourceCard key={`${resource.title}-${index}`} resource={resource} index={index} />
-              ))
-            )}
-          </Panel>
-
-          {result.nextSteps.trim() !== "" && (
-            <ResultCallout icon={Lightbulb} title="Next steps" tone="emerald">
-              <MarkdownText content={result.nextSteps.trim()} />
-              <ListenButton text={result.nextSteps} label="Next steps" />
-            </ResultCallout>
-          )}
-        </>
-      )}
-
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={reset} />
-    </Section>
+      </ScrollView>
+      <ErrorText message={error} />
+      <ActionButton
+        label={pending ? "Finding resources…" : "Suggest resources"}
+        icon={Sparkles}
+        loading={pending}
+        onPress={suggest}
+      />
+    </View>
   );
 }
 
@@ -163,13 +137,8 @@ function ResourceCard({ resource, index }: { resource: ResourceItem; index: numb
         <Text style={[styles.body, { color: colors.mutedForeground }]}>{resource.description.trim()}</Text>
       )}
 
-      <Detail icon={Target} title="Why this is recommended" text={resource.whyRecommended} />
-      <Detail icon={BookMarked} title="Prerequisite knowledge" text={resource.prerequisiteKnowledge} />
       <Detail icon={ExternalLink} title="How to access" text={resource.accessInfo} />
-      <ListenButton
-        text={[resource.description, resource.whyRecommended].filter((part) => part.trim() !== "").join(". ")}
-        label="Resource"
-      />
+      <ListenButton text={resource.description} label="Resource" />
     </View>
   );
 }
@@ -199,6 +168,18 @@ function Detail({ icon: Icon, title, text }: { icon: LucideIcon; title: string; 
 }
 
 const styles = StyleSheet.create({
+  footer: {
+    gap: spacing.md,
+  },
+  fields: {
+    maxHeight: 340,
+  },
+  fieldsContent: {
+    gap: spacing.md,
+  },
+  compactInput: {
+    minHeight: 72,
+  },
   empty: {
     fontSize: 14,
   },

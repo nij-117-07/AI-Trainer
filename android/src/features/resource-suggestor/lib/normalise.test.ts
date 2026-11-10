@@ -4,8 +4,9 @@ import { preferencesOrDefault, requireText, NO_PREFERENCES } from "./validate";
 import type { ResourceSuggestorFormValues } from "../types";
 
 const defaults: ResourceSuggestorFormValues = {
-  backgroundSubject: "Python programming and basic statistics",
-  targetTopic: "Machine Learning and Deep Learning",
+  backgroundSubject: "",
+  targetTopic: "",
+  resourceType: "any",
   additionalPreferences: "",
 };
 
@@ -27,7 +28,6 @@ describe("validation", () => {
 describe("toResourceResult", () => {
   it("returns empty values for a missing payload", () => {
     expect(toResourceResult(undefined)).toEqual({
-      learningPathSummary: "",
       recommendedResources: [],
       nextSteps: "",
     });
@@ -35,7 +35,6 @@ describe("toResourceResult", () => {
 
   it("maps resources field by field and ignores non-list resources", () => {
     const result = toResourceResult({
-      learningPathSummary: "Start with basics.",
       recommendedResources: [{ title: "Book", type: "book", estimatedTime: 3 }, "bad"],
       nextSteps: "Read, then build.",
     });
@@ -46,8 +45,6 @@ describe("toResourceResult", () => {
       description: "",
       difficultyLevel: "",
       estimatedTime: "3",
-      whyRecommended: "",
-      prerequisiteKnowledge: "",
       accessInfo: "",
     });
     expect(result.recommendedResources[1].title).toBe("");
@@ -65,5 +62,10 @@ describe("toResourceDraft", () => {
 
   it("drops the result when none was saved", () => {
     expect(toResourceDraft({ form: defaults }, defaults).result).toBeNull();
+  });
+
+  it("keeps a known resource type and falls back for an unknown one", () => {
+    expect(toResourceDraft({ form: { resourceType: "book" } }, defaults).form.resourceType).toBe("book");
+    expect(toResourceDraft({ form: { resourceType: "video_game" } }, defaults).form.resourceType).toBe("any");
   });
 });

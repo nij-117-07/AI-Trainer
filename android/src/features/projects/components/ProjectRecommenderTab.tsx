@@ -1,87 +1,87 @@
 // src/features/projects/components/ProjectRecommenderTab.tsx
-/** Project Recommender: hands-on project ideas for a topic, scope, and difficulty, with advice. */
-import { useCallback, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { BookOpen, Clock, Flag, Hammer, Lightbulb, ListChecks, Package, RefreshCcw, Sparkles } from "lucide-react-native";
+/** Project Recommender: hands-on project ideas for a topic, scope, and difficulty, with advice. The form sits in the footer. */
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { BookOpen, Clock, Flag, Hammer, Lightbulb, ListChecks, Package, Sparkles } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { CountSlider } from "@/components/tool/CountSlider";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
-import { useRequest } from "@/hooks/useRequest";
-import { recommendProjects } from "../lib/generators";
-import { toProjectDraft } from "../lib/normalise";
-import { MAX_RECOMMENDATIONS, TOPIC_MAX } from "../lib/validate";
+import type { ProjectRecommenderState } from "../hooks/useProjectRecommender";
 import { projectDifficultyOptions, projectSizeOptions } from "../options";
-import { useSavedDraft } from "../hooks/useSavedDraft";
-import type { ProjectFormValues, ProjectIdea, ProjectResult } from "../types";
+import type { ProjectIdea } from "../types";
+import { isProjectDifficulty, isProjectSize, MAX_RECOMMENDATIONS, TOPIC_MAX } from "../lib/validate";
 
-const STORAGE_KEY = "learning.projects.generate.v1";
-
-const DEFAULTS: ProjectFormValues = {
-  topic: "Python web scraping",
-  projectSize: "medium",
-  difficultyLevel: "intermediate",
-  numRecommendations: 3,
-};
-
-const parseDraft = (raw: unknown) => toProjectDraft(raw, DEFAULTS);
-
-export function ProjectRecommenderTab() {
+export function ProjectResults({ recommender }: { recommender: ProjectRecommenderState }) {
   const colors = useThemeColors();
-  const { settings } = useAiSettings();
-  const draft = useSavedDraft<ProjectFormValues, ProjectResult>(STORAGE_KEY, DEFAULTS, parseDraft);
-  const request = useRequest(recommendProjects);
-  const { form, setForm, setResult } = draft;
+  const { result } = recommender;
 
-  const update = useCallback(
-    <K extends keyof ProjectFormValues>(key: K, value: ProjectFormValues[K]) => {
-      setForm((prev) => ({ ...prev, [key]: value }));
-    },
-    [setForm],
-  );
-
-  function reset() {
-    draft.reset();
-    request.reset();
+  if (!result) {
+    return (
+      <EmptyHint
+        icon={Hammer}
+        title="Find a project to build"
+        hint="Name a topic in the form below, then tap Recommend projects."
+      />
+    );
   }
-
-  async function handleGenerate() {
-    const next = await request.run(settings, form);
-    if (next) setResult(next);
-  }
-
-  const result = request.data ?? draft.result;
 
   return (
     <Section>
-      <Panel>
+      {result.projects.length === 0 ? (
+        <Text style={[styles.empty, { color: colors.mutedForeground }]}>No projects returned. Try again.</Text>
+      ) : (
+        result.projects.map((project, index) => (
+          <ProjectCard key={`${project.title}-${index}`} project={project} index={index} />
+        ))
+      )}
+
+      {result.advice.trim() !== "" && (
+        <ResultCallout icon={Lightbulb} title="Advice" tone="emerald">
+          <MarkdownText content={result.advice.trim()} />
+          <ListenButton text={result.advice} label="Advice" />
+        </ResultCallout>
+      )}
+    </Section>
+  );
+}
+
+export function ProjectFooter({ recommender }: { recommender: ProjectRecommenderState }) {
+  const { form, pending, error, update, recommend } = recommender;
+
+  return (
+    <View style={styles.footer}>
+      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
         <TextField
-          label="Topic / technology"
+          label="Topic or technology"
           placeholder="e.g. Python web scraping"
           value={form.topic}
           onChangeText={(text) => update("topic", text)}
-          editable={!request.pending}
+          editable={!pending}
           maxLength={TOPIC_MAX}
         />
         <SelectField
           label="Project size"
           options={projectSizeOptions}
           value={form.projectSize}
-          onChange={(value) => update("projectSize", value as ProjectFormValues["projectSize"])}
+          onChange={(value) => {
+            if (isProjectSize(value)) update("projectSize", value);
+          }}
           allowCustom={false}
         />
         <SelectField
           label="Difficulty level"
           options={projectDifficultyOptions}
           value={form.difficultyLevel}
-          onChange={(value) => update("difficultyLevel", value as ProjectFormValues["difficultyLevel"])}
+          onChange={(value) => {
+            if (isProjectDifficulty(value)) update("difficultyLevel", value);
+          }}
           allowCustom={false}
         />
         <CountSlider
@@ -91,37 +91,15 @@ export function ProjectRecommenderTab() {
           value={form.numRecommendations}
           onChange={(value) => update("numRecommendations", value)}
         />
-        <ActionButton
-          label={request.pending ? "Finding projects…" : "Recommend projects"}
-          icon={Hammer}
-          loading={request.pending}
-          onPress={handleGenerate}
-        />
-      </Panel>
-
-      <ErrorText message={request.error} />
-
-      {result && (
-        <>
-          {result.projects.length === 0 ? (
-            <Text style={[styles.empty, { color: colors.mutedForeground }]}>No projects returned.</Text>
-          ) : (
-            result.projects.map((project, index) => (
-              <ProjectCard key={`${project.title}-${index}`} project={project} index={index} />
-            ))
-          )}
-
-          {result.advice.trim() !== "" && (
-            <ResultCallout icon={Lightbulb} title="Advice" tone="emerald">
-              <MarkdownText content={result.advice.trim()} />
-              <ListenButton text={result.advice} label="Advice" />
-            </ResultCallout>
-          )}
-        </>
-      )}
-
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={reset} />
-    </Section>
+      </ScrollView>
+      <ErrorText message={error} />
+      <ActionButton
+        label={pending ? "Finding projects…" : "Recommend projects"}
+        icon={Sparkles}
+        loading={pending}
+        onPress={recommend}
+      />
+    </View>
   );
 }
 
@@ -143,9 +121,11 @@ function ProjectCard({ project, index }: { project: ProjectIdea; index: number }
       </View>
 
       {project.description.trim() !== "" && (
-        <Text style={[styles.description, { color: colors.mutedForeground }]}>{project.description.trim()}</Text>
+        <>
+          <Text style={[styles.description, { color: colors.mutedForeground }]}>{project.description.trim()}</Text>
+          <ListenButton text={project.description} label="Project" />
+        </>
       )}
-      {project.description.trim() !== "" && <ListenButton text={project.description} label="Project" />}
 
       {project.keyConcepts.length > 0 && (
         <View style={styles.group}>
@@ -154,17 +134,17 @@ function ProjectCard({ project, index }: { project: ProjectIdea; index: number }
         </View>
       )}
 
-      {project.prerequisites.length > 0 && (
-        <View style={styles.group}>
-          <SectionTitle icon={ListChecks} title="Prerequisites" />
-          <BulletList items={project.prerequisites} />
-        </View>
-      )}
-
       {project.deliverables.length > 0 && (
         <View style={styles.group}>
           <SectionTitle icon={Package} title="Deliverables" />
           <BulletList items={project.deliverables} />
+        </View>
+      )}
+
+      {project.prerequisites.length > 0 && (
+        <View style={styles.group}>
+          <SectionTitle icon={ListChecks} title="Prerequisites" />
+          <BulletList items={project.prerequisites} />
         </View>
       )}
 
@@ -193,6 +173,15 @@ function BulletList({ items }: { items: string[] }) {
 }
 
 const styles = StyleSheet.create({
+  footer: {
+    gap: spacing.md,
+  },
+  fields: {
+    maxHeight: 340,
+  },
+  fieldsContent: {
+    gap: spacing.md,
+  },
   empty: {
     fontSize: 14,
   },

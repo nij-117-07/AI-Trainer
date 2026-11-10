@@ -1,128 +1,114 @@
-/** What To Do Now: enter goals, the time, and your situation, then get the next actions to take. */
-import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Ban, Clock, Compass, Flag, Lightbulb, ListChecks, RefreshCcw } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
-import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
+// src/features/what-to-do-now/components/WhatToDoNowTab.tsx
+/** What To Do Now: goals, time, and situation go in the footer; the next actions show above. */
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Ban, Clock, Compass, Flag, Lightbulb, ListChecks } from "lucide-react-native";
+import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
-import { useRequest } from "@/hooks/useRequest";
-import { whatToDoNow } from "../lib/generators";
-import { EXTRA_INFO_MAX, formatDateTime, GOALS_MAX, SITUATION_MAX } from "../lib/validate";
-import type { NextAction, WhatToDoNowFormValues, WhatToDoNowResult } from "../types";
+import type { WhatToDoNowState } from "../hooks/useWhatToDoNow";
+import { EXTRA_INFO_MAX, GOALS_MAX, SITUATION_MAX } from "../lib/validate";
+import type { NextAction } from "../types";
 
-function emptyForm(): WhatToDoNowFormValues {
-  return { goals: "", dateTime: formatDateTime(new Date()), situation: "", extraInfo: "" };
-}
-
-export function WhatToDoNowTab() {
+export function WhatToDoNowResults({ state }: { state: WhatToDoNowState }) {
   const colors = useThemeColors();
-  const { settings } = useAiSettings();
-  const request = useRequest(whatToDoNow);
-  const [form, setForm] = useState<WhatToDoNowFormValues>(emptyForm);
+  const { result } = state;
 
-  const update = <K extends keyof WhatToDoNowFormValues>(key: K, value: WhatToDoNowFormValues[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  function reset() {
-    setForm(emptyForm());
-    request.reset();
+  if (!result) {
+    return (
+      <EmptyHint
+        icon={Compass}
+        title="Decide your next step"
+        hint="Describe your goals and how you are doing in the form below, then tap What should I do now?"
+      />
+    );
   }
-
-  async function handleGenerate() {
-    await request.run(settings, { ...form, dateTime: form.dateTime.trim() });
-  }
-
-  const result: WhatToDoNowResult | null = request.data;
 
   return (
     <Section>
-      <Panel>
+      {result.timeContext.trim() !== "" && (
+        <ResultCallout icon={Clock} title="Time check" tone="sky">
+          <Text style={[styles.text, { color: colors.foreground }]}>{result.timeContext.trim()}</Text>
+        </ResultCallout>
+      )}
+
+      <SectionTitle icon={ListChecks} title="Do this now" />
+      {result.doNow.length === 0 ? (
+        <Text style={[styles.empty, { color: colors.mutedForeground }]}>No actions returned. Try again.</Text>
+      ) : (
+        result.doNow.map((item, index) => <ActionCard key={`${item.action}-${index}`} item={item} index={index} />)
+      )}
+
+      {result.avoid.length > 0 && (
+        <ResultCallout icon={Ban} title="Avoid right now" tone="rose">
+          <TagList items={result.avoid} />
+        </ResultCallout>
+      )}
+
+      {result.nextCheckpoint.trim() !== "" && (
+        <ResultCallout icon={Flag} title="Next checkpoint" tone="emerald">
+          <Text style={[styles.text, { color: colors.foreground }]}>{result.nextCheckpoint.trim()}</Text>
+        </ResultCallout>
+      )}
+    </Section>
+  );
+}
+
+export function WhatToDoNowFooter({ state }: { state: WhatToDoNowState }) {
+  const { form, pending, error, update, submit } = state;
+
+  return (
+    <View style={styles.footer}>
+      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
         <TextField
-          label="Your goals"
-          hint="One per line. Add deadlines if you have them."
+          label="Goals"
           placeholder={"Finish the Android report by Friday\nLearn React Native navigation"}
           value={form.goals}
           onChangeText={(text) => update("goals", text)}
-          editable={!request.pending}
+          editable={!pending}
           multiline
           maxLength={GOALS_MAX}
+          voice
         />
         <TextField
-          label="Date and time"
-          hint="Format: YYYY-MM-DD HH:mm"
+          label="Date and time (optional)"
+          hint="Leave empty to use now."
           placeholder="2026-11-09 14:30"
           value={form.dateTime}
           onChangeText={(text) => update("dateTime", text)}
-          editable={!request.pending}
+          editable={!pending}
         />
         <TextField
           label="Current situation"
-          hint="What are you doing now? How do you feel? How much time do you have?"
           placeholder="I have 2 hours free, I'm tired, and I haven't started the report."
           value={form.situation}
           onChangeText={(text) => update("situation", text)}
-          editable={!request.pending}
+          editable={!pending}
           multiline
           maxLength={SITUATION_MAX}
+          voice
         />
         <TextField
-          label="Additional info"
-          hint="Commitments, location, resources, or constraints (optional)."
+          label="Additional info (optional)"
           placeholder="Dinner at 19:00. Laptop only."
           value={form.extraInfo}
           onChangeText={(text) => update("extraInfo", text)}
-          editable={!request.pending}
+          editable={!pending}
           multiline
           maxLength={EXTRA_INFO_MAX}
         />
-        <ActionButton
-          label={request.pending ? "Thinking…" : "What should I do now?"}
-          icon={Compass}
-          loading={request.pending}
-          onPress={handleGenerate}
-        />
-      </Panel>
-
-      <ErrorText message={request.error} />
-
-      {result && (
-        <>
-          {result.timeContext.trim() !== "" && (
-            <ResultCallout icon={Clock} title="Time check" tone="sky">
-              <Text style={[styles.text, { color: colors.foreground }]}>{result.timeContext.trim()}</Text>
-            </ResultCallout>
-          )}
-
-          <SectionTitle icon={ListChecks} title="Do this now" />
-          {result.doNow.length === 0 ? (
-            <Text style={[styles.empty, { color: colors.mutedForeground }]}>No actions returned.</Text>
-          ) : (
-            result.doNow.map((item, index) => (
-              <ActionCard key={`${item.action}-${index}`} item={item} index={index} />
-            ))
-          )}
-
-          {result.avoid.length > 0 && (
-            <ResultCallout icon={Ban} title="Avoid right now" tone="rose">
-              <TagList items={result.avoid} />
-            </ResultCallout>
-          )}
-
-          {result.nextCheckpoint.trim() !== "" && (
-            <ResultCallout icon={Flag} title="Next checkpoint" tone="emerald">
-              <Text style={[styles.text, { color: colors.foreground }]}>{result.nextCheckpoint.trim()}</Text>
-            </ResultCallout>
-          )}
-        </>
-      )}
-
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={reset} />
-    </Section>
+      </ScrollView>
+      <ErrorText message={error} />
+      <ActionButton
+        label={pending ? "Thinking…" : "What should I do now?"}
+        icon={Compass}
+        loading={pending}
+        onPress={submit}
+      />
+    </View>
   );
 }
 
@@ -159,13 +145,16 @@ function ActionCard({ item, index }: { item: NextAction; index: number }) {
 }
 
 const styles = StyleSheet.create({
+  footer: { gap: spacing.md },
+  fields: { maxHeight: 340 },
+  fieldsContent: { gap: spacing.md },
   text: { fontSize: 15, lineHeight: 23 },
   empty: { fontSize: 14, textAlign: "center", paddingVertical: spacing.md },
   cardHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
-  badge: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  badge: { width: 28, height: 28, borderRadius: radius.full, alignItems: "center", justifyContent: "center" },
   badgeText: { fontSize: 14, fontWeight: "700" },
   cardTitle: { flex: 1, fontSize: 17, fontWeight: "600" },
-  minutes: { flexDirection: "row", alignItems: "center", gap: 4, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
+  minutes: { flexDirection: "row", alignItems: "center", gap: spacing.xs, borderWidth: 1, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
   minutesText: { fontSize: 12, fontWeight: "500" },
   row: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
   meta: { flex: 1, fontSize: 14, lineHeight: 21 },

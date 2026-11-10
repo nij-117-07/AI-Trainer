@@ -9,6 +9,7 @@ import type {
   ResourceSuggestorFormValues,
   ResourceSuggestorResult,
 } from "../types";
+import { isResourceType } from "../options";
 import { PREFERENCES_MAX, SUBJECT_MAX } from "./validate";
 
 export function asRecord(value: unknown): Record<string, unknown> {
@@ -36,8 +37,6 @@ export function toResourceItem(raw: unknown): ResourceItem {
     description: textOf(item.description),
     difficultyLevel: textOf(item.difficultyLevel),
     estimatedTime: textOf(item.estimatedTime),
-    whyRecommended: textOf(item.whyRecommended),
-    prerequisiteKnowledge: textOf(item.prerequisiteKnowledge),
     accessInfo: textOf(item.accessInfo),
   };
 }
@@ -45,7 +44,6 @@ export function toResourceItem(raw: unknown): ResourceItem {
 export function toResourceResult(raw: unknown): ResourceSuggestorResult {
   const record = asRecord(raw);
   return {
-    learningPathSummary: textOf(record.learningPathSummary),
     recommendedResources: listOf(record.recommendedResources as unknown[]).map(toResourceItem),
     nextSteps: textOf(record.nextSteps),
   };
@@ -58,6 +56,7 @@ export function toResourceForm(raw: unknown, defaults: ResourceSuggestorFormValu
   return {
     backgroundSubject: pick(record.backgroundSubject, defaults.backgroundSubject, SUBJECT_MAX),
     targetTopic: pick(record.targetTopic, defaults.targetTopic, SUBJECT_MAX),
+    resourceType: isResourceType(record.resourceType) ? record.resourceType : defaults.resourceType,
     additionalPreferences: pick(record.additionalPreferences, defaults.additionalPreferences, PREFERENCES_MAX),
   };
 }

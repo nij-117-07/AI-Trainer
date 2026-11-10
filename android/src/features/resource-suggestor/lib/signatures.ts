@@ -13,8 +13,8 @@ export const resourceSuggestorSignature = f()
   .description(suggestor.instruction)
   .input("backgroundSubject", f.string(suggestor.inputs.backgroundSubject))
   .input("targetTopic", f.string(suggestor.inputs.targetTopic))
+  .input("resourceType", f.string(suggestor.inputs.resourceType))
   .input("additionalPreferences", f.string(suggestor.inputs.additionalPreferences))
-  .output("learningPathSummary", f.string(suggestor.outputs.learningPathSummary))
   .output(
     "recommendedResources",
     f
@@ -26,8 +26,6 @@ export const resourceSuggestorSignature = f()
           description: f.string(item.description),
           difficultyLevel: f.string(item.difficultyLevel),
           estimatedTime: f.string(item.estimatedTime),
-          whyRecommended: f.string(item.whyRecommended),
-          prerequisiteKnowledge: f.string(item.prerequisiteKnowledge),
           accessInfo: f.string(item.accessInfo),
         },
         suggestor.outputs.recommendedResources,

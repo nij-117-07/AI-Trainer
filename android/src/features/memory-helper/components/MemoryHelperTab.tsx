@@ -1,55 +1,86 @@
 // src/features/memory-helper/components/MemoryHelperTab.tsx
-/** Memory Helper: a why-it-works note, concept-to-hook mnemonics, and a 3-step retention plan. */
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Brain, Lightbulb, ListChecks, RefreshCcw, Sparkles } from "lucide-react-native";
+/** Memory Helper: a why-it-works note, concept-to-hook mnemonics, and a 3-step retention plan. The form sits in the footer. */
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Brain, Lightbulb, ListChecks, Sparkles } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
-import { useRequest } from "@/hooks/useRequest";
-import { generateMemoryAids } from "../lib/generators";
-import { MEMORY_DEFAULTS, MEMORY_DRAFT_KEY, restoreMemoryDraft } from "../lib/drafts";
+import type { MemoryHelperState } from "../hooks/useMemoryHelper";
 import { techniqueOptions } from "../lib/options";
-import { isMemoryTechnique, type MemoryFormValues, type MemoryResult } from "../lib/types";
-import { useDraft } from "../hooks/useDraft";
+import { CONTENT_MAX, CONTENT_MIN, isMemoryTechnique } from "../lib/types";
 
-export function MemoryHelperTab() {
+export function MemoryHelperResults({ state }: { state: MemoryHelperState }) {
   const colors = useThemeColors();
-  const { settings } = useAiSettings();
-  const draft = useDraft<MemoryFormValues, MemoryResult>(MEMORY_DRAFT_KEY, MEMORY_DEFAULTS, restoreMemoryDraft);
-  const request = useRequest(generateMemoryAids);
-  const { form, result } = draft;
+  const { result } = state;
 
-  function update<K extends keyof MemoryFormValues>(key: K, value: MemoryFormValues[K]) {
-    draft.setForm((prev) => ({ ...prev, [key]: value }));
-  }
-
-  function reset() {
-    draft.reset();
-    request.reset();
-  }
-
-  async function handleGenerate() {
-    const generated = await request.run(settings, form);
-    if (generated) draft.setResult(generated);
+  if (!result) {
+    return (
+      <EmptyHint
+        icon={Brain}
+        title="Turn facts into memory aids"
+        hint="Paste what you need to remember in the form below, then tap Create mnemonics."
+      />
+    );
   }
 
   return (
     <Section>
+      {result.explanation.trim() !== "" && (
+        <ResultCallout icon={Lightbulb} title="Why this technique works" tone="sky">
+          <MarkdownText content={result.explanation} />
+          <ListenButton text={result.explanation} label="Explanation" />
+        </ResultCallout>
+      )}
+
       <Panel>
+        <SectionTitle icon={Brain} title="Memory hooks" />
+        {result.memoryHooks.length === 0 ? (
+          <Text style={[styles.empty, { color: colors.mutedForeground }]}>No memory hooks returned. Try again.</Text>
+        ) : (
+          <View style={styles.hooks}>
+            {result.memoryHooks.map((item, index) => (
+              <View key={`${item.concept}-${index}`} style={[styles.hook, { borderColor: colors.border }]}>
+                <Text style={[styles.hookConcept, { color: colors.primary }]}>
+                  {index + 1}. {item.concept}
+                </Text>
+                <MarkdownText content={item.hook} />
+                <ListenButton text={item.hook} label="Memory hook" />
+              </View>
+            ))}
+          </View>
+        )}
+      </Panel>
+
+      {result.retentionPlan.trim() !== "" && (
+        <ResultCallout icon={ListChecks} title="Retention plan" tone="emerald">
+          <MarkdownText content={result.retentionPlan} />
+          <ListenButton text={result.retentionPlan} label="Retention plan" />
+        </ResultCallout>
+      )}
+    </Section>
+  );
+}
+
+export function MemoryHelperFooter({ state }: { state: MemoryHelperState }) {
+  const { form, pending, error, update, submit } = state;
+
+  return (
+    <View style={styles.footer}>
+      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
         <TextField
-          label="Facts or data to memorize"
-          placeholder="Paste the facts, terms, or list you need to remember…"
-          hint="At least 5 characters."
+          label="Facts to memorize"
+          placeholder="e.g. The planets in order from the sun, or the steps of the Krebs cycle"
+          hint={`At least ${CONTENT_MIN} characters.`}
           value={form.topic}
           onChangeText={(text) => update("topic", text)}
-          editable={!request.pending}
-          maxLength={2000}
+          editable={!pending}
+          maxLength={CONTENT_MAX}
           multiline
           voice
         />
@@ -62,59 +93,28 @@ export function MemoryHelperTab() {
           }}
           allowCustom={false}
         />
-        <ActionButton
-          label={request.pending ? "Building memory hooks…" : "Create mnemonics"}
-          icon={Sparkles}
-          loading={request.pending}
-          onPress={handleGenerate}
-        />
-      </Panel>
-
-      <ErrorText message={request.error} />
-
-      {result && (
-        <>
-          {result.explanation.trim() !== "" && (
-            <ResultCallout icon={Lightbulb} title="Why this technique works" tone="sky">
-              <MarkdownText content={result.explanation} />
-              <ListenButton text={result.explanation} label="Explanation" />
-            </ResultCallout>
-          )}
-
-          <Panel>
-            <SectionTitle icon={Brain} title="Memory hooks" />
-            {result.memoryHooks.length === 0 ? (
-              <Text style={[styles.empty, { color: colors.mutedForeground }]}>No memory hooks returned.</Text>
-            ) : (
-              <View style={styles.hooks}>
-                {result.memoryHooks.map((item, index) => (
-                  <View key={`${item.concept}-${index}`} style={[styles.hook, { borderColor: colors.border }]}>
-                    <Text style={[styles.hookConcept, { color: colors.primary }]}>
-                      {index + 1}. {item.concept}
-                    </Text>
-                    <MarkdownText content={item.hook} />
-                    <ListenButton text={item.hook} label="Memory hook" />
-                  </View>
-                ))}
-              </View>
-            )}
-          </Panel>
-
-          {result.retentionPlan.trim() !== "" && (
-            <ResultCallout icon={ListChecks} title="Retention plan" tone="emerald">
-              <MarkdownText content={result.retentionPlan} />
-              <ListenButton text={result.retentionPlan} label="Retention plan" />
-            </ResultCallout>
-          )}
-        </>
-      )}
-
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={reset} />
-    </Section>
+      </ScrollView>
+      <ErrorText message={error} />
+      <ActionButton
+        label={pending ? "Building memory hooks…" : "Create mnemonics"}
+        icon={Sparkles}
+        loading={pending}
+        onPress={submit}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  footer: {
+    gap: spacing.md,
+  },
+  fields: {
+    maxHeight: 340,
+  },
+  fieldsContent: {
+    gap: spacing.md,
+  },
   empty: {
     fontSize: 14,
   },

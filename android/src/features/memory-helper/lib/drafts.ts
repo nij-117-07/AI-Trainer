@@ -4,12 +4,12 @@
  * rebuilt field by field, so a damaged or outdated draft falls back to defaults.
  */
 import { isRecord, listOf, stringOr, textOf } from "./normalise";
-import { isMemoryTechnique, type MemoryFormValues, type MemoryHook, type MemoryResult } from "./types";
+import { CONTENT_MAX, isMemoryTechnique, type MemoryFormValues, type MemoryHook, type MemoryResult } from "./types";
 
-export const MEMORY_DRAFT_KEY = "learning.memory-helper.process.v1";
+export const MEMORY_DRAFT_KEY = "learning.memory-helper.v1";
 
 export const MEMORY_DEFAULTS: MemoryFormValues = {
-  topic: "Photosynthesis produces glucose from CO2, water, and sunlight",
+  topic: "",
   technique: "Method of Loci",
 };
 
@@ -23,7 +23,7 @@ export function restoreMemoryDraft(raw: unknown): Draft {
   const form = isRecord(record.form) ? record.form : {};
   return {
     form: {
-      topic: stringOr(form.topic, MEMORY_DEFAULTS.topic),
+      topic: stringOr(form.topic, MEMORY_DEFAULTS.topic).slice(0, CONTENT_MAX),
       technique: isMemoryTechnique(form.technique) ? form.technique : MEMORY_DEFAULTS.technique,
     },
     result: readMemoryResult(record.result),

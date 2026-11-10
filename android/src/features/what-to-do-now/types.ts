@@ -20,3 +20,8 @@ export interface WhatToDoNowResult {
   avoid: string[];
   nextCheckpoint: string;
 }
+
+export interface WhatToDoNowDraft {
+  form: WhatToDoNowFormValues;
+  result: WhatToDoNowResult | null;
+}

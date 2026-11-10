@@ -9,6 +9,7 @@ import { createLlm } from "@/features/ai-settings/lib/llm";
 import type { ResourceSuggestorFormValues, ResourceSuggestorResult } from "../types";
 import { resourceSuggestorSignature } from "./signatures";
 import { toResourceResult } from "./normalise";
+import { resourceTypeLabel } from "../options";
 import { preferencesOrDefault, requireText, SUBJECT_MAX } from "./validate";
 
 const TEMPERATURE = 0.7;
@@ -20,6 +21,7 @@ export async function suggestResources(
   const input = {
     backgroundSubject: requireText(values.backgroundSubject, "Background subject", SUBJECT_MAX),
     targetTopic: requireText(values.targetTopic, "Target topic", SUBJECT_MAX),
+    resourceType: resourceTypeLabel(values.resourceType),
     additionalPreferences: preferencesOrDefault(values.additionalPreferences),
   };
   const llm = createLlm(settings);

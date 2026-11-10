@@ -3,6 +3,7 @@
 export interface ResourceSuggestorFormValues {
   backgroundSubject: string;
   targetTopic: string;
+  resourceType: string;
   additionalPreferences: string;
 }
 
@@ -13,13 +14,10 @@ export interface ResourceItem {
   description: string;
   difficultyLevel: string;
   estimatedTime: string;
-  whyRecommended: string;
-  prerequisiteKnowledge: string;
   accessInfo: string;
 }
 
 export interface ResourceSuggestorResult {
-  learningPathSummary: string;
   recommendedResources: ResourceItem[];
   nextSteps: string;
 }

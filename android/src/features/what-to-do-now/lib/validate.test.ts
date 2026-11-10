@@ -1,5 +1,5 @@
 import { describeDateTime, formatDateTime, parseDateTime, requireText } from "./validate";
-import { toWhatToDoNowResult } from "./normalise";
+import { toWhatToDoNowDraft, toWhatToDoNowResult } from "./normalise";
 
 describe("what-to-do-now validate", () => {
   it("parses a valid date and time", () => {
@@ -29,5 +29,11 @@ describe("what-to-do-now normalise", () => {
     expect(result.timeContext).toBe("");
     expect(result.doNow).toEqual([{ action: "Write intro", goal: "", reason: "", minutes: 25 }]);
     expect(result.avoid).toEqual([]);
+  });
+
+  it("restores a saved draft and drops bad values", () => {
+    const draft = toWhatToDoNowDraft({ form: { goals: "Ship it", dateTime: 5, situation: null }, result: null });
+    expect(draft.form).toEqual({ goals: "Ship it", dateTime: "5", situation: "", extraInfo: "" });
+    expect(draft.result).toBeNull();
   });
 });

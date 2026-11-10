@@ -17,7 +17,6 @@ import {
   FileImage,
   FileText,
   Flame,
-  Flower2,
   FolderKanban,
   Globe,
   GraduationCap,
@@ -180,15 +179,6 @@ export const APPS: AppCard[] = [
     icon: MessagesSquare,
     group: "learning",
     tone: "sky",
-  },
-  {
-    key: "dharma-instructor",
-    title: "Dharma Instructor",
-    description: "Learn the Dharma and talk through conflicts with an instructor who answers from the teachings.",
-    route: "/learning/dharma-instructor",
-    icon: Flower2,
-    group: "learning",
-    tone: "amber",
   },
   {
     key: "memory-helper",

@@ -12,6 +12,9 @@ export const MEMORY_TECHNIQUES = [
 
 export type MemoryTechnique = (typeof MEMORY_TECHNIQUES)[number];
 
+export const CONTENT_MIN = 5;
+export const CONTENT_MAX = 2000;
+
 export function isMemoryTechnique(value: unknown): value is MemoryTechnique {
   return typeof value === "string" && (MEMORY_TECHNIQUES as readonly string[]).includes(value);
 }

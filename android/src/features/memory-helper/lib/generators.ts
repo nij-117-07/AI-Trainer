@@ -8,7 +8,7 @@ import type { AiSettings } from "@/features/ai-settings/types";
 import { createLlm } from "@/features/ai-settings/lib/llm";
 import { listOf, optionalText, requireText, textOf } from "./normalise";
 import { memoryAgentSignature } from "./signatures";
-import type { MemoryFormValues, MemoryHook, MemoryResult } from "./types";
+import { CONTENT_MAX, CONTENT_MIN, type MemoryFormValues, type MemoryHook, type MemoryResult } from "./types";
 
 const TEMPERATURE = 0.5;
 const DEFAULT_TECHNIQUE = "Best Fit";
@@ -18,7 +18,7 @@ export async function generateMemoryAids(settings: AiSettings, values: MemoryFor
   const result = await ax(memoryAgentSignature).forward(
     llm,
     {
-      contentToRemember: requireText(values.topic, "Topic", 2000, 5),
+      contentToRemember: requireText(values.topic, "Facts to memorize", CONTENT_MAX, CONTENT_MIN),
       preferredTechnique: optionalText(values.technique, 100) ?? DEFAULT_TECHNIQUE,
     },
     { modelConfig: { temperature: TEMPERATURE } },
