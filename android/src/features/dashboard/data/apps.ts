@@ -6,6 +6,7 @@ import {
   Bot,
   Brain,
   Bell,
+  CalendarDays,
   Briefcase,
   Camera,
   MessageSquareText,
@@ -151,6 +152,15 @@ export const APPS: AppCard[] = [
     icon: Lightbulb,
     group: "learning",
     tone: "rose",
+  },
+  {
+    key: "topic-of-the-day",
+    title: "Topic of the Day",
+    description: "Get one focused topic with key ideas, a worked example, and a small task you can finish today.",
+    route: "/learning/topic-of-the-day",
+    icon: CalendarDays,
+    group: "learning",
+    tone: "amber",
   },
   {
     key: "roadmap",
