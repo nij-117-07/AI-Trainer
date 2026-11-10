@@ -27,3 +27,22 @@ export const ROLEPLAY_CHATBOT_DESCRIPTIONS = {
     responseMessage: "The roleplay response for the user, following all persona and language rules.",
   },
 };
+
+/**
+ * Instruction and field descriptions for the system prompt writer. This is an Android-only helper:
+ * the backend has no roleplay persona generator, so the wording is written for this app.
+ */
+export const ROLEPLAY_PROMPT_WRITER_DESCRIPTIONS = {
+  instruction:
+    "You write system prompts for a language roleplay partner. Given a short character idea and a target language, write a second-person system prompt (starting with 'You are') that makes the AI play that character. Cover who the character is, their personality and tone, the setting and what the learner is trying to do in the scene, how the character reacts, and that the character always replies in the target language and stays in character. Keep it under 150 words.",
+  inputs: {
+    // character_idea
+    characterIdea: "A short description of the character or scene, for example 'a grumpy Parisian waiter'.",
+    // language
+    language: "The language the character must speak, for example French.",
+  },
+  outputs: {
+    // system_prompt
+    systemPrompt: "The complete system prompt, ready to use as the persona.",
+  },
+};

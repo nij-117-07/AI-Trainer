@@ -4,9 +4,10 @@
  * signature-descriptions.ts, which is copied from Backend/linguistic/roleplay_module/services.py.
  */
 import { f } from "@ax-llm/ax";
-import { ROLEPLAY_CHATBOT_DESCRIPTIONS } from "./signature-descriptions";
+import { ROLEPLAY_CHATBOT_DESCRIPTIONS, ROLEPLAY_PROMPT_WRITER_DESCRIPTIONS } from "./signature-descriptions";
 
 const roleplay = ROLEPLAY_CHATBOT_DESCRIPTIONS;
+const writer = ROLEPLAY_PROMPT_WRITER_DESCRIPTIONS;
 
 export const roleplayChatSignature = f()
   .description(roleplay.instruction)
@@ -17,4 +18,11 @@ export const roleplayChatSignature = f()
   .input("seedUuid", f.string(roleplay.inputs.seedUuid))
   .input("additionalInstructions", f.string(roleplay.inputs.additionalInstructions).optional())
   .output("responseMessage", f.string(roleplay.outputs.responseMessage))
+  .build();
+
+export const roleplaySystemPromptSignature = f()
+  .description(writer.instruction)
+  .input("characterIdea", f.string(writer.inputs.characterIdea))
+  .input("language", f.string(writer.inputs.language))
+  .output("systemPrompt", f.string(writer.outputs.systemPrompt))
   .build();

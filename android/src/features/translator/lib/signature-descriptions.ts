@@ -17,8 +17,6 @@ export const CONTEXTUAL_TRANSLATOR_DESCRIPTIONS = {
     targetLanguage: "The language the text should be translated into.",
     // tone
     tone: "The desired style of the translation.",
-    // reference_material
-    referenceMaterial: "Glossary or context snippets to maintain consistency.",
     // custom_instructions
     customInstructions: "Specific rules (e.g., 'avoid gendered pronouns').",
   },

@@ -9,12 +9,13 @@ export const ADDITIONAL_INSTRUCTIONS_MAX = 1000;
 export const MESSAGE_MAX = 2000;
 export const ROLE_NAME_MAX = 200;
 export const ROLE_PROMPT_MAX = 5000;
+export const PROMPT_IDEA_MAX = 500;
 
 export const DEFAULT_SETTINGS: RoleplaySettings = {
-  systemPrompt: "You are a grumpy Parisian waiter.",
+  systemPrompt: "",
   language: "French",
   seed: "",
-  additionalInstructions: "Be sarcastic but helpful.",
+  additionalInstructions: "",
 };
 
 export const EMPTY_ROLE_FORM: RoleFormValues = { name: "", prompt: "" };

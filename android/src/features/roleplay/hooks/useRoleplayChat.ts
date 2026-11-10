@@ -1,9 +1,10 @@
-// src/features/roleplay/hooks/useRoleplayChat.ts
 /**
- * Holds the roleplay chat state: persona settings, the transcript, the draft message, and the
- * pending turn. Settings, transcript, and draft are saved to the device as they change.
+ * Holds the roleplay chat state: the transcript, the draft message, and the pending turn. The
+ * persona comes from the Persona page and is re-read each time the chat is focused. Transcript and
+ * draft are saved to the device as they change.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { DEFAULT_SETTINGS } from "../options";
@@ -53,10 +54,19 @@ export function useRoleplayChat() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!loaded) return;
-    saveSettings(settings).catch(() => undefined);
-  }, [loaded, settings]);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadSettings()
+        .then((saved) => {
+          if (active) setSettings(saved);
+        })
+        .catch(() => undefined);
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   useEffect(() => {
     if (!loaded) return;
@@ -70,16 +80,20 @@ export function useRoleplayChat() {
 
   useEffect(() => () => turnController.current?.abort(), []);
 
-  const updateSettings = useCallback((patch: Partial<RoleplaySettings>) => {
-    setSettings((current) => ({ ...current, ...patch }));
-  }, []);
-
   const send = useCallback(async () => {
     const text = draft.trim();
     if (!text || pending) return;
+    if (!settings.systemPrompt.trim()) {
+      setError("Write a persona first. Tap Edit persona above.");
+      return;
+    }
 
     const seed = settings.seed.trim() || `session_${Date.now()}`;
-    if (seed !== settings.seed) updateSettings({ seed });
+    if (seed !== settings.seed) {
+      const next = { ...settings, seed };
+      setSettings(next);
+      saveSettings(next).catch(() => undefined);
+    }
 
     const previous = history;
     const controller = new AbortController();
@@ -104,7 +118,7 @@ export function useRoleplayChat() {
     } finally {
       setPending(false);
     }
-  }, [activeProfile.targetLanguage, aiSettings, draft, history, pending, settings, updateSettings]);
+  }, [activeProfile.targetLanguage, aiSettings, draft, history, pending, settings]);
 
   const newConversation = useCallback(() => {
     if (pending) return;
@@ -116,7 +130,6 @@ export function useRoleplayChat() {
   return {
     loaded,
     settings,
-    updateSettings,
     history,
     draft,
     setDraft,
@@ -126,3 +139,5 @@ export function useRoleplayChat() {
     newConversation,
   };
 }
+
+export type RoleplayChatState = ReturnType<typeof useRoleplayChat>;

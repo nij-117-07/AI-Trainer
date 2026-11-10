@@ -12,13 +12,16 @@ import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/For
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRoleplayRoles } from "../hooks/useRoleplayRoles";
+import { useSystemPromptAssistant } from "../hooks/useSystemPromptAssistant";
 import { ROLE_NAME_MAX, ROLE_PROMPT_MAX } from "../options";
 import type { RoleRecord } from "../types";
+import { SystemPromptAssistant } from "./SystemPromptAssistant";
 
 export function RoleplayRolesView() {
   const colors = useThemeColors();
   const roles = useRoleplayRoles();
-  const { reload } = roles;
+  const { reload, setForm } = roles;
+  const assistant = useSystemPromptAssistant((prompt) => setForm((current) => ({ ...current, prompt })));
 
   useFocusEffect(
     useCallback(() => {
@@ -47,6 +50,7 @@ export function RoleplayRolesView() {
           onChangeText={(name) => roles.setForm((current) => ({ ...current, name }))}
           maxLength={ROLE_NAME_MAX}
         />
+        <SystemPromptAssistant assistant={assistant} />
         <TextField
           label="Prompt"
           placeholder="The persona system prompt, e.g. 'You are a grumpy Parisian waiter.'"

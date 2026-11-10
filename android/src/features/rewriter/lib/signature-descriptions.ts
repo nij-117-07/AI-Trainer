@@ -18,7 +18,7 @@ export const TEXT_REWRITER_DESCRIPTIONS = {
     audience: "Who the text is being written for.",
     // transformation_goal
     transformationGoal:
-      "The primary objective of the rewrite. One of: paraphrase, shorten, expand, simplify.",
+      "The primary objective of the rewrite. Preset goals: paraphrase, shorten, expand, simplify. Any other goal is also accepted.",
     // custom_instructions
     customInstructions: "Specific constraints or rules.",
   },

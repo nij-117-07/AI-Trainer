@@ -28,7 +28,7 @@ export async function generateLesson(
     learningFocus: requireOption(values.learningFocus, LEARNING_FOCUSES, "Learning focus"),
     complexityWeight: requireOption(values.complexityWeight, COMPLEXITY_WEIGHTS, "Complexity weight"),
     seed: optionalText(values.seed, "Seed", 200) ?? `lesson_${Date.now()}`,
-    userCustomInstruction: optionalText(values.userCustomInstruction, "Custom instruction", 2000),
+    userCustomInstruction: optionalText(values.userCustomInstruction, "User instructions", 1000),
   };
   if (signal?.aborted) throw new Error("Lesson request cancelled.");
   const result = await ax(languageLessonSignature).forward(llm, input, {

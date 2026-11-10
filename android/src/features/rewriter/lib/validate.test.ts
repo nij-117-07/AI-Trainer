@@ -1,10 +1,5 @@
 // src/features/rewriter/lib/validate.test.ts
-import {
-  optionalText,
-  requireOption,
-  requireText,
-  throwIfAborted,
-} from "./validate";
+import { optionalText, requireText, throwIfAborted } from "./validate";
 
 describe("requireText", () => {
   it("trims and returns the value", () => {
@@ -30,25 +25,6 @@ describe("optionalText", () => {
     expect(() =>
       optionalText("x".repeat(1001), "Custom instructions", 1000),
     ).toThrow("Custom instructions must be 1000 characters or fewer.");
-  });
-});
-
-describe("requireOption", () => {
-  it("returns a listed goal and rejects anything else", () => {
-    expect(
-      requireOption(
-        "shorten",
-        ["paraphrase", "shorten"],
-        "Transformation goal",
-      ),
-    ).toBe("shorten");
-    expect(() =>
-      requireOption(
-        "expand-more",
-        ["paraphrase", "shorten"],
-        "Transformation goal",
-      ),
-    ).toThrow("Transformation goal must be one of: paraphrase, shorten.");
   });
 });
 

@@ -1,5 +1,5 @@
 // src/features/translator/lib/validate.test.ts
-import { optionalText, requireText, requireTone } from "./validate";
+import { optionalText, requireText } from "./validate";
 
 describe("requireText", () => {
   it("trims and returns the text", () => {
@@ -30,15 +30,5 @@ describe("optionalText", () => {
     expect(() => optionalText("abcdef", "Custom instructions", 3)).toThrow(
       "Custom instructions must be 3 characters or fewer.",
     );
-  });
-});
-
-describe("requireTone", () => {
-  it("accepts a listed tone", () => {
-    expect(requireTone("poetic")).toBe("poetic");
-  });
-
-  it("rejects a tone outside the backend enum", () => {
-    expect(() => requireTone("snarky")).toThrow("Tone must be one of: formal, casual, business, poetic, technical.");
   });
 });

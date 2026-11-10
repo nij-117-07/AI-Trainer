@@ -8,7 +8,6 @@ import {
   Feather,
   GraduationCap,
   Languages,
-  MessagesSquare,
   PenLine,
   Quote,
   SlidersHorizontal,
@@ -97,14 +96,6 @@ export const LANGUAGE_TOOLS: LanguageTool[] = [
     route: "/language-learner/language-tester",
     icon: GraduationCap,
     tone: "amber",
-  },
-  {
-    key: "simulator",
-    title: "Simulator",
-    description: "Practise real situations with a simulated partner, chat sessions, and custom personas.",
-    route: "/language-learner/simulator",
-    icon: MessagesSquare,
-    tone: "sky",
   },
   {
     key: "roleplay",

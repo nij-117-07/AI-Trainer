@@ -229,6 +229,7 @@ Every tool page (Learning, Practice, Tools) follows the same layout, the same fi
   2. The error message, just above the button.
   3. One full-width primary `ActionButton`, the only primary action on the screen.
 - While the request runs, the button shows a loading label (for example "Connecting concepts…") and the fields are disabled.
+- Reference files (inline layout): Conceptual Bridge (`src/app/learning/conceptual-bridge/index.tsx`) and Translator (`src/app/language-learner/translator/index.tsx`, with `src/features/translator/components/TranslatorTool.tsx`), and Rewriter (`src/app/language-learner/rewriter/index.tsx`, with `src/features/rewriter/components/RewriterTool.tsx`). Use the inline layout when the user repeats the same input and output on one page, such as paste text and read the translation.
 
 ### 12.2 Fields
 
@@ -242,6 +243,7 @@ Every tool page (Learning, Practice, Tools) follows the same layout, the same fi
 - **Length limits on every text field.** Use `maxLength` in the UI and a matching check in the generator.
 - **Blank handling.** An empty optional field sends a fallback such as "None". An empty required field shows a plain message above the button, such as "Broader topic is required."
 - **Errors use words, not codes.** Say what to fix, in `destructive`.
+- **AI-written text.** A long field can be filled by the AI from a short description (`SystemPromptAssistant` in roleplay). The description field and an outline "Write…" button sit above the field. The AI text only fills the field, and the user can edit it before use. Keep the primary button for the tool's main action.
 
 ### 12.3 Remembering values
 
@@ -317,3 +319,36 @@ Use this pattern when the result is short and reads best on its own, and the for
 - Word of the Day: `src/app/language-learner/word-of-the-day/index.tsx` and `new.tsx`, with `src/features/word-of-the-day/components/WordOfTheDayForm.tsx`
 - Sentence of the Day: `src/app/language-learner/sentence-of-the-day/index.tsx` and `new.tsx`, with `src/features/sentence-of-the-day/components/SentenceOfTheDayForm.tsx`
 - Poet Engine: `src/app/language-learner/poet-engine/index.tsx` and `new.tsx`, with `src/features/poet-engine/components/PoetEngineForm.tsx` and `PoetEngineResultView.tsx`
+- Language Lesson: `src/app/language-learner/lesson/index.tsx` and `new.tsx`, with `src/features/lesson/components/LessonForm.tsx` and `LessonResultView.tsx`. Storage in `src/features/lesson/lib/persistence.ts`, hooks in `hooks/usePersistedDraft.ts`.
+
+### 12.7 Chat with a persona (Roleplay pattern)
+
+Use this pattern for a multi-turn chat where the AI plays a character. The chat is the main job, and the persona is set up once on a separate page.
+
+**Pages**
+
+| Page | Route (example) | Body | Header | Footer |
+| --- | --- | --- | --- | --- |
+| Chat | `language-learner/roleplay/index.tsx` | Persona summary with "Edit persona", then the transcript | Title, `ResetButton label="Reset chat"` (clears the transcript and draft, keeps the persona) | Error, then the composer (message box, send button, voice) |
+| Persona | `language-learner/roleplay/persona.tsx` | Saved personas, "Write with AI", then the persona fields | Title, `ResetButton label="Reset persona"` (clears the persona fields, keeps the transcript) | One button, "Use this persona", which returns to the chat |
+
+**Rules**
+
+- The two resets never touch each other's data. "Reset chat" keeps the persona, and "Reset persona" keeps the transcript. Each header button is labeled so the user can tell them apart.
+- `ResetButton` shows text only when it is given a `label`. Other tools keep the icon-only button.
+- The transcript scrolls in the body and jumps to the newest message (`useToolScroll`).
+- The persona page saves each change as it is typed. Its footer button only returns, so nothing is lost if the user leaves early.
+- The chat reads the persona again each time it is focused. It does not write the persona.
+- A chat with no persona shows an empty hint and blocks sending with a message that says where to write one.
+- Defaults for the persona and instruction fields are empty. Placeholders show examples.
+- Roles management (`roles.tsx`) is a separate page for saving and editing personas by name. It also has "Write with AI".
+
+**Reference files (Roleplay)**
+
+- `src/app/language-learner/roleplay/index.tsx`: chat page
+- `src/app/language-learner/roleplay/persona.tsx`: persona page
+- `src/features/roleplay/components/RoleplayChatView.tsx`: chat body and footer
+- `src/features/roleplay/components/RoleplayPersonaForm.tsx`: persona body
+- `src/features/roleplay/components/SystemPromptAssistant.tsx`: "Write with AI" block
+- `src/features/roleplay/hooks/useRoleplayChat.ts`, `usePersona.ts`, `useSystemPromptAssistant.ts`
+- `src/features/roleplay/lib/generators.ts`: `sendRoleplayTurn` and `generateSystemPrompt`

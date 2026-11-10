@@ -1,7 +1,7 @@
 // src/features/translator/options.ts
 /**
- * Tone presets for the Translator form. Values match the webui options and the backend enum, so
- * the field does not accept custom text.
+ * Tone presets for the Translator form. Values match the webui options. The form also accepts a
+ * custom tone, which the signature treats as a suggestion, not a fixed list.
  */
 
 export const TONE_OPTIONS = [
@@ -12,15 +12,10 @@ export const TONE_OPTIONS = [
   { value: "technical", label: "Technical" },
 ];
 
-export const TONES = ["formal", "casual", "business", "poetic", "technical"] as const;
-
 export const TRANSLATOR_STORAGE_KEY = "language-learner.translator.process.v1";
 
 export const TRANSLATOR_DEFAULTS = {
-  textToTranslate: "The early bird catches the worm.",
-  sourceLanguage: "English",
-  targetLanguage: "Japanese",
+  textToTranslate: "",
   tone: "formal",
-  referenceMaterial: "",
   customInstructions: "",
 };

@@ -1,13 +1,11 @@
 // src/features/rewriter/components/RewriterTool.tsx
-/** Rewriter: rewrites text for a tone, audience, and goal, with the rationale and the changes made. */
+/**
+ * Rewriter: rewrites text for a tone, audience, and goal, with the rationale and the changes made.
+ * The form sits in the footer; the last rewrite is kept on the device and shown above it.
+ */
 import { useEffect, useRef } from "react";
-import { StyleSheet, Text } from "react-native";
-import {
-  Lightbulb,
-  ListChecks,
-  PenLine,
-  RefreshCcw,
-} from "lucide-react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Lightbulb, ListChecks, PenLine, Sparkles } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import {
@@ -16,6 +14,7 @@ import {
   Panel,
   TextField,
 } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
@@ -25,29 +24,35 @@ import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { rewriteText } from "../lib/generators";
 import { REWRITER_STORAGE_KEY } from "../lib/persistence";
-import { TRANSFORMATION_GOAL_OPTIONS } from "../options";
+import {
+  AUDIENCE_OPTIONS,
+  TONE_OPTIONS,
+  TRANSFORMATION_GOAL_OPTIONS,
+} from "../options";
 import { usePersistedDraft } from "../hooks/usePersistedDraft";
 import type { RewriteFormValues, RewriteResult } from "../types";
 
 const DEFAULTS: RewriteFormValues = {
-  originalText: "This product is really good and works well.",
-  targetTone: "witty",
-  audience: "software engineers",
+  originalText: "",
+  targetTone: "professional",
+  audience: "general audience",
   transformationGoal: "paraphrase",
   customInstructions: "",
 };
 
-function quote(text: string): string {
-  return text
-    .split("\n")
-    .map((line) => `> ${line}`)
-    .join("\n");
+export interface RewriterState {
+  form: RewriteFormValues;
+  result: RewriteResult | null;
+  pending: boolean;
+  error: string | null;
+  update: <K extends keyof RewriteFormValues>(key: K, value: RewriteFormValues[K]) => void;
+  submit: () => Promise<void>;
+  reset: () => void;
 }
 
-export function RewriterTool() {
-  const colors = useThemeColors();
+export function useRewriter(): RewriterState {
   const { settings } = useAiSettings();
-  const { form, setForm, result, setResult, reset } = usePersistedDraft<
+  const { form, setForm, result, setResult, reset: resetSaved } = usePersistedDraft<
     RewriteFormValues,
     RewriteResult
   >(REWRITER_STORAGE_KEY, DEFAULTS);
@@ -56,20 +61,17 @@ export function RewriterTool() {
 
   useEffect(() => () => controllerRef.current?.abort(), []);
 
-  function update<K extends keyof RewriteFormValues>(
-    key: K,
-    value: RewriteFormValues[K],
-  ) {
+  function update<K extends keyof RewriteFormValues>(key: K, value: RewriteFormValues[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function handleReset() {
+  function reset() {
     controllerRef.current?.abort();
-    reset();
+    resetSaved();
     request.reset();
   }
 
-  async function handleRewrite() {
+  async function submit() {
     controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -77,74 +79,28 @@ export function RewriterTool() {
     if (next && !controller.signal.aborted) setResult(next);
   }
 
-  const cancelled = controllerRef.current?.signal.aborted ?? false;
+  return {
+    form,
+    result,
+    pending: request.pending,
+    error: request.error,
+    update,
+    submit,
+    reset,
+  };
+}
+
+export function RewriterResults({ rewriter }: { rewriter: RewriterState }) {
+  const colors = useThemeColors();
+  const { result } = rewriter;
 
   return (
     <Section>
-      <Panel>
-        <TextField
-          label="Original text"
-          placeholder="Paste the text you want to rewrite…"
-          value={form.originalText}
-          onChangeText={(text) => update("originalText", text)}
-          editable={!request.pending}
-          maxLength={10000}
-          multiline
-          voice
-        />
-        <TextField
-          label="Target tone"
-          placeholder="e.g. witty, professional, warm"
-          value={form.targetTone}
-          onChangeText={(text) => update("targetTone", text)}
-          editable={!request.pending}
-          maxLength={200}
-        />
-        <TextField
-          label="Audience"
-          placeholder="e.g. software engineers, investors"
-          value={form.audience}
-          onChangeText={(text) => update("audience", text)}
-          editable={!request.pending}
-          maxLength={200}
-        />
-        <SelectField
-          label="Transformation goal"
-          options={TRANSFORMATION_GOAL_OPTIONS}
-          value={form.transformationGoal}
-          onChange={(value) => update("transformationGoal", value)}
-          allowCustom={false}
-        />
-        <TextField
-          label="Custom instructions (optional)"
-          placeholder="e.g. keep it under 15 words…"
-          hint="Specific constraints or rules."
-          value={form.customInstructions}
-          onChangeText={(text) => update("customInstructions", text)}
-          editable={!request.pending}
-          maxLength={1000}
-          multiline
-          voice
-        />
-        <ActionButton
-          label={request.pending ? "Rewriting…" : "Rewrite"}
-          icon={PenLine}
-          loading={request.pending}
-          onPress={handleRewrite}
-        />
-      </Panel>
-
-      <ErrorText message={cancelled ? null : request.error} />
-
-      {result && (
+      {result ? (
         <>
           <ResultCallout icon={PenLine} title="Rewritten text" tone="emerald">
             <MarkdownText
-              content={
-                result.rewrittenText
-                  ? quote(result.rewrittenText)
-                  : "_No rewrite was returned._"
-              }
+              content={result.rewrittenText ? quote(result.rewrittenText) : "_No rewrite was returned._"}
             />
             <ListenButton text={result.rewrittenText} label="Rewrite" />
           </ResultCallout>
@@ -156,34 +112,102 @@ export function RewriterTool() {
             </ResultCallout>
           )}
 
-          <SectionTitle icon={ListChecks} title="Improvements made" />
           <Panel>
+            <SectionTitle icon={ListChecks} title="Improvements made" />
             {result.improvementsMade.length === 0 ? (
-              <Text style={[styles.empty, { color: colors.mutedForeground }]}>
-                No improvements were listed.
-              </Text>
+              <Text style={[styles.empty, { color: colors.mutedForeground }]}>No improvements were listed.</Text>
             ) : (
-              <MarkdownText
-                content={result.improvementsMade
-                  .map((item) => `- ${item}`)
-                  .join("\n")}
-              />
+              <MarkdownText content={result.improvementsMade.map((item) => `- ${item}`).join("\n")} />
             )}
           </Panel>
         </>
+      ) : (
+        <EmptyHint
+          icon={PenLine}
+          title="No rewrite yet"
+          hint="Paste your text below, set the tone and audience, then tap Rewrite."
+        />
       )}
-
-      <ActionButton
-        label="Reset"
-        icon={RefreshCcw}
-        variant="outline"
-        onPress={handleReset}
-      />
     </Section>
   );
 }
 
+export function RewriterFooter({ rewriter }: { rewriter: RewriterState }) {
+  const { form, pending, error, update, submit } = rewriter;
+
+  return (
+    <View style={styles.footer}>
+      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
+        <TextField
+          label="Original text"
+          placeholder="Paste the text you want to rewrite…"
+          value={form.originalText}
+          onChangeText={(text) => update("originalText", text)}
+          editable={!pending}
+          maxLength={10000}
+          multiline
+          voice
+        />
+        <SelectField
+          label="Target tone"
+          options={TONE_OPTIONS}
+          value={form.targetTone}
+          onChange={(value) => update("targetTone", value)}
+          customPlaceholder="e.g. Sarcastic, Poetic, Urgent"
+        />
+        <SelectField
+          label="Audience"
+          options={AUDIENCE_OPTIONS}
+          value={form.audience}
+          onChange={(value) => update("audience", value)}
+          customPlaceholder="e.g. Hiring managers, Kids aged 8–10"
+        />
+        <SelectField
+          label="Transformation goal"
+          options={TRANSFORMATION_GOAL_OPTIONS}
+          value={form.transformationGoal}
+          onChange={(value) => update("transformationGoal", value)}
+          customPlaceholder="e.g. Formalise, Localise, Bullet points"
+        />
+        <TextField
+          label="User instructions (optional)"
+          placeholder="e.g. keep it under 15 words…"
+          value={form.customInstructions}
+          onChangeText={(text) => update("customInstructions", text)}
+          editable={!pending}
+          maxLength={1000}
+          multiline
+          voice
+        />
+      </ScrollView>
+      <ErrorText message={error} />
+      <ActionButton
+        label={pending ? "Rewriting…" : "Rewrite"}
+        icon={Sparkles}
+        loading={pending}
+        onPress={submit}
+      />
+    </View>
+  );
+}
+
+function quote(text: string): string {
+  return text
+    .split("\n")
+    .map((line) => `> ${line}`)
+    .join("\n");
+}
+
 const styles = StyleSheet.create({
+  footer: {
+    gap: spacing.md,
+  },
+  fields: {
+    maxHeight: 380,
+  },
+  fieldsContent: {
+    gap: spacing.md,
+  },
   empty: {
     fontSize: 14,
     lineHeight: 20,

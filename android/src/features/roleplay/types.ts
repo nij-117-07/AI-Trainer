@@ -33,3 +33,8 @@ export interface RoleFormValues {
   name: string;
   prompt: string;
 }
+
+export interface SystemPromptValues {
+  idea: string;
+  language: string;
+}

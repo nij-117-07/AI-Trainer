@@ -23,17 +23,6 @@ export function optionalText(
   return trimmed || undefined;
 }
 
-export function requireOption<T extends string>(
-  value: string,
-  options: readonly T[],
-  label: string,
-): T {
-  const match = options.find((option) => option === value);
-  if (!match)
-    throw new Error(`${label} must be one of: ${options.join(", ")}.`);
-  return match;
-}
-
 export function throwIfAborted(signal: AbortSignal): void {
   if (signal.aborted) throw new Error("Generation was cancelled.");
 }

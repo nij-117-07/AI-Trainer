@@ -2,11 +2,13 @@
 
 export interface TranslatorFormValues {
   textToTranslate: string;
+  tone: string;
+  customInstructions: string;
+}
+
+export interface TranslatorRequest extends TranslatorFormValues {
   sourceLanguage: string;
   targetLanguage: string;
-  tone: string;
-  referenceMaterial: string;
-  customInstructions: string;
 }
 
 export interface TranslationResponse {
