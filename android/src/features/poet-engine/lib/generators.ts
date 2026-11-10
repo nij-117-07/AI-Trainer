@@ -7,16 +7,10 @@
 import { ax } from "@ax-llm/ax";
 import type { AiSettings } from "@/features/ai-settings/types";
 import { createLlm } from "@/features/ai-settings/lib/llm";
-import { POETIC_STYLES } from "../options";
 import type { ConceptFormValues, ConceptResult } from "../types";
 import { poeticLanguageExplainerSignature } from "./signatures";
 import { normalizeConcept } from "./normalize";
-import {
-  optionalText,
-  requireOption,
-  requireText,
-  throwIfAborted,
-} from "./validate";
+import { optionalText, requireText, throwIfAborted } from "./validate";
 
 const TEMPERATURE = 0.7;
 
@@ -41,11 +35,7 @@ export async function explainConcept(
         100,
       ),
       conceptWord: requireText(values.conceptWord, "Concept word", 200),
-      poeticStyle: requireOption(
-        values.poeticStyle,
-        POETIC_STYLES,
-        "Poetic style",
-      ),
+      poeticStyle: requireText(values.poeticStyle, "Poetic style", 100),
       userMood: optionalText(values.userMood, "User mood", 200) ?? "mystical",
       userCustomInstruction: optionalText(
         values.userCustomInstruction,

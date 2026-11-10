@@ -15,13 +15,14 @@ export const sentenceOfTheDaySignature = f()
   .input("nativeLanguage", f.string(d.inputs.nativeLanguage))
   .input(
     "contextSetting",
-    f.string(`${d.inputs.contextSetting} One of: business, casual, literary, romantic, travel.`),
+    f.string(`${d.inputs.contextSetting} Preset options: business, casual, literary, romantic, travel. Any other setting is also accepted.`),
   )
   .input(
     "complexityLevel",
-    f.string(`${d.inputs.complexityLevel} One of: beginner, intermediate, advanced, native-level.`),
+    f.string(`${d.inputs.complexityLevel} Preset options: beginner, intermediate, advanced, native-level. Any other level is also accepted.`),
   )
   .input("seed", f.string(d.inputs.seed))
+  .input("userCustomInstructions", f.string(d.inputs.userCustomInstructions).optional())
   .output("targetSentence", f.string(d.outputs.targetSentence))
   .output("literalTranslation", f.string(d.outputs.literalTranslation))
   .output("naturalTranslation", f.string(d.outputs.naturalTranslation))

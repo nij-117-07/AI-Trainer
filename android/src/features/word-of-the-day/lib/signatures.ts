@@ -15,7 +15,7 @@ export const wordOfTheDaySignature = f()
   .input("nativeLanguage", f.string(word.inputs.nativeLanguage))
   .input(
     "userProficiency",
-    f.string(`${word.inputs.userProficiency} One of: basic, academic, poetic, slang.`),
+    f.string(`${word.inputs.userProficiency} Preset options: basic, academic, poetic, slang. Any other word type is also accepted.`),
   )
   .input("thematicFocus", f.string(word.inputs.thematicFocus).optional())
   .input("dailySeed", f.string(word.inputs.dailySeed))

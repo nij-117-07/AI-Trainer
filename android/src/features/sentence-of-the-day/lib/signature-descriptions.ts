@@ -21,6 +21,8 @@ export const SENTENCE_DESCRIPTIONS = {
     complexityLevel: "The proficiency level of the sentence.",
     // seed
     seed: "Entropy string for variety.",
+    // user_custom_instructions (Android only; the backend has no such field)
+    userCustomInstructions: "Extra instructions from the user, e.g. 'Use a kitchen setting, under 10 words'.",
   },
   outputs: {
     // target_sentence

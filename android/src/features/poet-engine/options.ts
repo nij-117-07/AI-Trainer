@@ -1,7 +1,7 @@
 // src/features/poet-engine/options.ts
 /**
- * Poetic style presets for the Poet Engine form. Values match the webui options and the backend
- * Literal, so the style field does not accept custom text.
+ * Poetic style presets for the Poet Engine form. Values match the webui options. The form also
+ * accepts a custom style, which the signature treats as a suggestion, not a fixed list.
  */
 import type { SelectOption } from "@/components/tool/SelectField";
 

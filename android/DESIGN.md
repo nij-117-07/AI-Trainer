@@ -236,6 +236,8 @@ Every tool page (Learning, Practice, Tools) follows the same layout, the same fi
 - **Placeholders show examples.** Never pre-fill real values. Filled-in defaults get sent to the AI without the user noticing.
 - **Few fields.** If a form has more than about five fields, remove or merge some.
 - **Choices only when they help.** Use a dropdown or chips with one sensible default selected (for example "Beginner"). Do not add options the AI does not need.
+- **Custom choice.** A dropdown ends with a Custom entry (`SelectField` default). Give its text box an example placeholder. The generator must accept any non-empty text, and the signature must say the presets are suggestions, not a fixed list.
+- **User instructions.** Tools that send a free-text instruction use the label "User instructions (optional)" and `maxLength` 1000.
 - **Long text is multiline.** Show voice input on fields where the user might speak.
 - **Length limits on every text field.** Use `maxLength` in the UI and a matching check in the generator.
 - **Blank handling.** An empty optional field sends a fallback such as "None". An empty required field shows a plain message above the button, such as "Broader topic is required."
@@ -263,3 +265,55 @@ Every tool page (Learning, Practice, Tools) follows the same layout, the same fi
 ### 12.5 Current gaps
 
 - **Webui** tools do not follow this section. It describes the Android app only.
+
+### 12.6 Two-page generator (Idioms pattern)
+
+Use this pattern when the result is short and reads best on its own, and the form has enough fields to need the full screen. Idioms, Word of the Day, and Sentence of the Day are the reference implementations. Use the inline tool layout (section 12.1) for everything else.
+
+**Pages**
+
+| Page | Route (example) | Shows | Header | Footer |
+| --- | --- | --- | --- | --- |
+| Result | `language-learner/<tool>/index.tsx` | Only the last result, or an `EmptyHint` when there is none | Title, no Reset | One primary button that opens the form ("New idiom") |
+| Form | `language-learner/<tool>/new.tsx` | Context only (for example `ActiveLanguageNotice`) at the top of the body, then the fields | Title, `ResetButton` (clears the form only) | Error message, then the one primary button ("Generate an idiom") |
+
+**Layout rules**
+
+- The form fields go in the **body**, not the footer. The body scrolls, so the fields get the full screen. The footer stays short: the error and the button.
+- Split the form into two exports: `<Tool>FormFields` (body) and `<Tool>FormFooter` (footer). Both take the same state object.
+- The result page has no form and no Reset. The form page has no result.
+- The loading label lives on the button. Fields are disabled while the request runs.
+
+**Navigation**
+
+- Open the form with `router.push`.
+- After a successful generate, return with `router.back()`, not `router.replace`. This keeps one result page in the stack. A `replace` would leave two copies of it.
+- Show the error on the form page. Do not navigate on failure.
+
+**Storage**
+
+- Save the form under its own key, for example `language-learner.<tool>.generate.v2`. Save the result under a second key, for example `language-learner.<tool>.lesson.v1`. Use `mergeSavedForm` to restore the form.
+- Save the result **before** navigating back, and await it. Otherwise the result page can load an old value.
+- The form and the result must never share a key. Otherwise the two screens overwrite each other's data.
+- The result page reads its saved result with `useFocusEffect`, so it shows the new result each time it is focused.
+
+**Checklist for a new two-page tool**
+
+1. Decide the result is short and worth its own page. A long form with a long result is better kept on one page.
+2. Write the storage keys and the `mergeSavedForm` defaults in `lib/persistence.ts`.
+3. Write the form hook. It calls the generator, saves the result, then calls `onGenerated`.
+4. Write `<Tool>FormFields` for the body and `<Tool>FormFooter` for the footer.
+5. Create the form page: `ToolScreen`, `ResetButton`, notice, fields, footer.
+6. Create the result page: `ToolScreen`, `EmptyHint` when empty, one footer button to the form.
+7. Test the round trip: generate, the result page shows it, reopen the app, and the result is still there.
+
+**Reference files (Idioms)**
+
+- `src/app/language-learner/idioms/index.tsx`: result page
+- `src/app/language-learner/idioms/new.tsx`: form page
+- `src/features/idioms/components/IdiomsForm.tsx`: form hook, fields, footer
+- `src/features/idioms/hooks/usePersistedDraft.ts`: `usePersistedForm` and `usePersistedLesson`
+- `src/features/idioms/lib/persistence.ts`: storage keys and `mergeSavedForm`
+- Word of the Day: `src/app/language-learner/word-of-the-day/index.tsx` and `new.tsx`, with `src/features/word-of-the-day/components/WordOfTheDayForm.tsx`
+- Sentence of the Day: `src/app/language-learner/sentence-of-the-day/index.tsx` and `new.tsx`, with `src/features/sentence-of-the-day/components/SentenceOfTheDayForm.tsx`
+- Poet Engine: `src/app/language-learner/poet-engine/index.tsx` and `new.tsx`, with `src/features/poet-engine/components/PoetEngineForm.tsx` and `PoetEngineResultView.tsx`

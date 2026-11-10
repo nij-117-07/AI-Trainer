@@ -1,24 +1,21 @@
 // src/features/word-of-the-day/hooks/usePersistedDraft.ts
-/** Keeps the Word of the Day form draft and the last word on the device between visits. */
+/** Keeps the Word of the Day form on the device, and the last word for the Word of the Day page to reload on focus. */
 import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { loadDocument, saveDocument } from "@/lib/document-store";
 import { isRecord } from "../lib/text";
-import { mergeSavedForm, type SavedWordOfTheDayState } from "../lib/persistence";
+import { WORD_OF_THE_DAY_FORM_KEY, WORD_OF_THE_DAY_RESULT_KEY, mergeSavedForm } from "../lib/persistence";
+import type { WordOfTheDay } from "../types";
 
-export function usePersistedDraft<TForm extends object, TResult>(storageKey: string, defaults: TForm) {
+export function usePersistedForm<TForm extends object>(defaults: TForm) {
   const [form, setForm] = useState<TForm>(defaults);
-  const [result, setResult] = useState<TResult | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let active = true;
-    loadDocument<unknown>(storageKey, null)
+    loadDocument<unknown>(WORD_OF_THE_DAY_FORM_KEY, null)
       .then((saved) => {
-        if (!active) return;
-        if (isRecord(saved)) {
-          setForm(mergeSavedForm(defaults, saved.form));
-          setResult(isRecord(saved.result) ? (saved.result as TResult) : null);
-        }
+        if (active) setForm(mergeSavedForm(defaults, saved));
       })
       .catch(() => undefined)
       .finally(() => {
@@ -27,18 +24,36 @@ export function usePersistedDraft<TForm extends object, TResult>(storageKey: str
     return () => {
       active = false;
     };
-  }, [storageKey, defaults]);
+  }, [defaults]);
 
   useEffect(() => {
     if (!loaded) return;
-    const state: SavedWordOfTheDayState<TForm, TResult> = { form, result };
-    saveDocument(storageKey, state).catch(() => undefined);
-  }, [loaded, storageKey, form, result]);
+    saveDocument(WORD_OF_THE_DAY_FORM_KEY, form).catch(() => undefined);
+  }, [loaded, form]);
 
   const reset = useCallback(() => {
     setForm(defaults);
-    setResult(null);
   }, [defaults]);
 
-  return { form, setForm, result, setResult, reset };
+  return { form, setForm, reset };
+}
+
+export function usePersistedWord(): WordOfTheDay | null {
+  const [word, setWord] = useState<WordOfTheDay | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadDocument<unknown>(WORD_OF_THE_DAY_RESULT_KEY, null)
+        .then((saved) => {
+          if (active) setWord(isRecord(saved) ? (saved as unknown as WordOfTheDay) : null);
+        })
+        .catch(() => undefined);
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  return word;
 }

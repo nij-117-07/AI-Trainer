@@ -5,6 +5,7 @@ export interface SentenceFormValues {
   nativeLanguage: string;
   contextSetting: string;
   complexityLevel: string;
+  customInstructions: string;
 }
 
 export interface SentenceOfTheDay {

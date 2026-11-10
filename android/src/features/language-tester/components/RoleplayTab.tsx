@@ -6,6 +6,8 @@
  */
 import { Bot, Eraser, Send } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
+import { ActiveLanguageNotice } from "@/features/language-profiles/components/ActiveLanguageNotice";
+import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
@@ -33,6 +35,7 @@ function restoreDraft(saved: unknown): string {
 
 export function RoleplayTab() {
   const { settings: aiSettings } = useAiSettings();
+  const { activeProfile } = useLanguageProfiles();
   const [settings, setSettings] = usePersistedValue<RoleplaySettings>(
     LANGUAGE_TESTER_STORAGE_KEYS.roleplaySettings,
     DEFAULT_SETTINGS,
@@ -65,7 +68,7 @@ export function RoleplayTab() {
     const reply = await request.run(
       aiSettings,
       {
-        targetLanguage: settings.targetLanguage,
+        targetLanguage: activeProfile.targetLanguage,
         level: settings.level,
         scenario: settings.scenario,
         userPersona: settings.userPersona,
@@ -101,14 +104,7 @@ export function RoleplayTab() {
   return (
     <Section>
       <Panel>
-        <TextField
-          label="Target language"
-          placeholder="e.g. French"
-          value={settings.targetLanguage}
-          onChangeText={(text) => update("targetLanguage", text)}
-          editable={!request.pending}
-          maxLength={100}
-        />
+        <ActiveLanguageNotice />
         <SelectField
           label="Level"
           options={CEFR_LEVEL_OPTIONS}

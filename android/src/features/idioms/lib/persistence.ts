@@ -1,13 +1,9 @@
 // src/features/idioms/lib/persistence.ts
-/** Storage key and saved-draft merge for the Idioms form. */
+/** Storage keys and saved-draft merge for the Idioms form and the last lesson. */
 import { isRecord } from "./text";
 
-export const IDIOMS_STORAGE_KEY = "language-learner.idioms.generate.v1";
-
-export interface SavedIdiomsState<TForm, TResult> {
-  form: TForm;
-  result: TResult | null;
-}
+export const IDIOMS_FORM_KEY = "language-learner.idioms.generate.v2";
+export const IDIOMS_LESSON_KEY = "language-learner.idioms.lesson.v1";
 
 /** Takes each saved field only when its type matches the default, so a damaged draft falls back per field. */
 export function mergeSavedForm<T extends object>(defaults: T, saved: unknown): T {

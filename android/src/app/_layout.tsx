@@ -6,6 +6,7 @@ import "@/lib/polyfills";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { AiSettingsProvider } from "@/features/ai-settings/providers/AiSettingsProvider";
+import { LanguageProfilesProvider } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { ThemeProvider, useTheme } from "@/theme";
 
 function AppShell() {
@@ -23,7 +24,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AiSettingsProvider>
-        <AppShell />
+        <LanguageProfilesProvider>
+          <AppShell />
+        </LanguageProfilesProvider>
       </AiSettingsProvider>
     </ThemeProvider>
   );

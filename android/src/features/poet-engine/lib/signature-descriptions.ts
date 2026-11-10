@@ -20,7 +20,7 @@ export const POETIC_LANGUAGE_EXPLAINER_DESCRIPTIONS = {
       "The specific word or abstract concept (e.g., 'Ishq', 'Wabi-sabi').",
     // poetic_style (no DSPy description; the allowed values are listed here instead)
     poeticStyle:
-      "The poetic form used for the generation. One of: Shayari/Couplet, Haiku, Metaphorical Prose, Ghazal-style.",
+      "The poetic form used for the generation. Preset forms: Shayari/Couplet, Haiku, Metaphorical Prose, Ghazal-style. Any other poetic form is also accepted.",
     // user_mood
     userMood: "The emotional tone for the generation.",
     // user_custom_instruction

@@ -1,9 +1,9 @@
 // src/features/poet-engine/lib/persistence.ts
-/** Storage key and saved-draft helper for the Poet Engine. */
+/** Storage keys and saved-draft helper for the Poet Engine form and the last explanation. */
 import { isRecord } from "./text";
 
-export const POET_ENGINE_STORAGE_KEY =
-  "language-learner.poet-engine.explain.v1";
+export const POET_ENGINE_FORM_KEY = "language-learner.poet-engine.form.v2";
+export const POET_ENGINE_RESULT_KEY = "language-learner.poet-engine.result.v1";
 
 /**
  * Takes each saved field only when its type matches the default, so an old or damaged draft

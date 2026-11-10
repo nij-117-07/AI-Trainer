@@ -5,6 +5,8 @@ import { StyleSheet, Text } from "react-native";
 import { Languages, Lightbulb, RefreshCcw, Sparkles } from "lucide-react-native";
 import { useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
+import { ActiveLanguageNotice } from "@/features/language-profiles/components/ActiveLanguageNotice";
+import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
@@ -21,6 +23,7 @@ import type { TranslatorFormValues } from "../types";
 export function TranslatorTool() {
   const colors = useThemeColors();
   const { settings } = useAiSettings();
+  const { activeProfile } = useLanguageProfiles();
   const { form, setForm, result, setResult, reset } = usePersistedTranslation();
   const request = useRequest(translateText);
   const abortRef = useRef<AbortController | null>(null);
@@ -41,7 +44,11 @@ export function TranslatorTool() {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-    const next = await request.run(settings, form, controller.signal);
+    const next = await request.run(
+      settings,
+      { ...form, targetLanguage: activeProfile.targetLanguage },
+      controller.signal,
+    );
     if (next && !controller.signal.aborted) setResult(next);
   }
 
@@ -58,19 +65,12 @@ export function TranslatorTool() {
           multiline
           voice
         />
+        <ActiveLanguageNotice />
         <TextField
           label="Source Language"
           placeholder="e.g. English"
           value={form.sourceLanguage}
           onChangeText={(text) => update("sourceLanguage", text)}
-          editable={!request.pending}
-          maxLength={100}
-        />
-        <TextField
-          label="Target Language"
-          placeholder="e.g. Japanese"
-          value={form.targetLanguage}
-          onChangeText={(text) => update("targetLanguage", text)}
           editable={!request.pending}
           maxLength={100}
         />

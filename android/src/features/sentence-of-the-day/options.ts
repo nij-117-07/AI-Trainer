@@ -29,4 +29,5 @@ export const SENTENCE_DEFAULTS: SentenceFormValues = {
   nativeLanguage: "English",
   contextSetting: "literary",
   complexityLevel: "advanced",
+  customInstructions: "",
 };

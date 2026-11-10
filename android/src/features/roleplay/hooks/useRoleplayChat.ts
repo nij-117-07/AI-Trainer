@@ -5,6 +5,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
+import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { DEFAULT_SETTINGS } from "../options";
 import { sendRoleplayTurn } from "../lib/generators";
 import {
@@ -23,6 +24,7 @@ function messageOf(error: unknown, fallback: string): string {
 
 export function useRoleplayChat() {
   const { settings: aiSettings } = useAiSettings();
+  const { activeProfile } = useLanguageProfiles();
   const [settings, setSettings] = useState<RoleplaySettings>(DEFAULT_SETTINGS);
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -89,7 +91,7 @@ export function useRoleplayChat() {
     try {
       const reply = await sendRoleplayTurn(
         aiSettings,
-        { ...settings, seed, history: previous, message: text },
+        { ...settings, language: activeProfile.targetLanguage, seed, history: previous, message: text },
         controller.signal,
       );
       if (controller.signal.aborted) return;
@@ -102,7 +104,7 @@ export function useRoleplayChat() {
     } finally {
       setPending(false);
     }
-  }, [aiSettings, draft, history, pending, settings, updateSettings]);
+  }, [activeProfile.targetLanguage, aiSettings, draft, history, pending, settings, updateSettings]);
 
   const newConversation = useCallback(() => {
     if (pending) return;

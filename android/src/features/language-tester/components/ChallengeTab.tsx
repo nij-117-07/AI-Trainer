@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { RefreshCcw, Sparkles } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
+import { ActiveLanguageNotice } from "@/features/language-profiles/components/ActiveLanguageNotice";
+import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
+import { languagePair } from "@/features/language-profiles/lib/profiles";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
@@ -28,6 +31,7 @@ const DEFAULTS: ChallengeFormValues = {
 
 export function ChallengeTab() {
   const { settings } = useAiSettings();
+  const { activeProfile } = useLanguageProfiles();
   const { form, setForm, result, setResult, reset } = usePersistedTool<ChallengeFormValues, ChallengeResultData>(
     LANGUAGE_TESTER_STORAGE_KEYS.challenge,
     DEFAULTS,
@@ -46,7 +50,7 @@ export function ChallengeTab() {
   }
 
   async function handleGenerate() {
-    const next = await request.run(settings, form, nextSignal());
+    const next = await request.run(settings, { ...form, ...languagePair(activeProfile) }, nextSignal());
     if (next) {
       setResult(next);
       setRunKey((key) => key + 1);
@@ -56,22 +60,7 @@ export function ChallengeTab() {
   return (
     <Section>
       <Panel>
-        <TextField
-          label="Target language"
-          placeholder="e.g. Japanese"
-          value={form.targetLanguage}
-          onChangeText={(text) => update("targetLanguage", text)}
-          editable={!request.pending}
-          maxLength={100}
-        />
-        <TextField
-          label="Native language"
-          placeholder="e.g. English"
-          value={form.nativeLanguage}
-          onChangeText={(text) => update("nativeLanguage", text)}
-          editable={!request.pending}
-          maxLength={100}
-        />
+        <ActiveLanguageNotice />
         <SelectField
           label="Level"
           options={CEFR_LEVEL_OPTIONS}

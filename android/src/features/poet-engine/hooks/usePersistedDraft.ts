@@ -1,32 +1,25 @@
 // src/features/poet-engine/hooks/usePersistedDraft.ts
-/** Keeps the Poet Engine form draft and last result on the device between visits. */
+/** Keeps the Poet Engine form on the device, and the last explanation for the page to reload on focus. */
 import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { loadDocument, saveDocument } from "@/lib/document-store";
 import { isRecord } from "../lib/text";
-import { mergeSavedForm } from "../lib/persistence";
+import {
+  POET_ENGINE_FORM_KEY,
+  POET_ENGINE_RESULT_KEY,
+  mergeSavedForm,
+} from "../lib/persistence";
+import type { ConceptResult } from "../types";
 
-interface SavedDraft<TForm, TResult> {
-  form: TForm;
-  result: TResult | null;
-}
-
-export function usePersistedDraft<TForm extends object, TResult>(
-  storageKey: string,
-  defaults: TForm,
-) {
+export function usePersistedForm<TForm extends object>(defaults: TForm) {
   const [form, setForm] = useState<TForm>(defaults);
-  const [result, setResult] = useState<TResult | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let active = true;
-    loadDocument<unknown>(storageKey, null)
+    loadDocument<unknown>(POET_ENGINE_FORM_KEY, null)
       .then((saved) => {
-        if (!active) return;
-        if (isRecord(saved)) {
-          setForm(mergeSavedForm(defaults, saved.form));
-          setResult(isRecord(saved.result) ? (saved.result as TResult) : null);
-        }
+        if (active) setForm(mergeSavedForm(defaults, saved));
       })
       .catch(() => undefined)
       .finally(() => {
@@ -35,18 +28,39 @@ export function usePersistedDraft<TForm extends object, TResult>(
     return () => {
       active = false;
     };
-  }, [storageKey, defaults]);
+  }, [defaults]);
 
   useEffect(() => {
     if (!loaded) return;
-    const state: SavedDraft<TForm, TResult> = { form, result };
-    saveDocument(storageKey, state).catch(() => undefined);
-  }, [loaded, storageKey, form, result]);
+    saveDocument(POET_ENGINE_FORM_KEY, form).catch(() => undefined);
+  }, [loaded, form]);
 
   const reset = useCallback(() => {
     setForm(defaults);
-    setResult(null);
   }, [defaults]);
 
-  return { form, setForm, result, setResult, reset };
+  return { form, setForm, reset };
+}
+
+export function usePersistedResult(): ConceptResult | null {
+  const [result, setResult] = useState<ConceptResult | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadDocument<unknown>(POET_ENGINE_RESULT_KEY, null)
+        .then((saved) => {
+          if (active)
+            setResult(
+              isRecord(saved) ? (saved as unknown as ConceptResult) : null,
+            );
+        })
+        .catch(() => undefined);
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  return result;
 }

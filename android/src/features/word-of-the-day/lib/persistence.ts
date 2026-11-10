@@ -1,13 +1,9 @@
 // src/features/word-of-the-day/lib/persistence.ts
-/** Storage key and saved-draft merge for the Word of the Day form. */
+/** Storage keys and saved-draft merge for the Word of the Day form and the last word. */
 import { isRecord } from "./text";
 
-export const WORD_OF_THE_DAY_STORAGE_KEY = "language-learner.word-of-the-day.generate.v1";
-
-export interface SavedWordOfTheDayState<TForm, TResult> {
-  form: TForm;
-  result: TResult | null;
-}
+export const WORD_OF_THE_DAY_FORM_KEY = "language-learner.word-of-the-day.generate.v2";
+export const WORD_OF_THE_DAY_RESULT_KEY = "language-learner.word-of-the-day.word.v1";
 
 /** Takes each saved field only when its type matches the default, so a damaged draft falls back per field. */
 export function mergeSavedForm<T extends object>(defaults: T, saved: unknown): T {

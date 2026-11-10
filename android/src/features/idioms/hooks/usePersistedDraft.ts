@@ -1,24 +1,21 @@
 // src/features/idioms/hooks/usePersistedDraft.ts
-/** Keeps the Idioms form draft and the last lesson on the device between visits. */
+/** Keeps the Idioms form on the device, and the last lesson for the Idioms page to reload on focus. */
 import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { loadDocument, saveDocument } from "@/lib/document-store";
 import { isRecord } from "../lib/text";
-import { mergeSavedForm, type SavedIdiomsState } from "../lib/persistence";
+import { IDIOMS_FORM_KEY, IDIOMS_LESSON_KEY, mergeSavedForm } from "../lib/persistence";
+import type { IdiomLesson } from "../types";
 
-export function usePersistedDraft<TForm extends object, TResult>(storageKey: string, defaults: TForm) {
+export function usePersistedForm<TForm extends object>(defaults: TForm) {
   const [form, setForm] = useState<TForm>(defaults);
-  const [result, setResult] = useState<TResult | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let active = true;
-    loadDocument<unknown>(storageKey, null)
+    loadDocument<unknown>(IDIOMS_FORM_KEY, null)
       .then((saved) => {
-        if (!active) return;
-        if (isRecord(saved)) {
-          setForm(mergeSavedForm(defaults, saved.form));
-          setResult(isRecord(saved.result) ? (saved.result as TResult) : null);
-        }
+        if (active) setForm(mergeSavedForm(defaults, saved));
       })
       .catch(() => undefined)
       .finally(() => {
@@ -27,18 +24,36 @@ export function usePersistedDraft<TForm extends object, TResult>(storageKey: str
     return () => {
       active = false;
     };
-  }, [storageKey, defaults]);
+  }, [defaults]);
 
   useEffect(() => {
     if (!loaded) return;
-    const state: SavedIdiomsState<TForm, TResult> = { form, result };
-    saveDocument(storageKey, state).catch(() => undefined);
-  }, [loaded, storageKey, form, result]);
+    saveDocument(IDIOMS_FORM_KEY, form).catch(() => undefined);
+  }, [loaded, form]);
 
   const reset = useCallback(() => {
     setForm(defaults);
-    setResult(null);
   }, [defaults]);
 
-  return { form, setForm, result, setResult, reset };
+  return { form, setForm, reset };
+}
+
+export function usePersistedLesson(): IdiomLesson | null {
+  const [lesson, setLesson] = useState<IdiomLesson | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadDocument<unknown>(IDIOMS_LESSON_KEY, null)
+        .then((saved) => {
+          if (active) setLesson(isRecord(saved) ? (saved as unknown as IdiomLesson) : null);
+        })
+        .catch(() => undefined);
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  return lesson;
 }

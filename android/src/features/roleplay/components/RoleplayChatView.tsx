@@ -8,6 +8,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 import { useFocusEffect, useRouter } from "expo-router";
 import { Drama, Eraser, Loader2, MessagesSquare, UserCog } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { ActiveLanguageNotice } from "@/features/language-profiles/components/ActiveLanguageNotice";
 import { ActionButton, ErrorText, Field, Panel, TextField } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -15,7 +16,6 @@ import { useRoleplayChat } from "../hooks/useRoleplayChat";
 import { useRoleplayRoles } from "../hooks/useRoleplayRoles";
 import {
   ADDITIONAL_INSTRUCTIONS_MAX,
-  LANGUAGE_MAX,
   SEED_MAX,
   SYSTEM_PROMPT_MAX,
 } from "../options";
@@ -57,6 +57,7 @@ export function RoleplayChatView() {
     <Section>
       <Panel>
         <SectionTitle icon={Drama} title="Persona" />
+        <ActiveLanguageNotice />
         {savedRoles.roles.length > 0 && (
           <Field label="Saved roles" hint="Tap a role to use its prompt as the persona.">
             <View style={styles.chips}>
@@ -96,15 +97,6 @@ export function RoleplayChatView() {
           maxLength={SYSTEM_PROMPT_MAX}
           multiline
           voice
-        />
-        <TextField
-          label="Language"
-          placeholder="e.g. French"
-          hint="The language the chatbot must communicate in."
-          value={settings.language}
-          onChangeText={(text) => updateSettings({ language: text })}
-          editable={!pending}
-          maxLength={LANGUAGE_MAX}
         />
         <TextField
           label="Additional instructions"

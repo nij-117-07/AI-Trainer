@@ -11,6 +11,7 @@ import {
   MessagesSquare,
   PenLine,
   Quote,
+  SlidersHorizontal,
   type LucideIcon,
 } from "lucide-react-native";
 import type { Tone } from "@/theme";
@@ -25,6 +26,14 @@ export interface LanguageTool {
 }
 
 export const LANGUAGE_TOOLS: LanguageTool[] = [
+  {
+    key: "language-profiles",
+    title: "Language Profiles",
+    description: "Set your native and target languages once. Every sub-app uses the active profile.",
+    route: "/language-learner/profiles",
+    icon: SlidersHorizontal,
+    tone: "amber",
+  },
   {
     key: "idioms",
     title: "Idioms",

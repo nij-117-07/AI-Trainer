@@ -6,12 +6,11 @@
 import { ax } from "@ax-llm/ax";
 import type { AiSettings } from "@/features/ai-settings/types";
 import { createLlm } from "@/features/ai-settings/lib/llm";
-import { PROFICIENCY_LEVELS } from "../options";
 import type { WordOfTheDay, WordOfTheDayFormValues } from "../types";
 import { dailyDate, dailySeed } from "./daily";
 import { normalizeWordOfTheDay } from "./normalize";
 import { wordOfTheDaySignature } from "./signatures";
-import { optionalText, requireOption, requireText } from "./validate";
+import { optionalText, requireText } from "./validate";
 
 const TEMPERATURE = 0.7;
 
@@ -29,7 +28,7 @@ export async function generateWordOfTheDay(
       currentDate: dailyDate(now),
       targetLanguage: requireText(values.targetLanguage, "Target language", 100),
       nativeLanguage: requireText(values.nativeLanguage, "Native language", 100),
-      userProficiency: requireOption(values.userProficiency, PROFICIENCY_LEVELS, "Word type"),
+      userProficiency: requireText(values.userProficiency, "Word type", 100),
       thematicFocus: requireText(values.thematicFocus, "Theme", 200),
       dailySeed: dailySeed(now),
       userCustomInstructions: optionalText(values.customInstructions, "Custom instructions", 1000),
