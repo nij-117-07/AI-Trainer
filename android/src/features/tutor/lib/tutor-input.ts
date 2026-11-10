@@ -15,13 +15,14 @@ export interface TutorInput {
   lastTopicTaught?: string;
 }
 
-export function buildTutorInput(values: TutorFormValues): TutorInput {
+/** The persona text comes from the chosen template, so it is passed in rather than stored in the form. */
+export function buildTutorInput(values: TutorFormValues, personaPrompt: string): TutorInput {
   return {
-    systemPrompt: requireText(values.systemPrompt, "System prompt", 4000, 10),
+    systemPrompt: requireText(personaPrompt, "Persona", 4000, 10),
     userQuery: requireText(values.userQuery, "Your question", 2000, 3),
     studentLevel: requireText(values.studentLevel, "Student level", 200, 2),
     learningStyle: requireText(values.learningStyle, "Learning style", 200, 2),
-    currentScenario: requireText(values.currentScenario, "Current scenario", 500, 2),
+    currentScenario: optionalText(values.currentScenario, "Scenario", 500) ?? "None",
     lastTopicTaught: optionalText(values.lastTopicTaught, "Last topic taught", 500),
   };
 }
@@ -30,12 +31,16 @@ export function advanceTurn(values: TutorFormValues): TutorFormValues {
   return { ...values, lastTopicTaught: values.userQuery.trim(), userQuery: "" };
 }
 
+export function startFresh(values: TutorFormValues): TutorFormValues {
+  return { ...values, lastTopicTaught: "" };
+}
+
 export function parseTutorDraft(raw: unknown, defaults: TutorFormValues): TutorFormValues {
   if (!isRecord(raw)) return defaults;
   const pick = (key: keyof TutorFormValues): string =>
     typeof raw[key] === "string" ? (raw[key] as string) : defaults[key];
   return {
-    systemPrompt: pick("systemPrompt"),
+    persona: pick("persona"),
     userQuery: pick("userQuery"),
     studentLevel: pick("studentLevel"),
     learningStyle: pick("learningStyle"),

@@ -1,7 +1,8 @@
 // src/features/tutor/types.ts
 
 export interface TutorFormValues {
-  systemPrompt: string;
+  /** Name of the persona template. The prompt text is read from the template at generate time. */
+  persona: string;
   userQuery: string;
   studentLevel: string;
   learningStyle: string;

@@ -147,6 +147,23 @@ export function summarise(session: TutorChatSession): SessionSummary {
   };
 }
 
+export interface MessageWithConcepts {
+  message: ChatMessage;
+  /** Key concepts for a tutor reply, or null for a question or a reply saved without a breakdown. */
+  concepts: ConceptItem[] | null;
+}
+
+/** Pairs each tutor reply with its breakdown. Breakdowns are stored in the order of the replies. */
+export function withReplyConcepts(messages: ChatMessage[], breakdowns: ConceptItem[][]): MessageWithConcepts[] {
+  let reply = 0;
+  return messages.map((message) => {
+    if (message.role !== "assistant") return { message, concepts: null };
+    const concepts = breakdowns[reply] ?? null;
+    reply += 1;
+    return { message, concepts };
+  });
+}
+
 export function sortByUpdated(sessions: TutorChatSession[]): TutorChatSession[] {
   return [...sessions].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }

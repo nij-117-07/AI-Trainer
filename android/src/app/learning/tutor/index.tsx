@@ -1,11 +1,6 @@
 // src/app/learning/tutor/index.tsx
-import { TutorTab } from "@/features/tutor/components/TutorTab";
-import { ToolScreen } from "@/components/tool/ToolScreen";
+import { TutorScreen } from "@/features/tutor/components/TutorScreen";
 
 export default function TutorRoute() {
-  return (
-    <ToolScreen title="Adaptive Tutor">
-      <TutorTab />
-    </ToolScreen>
-  );
+  return <TutorScreen />;
 }

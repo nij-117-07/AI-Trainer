@@ -13,8 +13,12 @@ import { normalizeTutorResponse } from "./response-versions";
 
 const TEMPERATURE = 0.1;
 
-export async function explainForStudent(settings: AiSettings, values: TutorFormValues): Promise<TutorResponse> {
-  const input = buildTutorInput(values);
+export async function explainForStudent(
+  settings: AiSettings,
+  values: TutorFormValues,
+  personaPrompt: string,
+): Promise<TutorResponse> {
+  const input = buildTutorInput(values, personaPrompt);
   const llm = createLlm(settings);
   const result = await ax(adaptiveTutorSignature).forward(
     llm,

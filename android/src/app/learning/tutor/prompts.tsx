@@ -1,11 +1,6 @@
 // src/app/learning/tutor/prompts.tsx
-import { PromptManagerTab } from "@/features/tutor/components/PromptManagerTab";
-import { ToolScreen } from "@/components/tool/ToolScreen";
+import { PersonasScreen } from "@/features/tutor/components/PersonasScreen";
 
-export default function PromptsRoute() {
-  return (
-    <ToolScreen title="Prompt Templates">
-      <PromptManagerTab />
-    </ToolScreen>
-  );
+export default function PersonasRoute() {
+  return <PersonasScreen />;
 }

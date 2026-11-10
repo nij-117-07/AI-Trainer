@@ -1,11 +1,6 @@
 // src/app/learning/tutor-chat/index.tsx
-import { TutorChatView } from "@/features/tutor-chat/components/TutorChatView";
-import { ToolScreen } from "@/components/tool/ToolScreen";
+import { TutorChatScreen } from "@/features/tutor-chat/components/TutorChatScreen";
 
 export default function TutorChatRoute() {
-  return (
-    <ToolScreen title="Tutor Chat">
-      <TutorChatView />
-    </ToolScreen>
-  );
+  return <TutorChatScreen />;
 }

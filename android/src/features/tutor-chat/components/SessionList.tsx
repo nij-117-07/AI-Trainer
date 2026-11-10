@@ -1,24 +1,23 @@
-// src/features/tutor-chat/components/SessionPicker.tsx
-/** First screen of the Tutor Chat: start a new session or open a saved one. */
+// src/features/tutor-chat/components/SessionList.tsx
+/** Saved tutor chat sessions. Tap one to continue it, or start a new one from the footer. */
 import { useState } from "react";
 import { Alert, StyleSheet, Text } from "react-native";
 import { MessagesSquare } from "lucide-react-native";
 import { useThemeColors } from "@/theme";
-import { ErrorText, Panel } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
+import { ErrorText } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
-import type { TutorChatSession, TutorSettingsValues } from "../lib/types";
-import { CreateSessionForm } from "./CreateSessionForm";
+import type { TutorChatSession } from "../lib/types";
 import { SessionCard } from "./SessionCard";
 
-interface SessionPickerProps {
+interface SessionListProps {
   sessions: TutorChatSession[];
   onOpen: (id: string) => void;
-  onCreate: (values: TutorSettingsValues) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }
 
-export function SessionPicker({ sessions, onOpen, onCreate, onDelete }: SessionPickerProps) {
+export function SessionList({ sessions, onOpen, onDelete }: SessionListProps) {
   const colors = useThemeColors();
   const [listError, setListError] = useState<string | null>(null);
 
@@ -45,21 +44,18 @@ export function SessionPicker({ sessions, onOpen, onCreate, onDelete }: SessionP
   return (
     <Section>
       <Text style={[styles.intro, { color: colors.mutedForeground }]}>
-        A topic-scoped tutor that keeps your context and previous turns in mind, replying with a
-        personalized explanation and a concept breakdown each time.
+        Pick a saved session to carry on, or start a new one from the form below.
       </Text>
-
-      <CreateSessionForm onCreate={onCreate} />
 
       <SectionTitle icon={MessagesSquare} title="Saved sessions" />
       <ErrorText message={listError} />
 
       {sessions.length === 0 ? (
-        <Panel>
-          <Text style={[styles.empty, { color: colors.mutedForeground }]}>
-            No sessions yet. Create your first session above, then ask your first question.
-          </Text>
-        </Panel>
+        <EmptyHint
+          icon={MessagesSquare}
+          title="No sessions yet"
+          hint="Enter a master topic in the form below and tap Start chatting."
+        />
       ) : (
         sessions.map((session) => (
           <SessionCard key={session.id} session={session} onOpen={onOpen} onDelete={confirmDelete} />
@@ -71,10 +67,6 @@ export function SessionPicker({ sessions, onOpen, onCreate, onDelete }: SessionP
 
 const styles = StyleSheet.create({
   intro: {
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  empty: {
     fontSize: 14,
     lineHeight: 21,
   },

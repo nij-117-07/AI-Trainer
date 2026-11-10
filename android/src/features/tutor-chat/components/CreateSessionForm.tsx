@@ -1,70 +1,61 @@
 // src/features/tutor-chat/components/CreateSessionForm.tsx
-/** Form for a new tutoring session: master topic and optional background, then Start Chatting. */
-import { useState } from "react";
-import { RefreshCcw, Sparkles } from "lucide-react-native";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
-import { SectionTitle } from "@/components/tool/SectionTitle";
-import { usePersistedState } from "@/hooks/usePersistedState";
+/** New tutoring session, pinned to the footer: a master topic and optional background. */
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Sparkles } from "lucide-react-native";
+import { spacing } from "@/theme";
+import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
 import type { TutorSettingsValues } from "../lib/types";
 
 interface CreateSessionFormProps {
-  onCreate: (values: TutorSettingsValues) => Promise<void>;
+  form: TutorSettingsValues;
+  onChange: (patch: Partial<TutorSettingsValues>) => void;
+  onSubmit: () => void;
+  creating: boolean;
+  error: string | null;
 }
 
-const EMPTY: TutorSettingsValues = { masterTopic: "", additionalContext: "" };
-const STORAGE_KEY = "learning.tutor-chat.create-session.v1";
-
-export function CreateSessionForm({ onCreate }: CreateSessionFormProps) {
-  const [form, setForm] = usePersistedState<TutorSettingsValues>(STORAGE_KEY, EMPTY);
-  const [creating, setCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  function update<K extends keyof TutorSettingsValues>(key: K, value: TutorSettingsValues[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }
-
-  async function submit() {
-    setError(null);
-    setCreating(true);
-    try {
-      await onCreate(form);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create the session.");
-    } finally {
-      setCreating(false);
-    }
-  }
-
+export function CreateSessionForm({ form, onChange, onSubmit, creating, error }: CreateSessionFormProps) {
   return (
-    <Panel>
-      <SectionTitle icon={Sparkles} title="Start a new tutoring session" />
-      <TextField
-        label="Master topic"
-        placeholder="e.g. Quantum Physics"
-        value={form.masterTopic}
-        onChangeText={(text) => update("masterTopic", text)}
-        editable={!creating}
-        maxLength={300}
-      />
-      <TextField
-        label="Your background & context (optional)"
-        hint="You can edit this later from inside the chat."
-        placeholder="Background, goals, or learning style…"
-        value={form.additionalContext}
-        onChangeText={(text) => update("additionalContext", text)}
-        editable={!creating}
-        maxLength={2000}
-        multiline
-        voice
-      />
+    <View style={styles.footer}>
+      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
+        <TextField
+          label="Master topic"
+          placeholder="e.g. Quantum physics"
+          value={form.masterTopic}
+          onChangeText={(text) => onChange({ masterTopic: text })}
+          editable={!creating}
+          maxLength={300}
+        />
+        <TextField
+          label="Your background (optional)"
+          placeholder="e.g. I know basic algebra and want intuition first"
+          value={form.additionalContext}
+          onChangeText={(text) => onChange({ additionalContext: text })}
+          editable={!creating}
+          maxLength={2000}
+          multiline
+          voice
+        />
+      </ScrollView>
       <ErrorText message={error} />
       <ActionButton
         label={creating ? "Creating…" : "Start chatting"}
         icon={Sparkles}
         loading={creating}
-        onPress={submit}
+        onPress={onSubmit}
       />
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={() => setForm(EMPTY)} />
-    </Panel>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  footer: {
+    gap: spacing.md,
+  },
+  fields: {
+    maxHeight: 340,
+  },
+  fieldsContent: {
+    gap: spacing.md,
+  },
+});

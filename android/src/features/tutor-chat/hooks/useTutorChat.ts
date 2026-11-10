@@ -48,7 +48,6 @@ export function useTutorChat() {
   const [settingsDraft, setSettingsDraft] = useState<TutorSettingsValues | null>(null);
   const [settingsStatus, setSettingsStatus] = useState<SettingsStatus>("idle");
   const [settingsError, setSettingsError] = useState<string | null>(null);
-  const [breakdownPick, setBreakdownPick] = useState<number | null>(null);
   const sessionsRef = useRef<TutorChatSession[]>([]);
   const turnController = useRef<AbortController | null>(null);
 
@@ -92,7 +91,6 @@ export function useTutorChat() {
       setSettingsDraft({ masterTopic: found.masterTopic, additionalContext: found.additionalContext });
       setSettingsStatus("idle");
       setSettingsError(null);
-      setBreakdownPick(null);
     },
     [pending],
   );
@@ -170,7 +168,6 @@ export function useTutorChat() {
     turnController.current = controller;
     setDraft("");
     setTurnError(null);
-    setBreakdownPick(null);
     setPending(true);
     try {
       const response = await runTutorTurn(
@@ -194,18 +191,6 @@ export function useTutorChat() {
     }
   };
 
-  const breakdownCount = active?.breakdowns.length ?? 0;
-  const breakdownIndex =
-    breakdownCount === 0 ? 0 : Math.min(Math.max(breakdownPick ?? breakdownCount - 1, 0), breakdownCount - 1);
-  const breakdown = active?.breakdowns[breakdownIndex] ?? [];
-
-  const goToBreakdown = useCallback(
-    (index: number) => {
-      setBreakdownPick(Math.min(Math.max(index, 0), Math.max(breakdownCount - 1, 0)));
-    },
-    [breakdownCount],
-  );
-
   return {
     loaded,
     loadError,
@@ -224,9 +209,5 @@ export function useTutorChat() {
     updateSettingsDraft,
     settingsStatus,
     settingsError,
-    breakdown,
-    breakdownIndex,
-    breakdownCount,
-    goToBreakdown,
   };
 }

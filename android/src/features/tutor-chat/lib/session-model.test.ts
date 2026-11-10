@@ -13,8 +13,9 @@ import {
   trimHistory,
   updateSettings,
   validateSettings,
+  withReplyConcepts,
 } from "./session-model";
-import type { ChatMessage, TutorChatSession } from "./types";
+import type { ChatMessage, ConceptItem, TutorChatSession } from "./types";
 
 const NOW = "2026-01-02T00:00:00.000Z";
 
@@ -204,5 +205,25 @@ describe("normalising stored sessions", () => {
     expect(normaliseSession({ masterTopic: "Physics" })).toBeNull();
     expect(normaliseSessions({ not: "a list" })).toEqual([]);
     expect(normaliseSessions([null, { id: "ok" }]).map((item) => item.id)).toEqual(["ok"]);
+  });
+});
+
+describe("withReplyConcepts", () => {
+  it("pairs each tutor reply with its breakdown, in order", () => {
+    const messages: ChatMessage[] = [
+      { role: "user", content: "Q1" },
+      { role: "assistant", content: "A1" },
+      { role: "user", content: "Q2" },
+      { role: "assistant", content: "A2" },
+    ];
+    const first: ConceptItem[] = [{ title: "Osmosis", description: "Water moves across a membrane." }];
+    const second: ConceptItem[] = [];
+    const rows = withReplyConcepts(messages, [first, second]);
+    expect(rows.map((row) => row.concepts)).toEqual([null, first, null, second]);
+  });
+
+  it("leaves a reply with no saved breakdown empty", () => {
+    const rows = withReplyConcepts([{ role: "assistant", content: "A" }], []);
+    expect(rows[0].concepts).toBeNull();
   });
 });

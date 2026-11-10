@@ -6,7 +6,7 @@ import type { TutorFormValues } from "../types";
 import { DEFAULT_TUTOR_FORM } from "../lib/options";
 import { parseTutorDraft } from "../lib/tutor-input";
 
-export const DRAFT_STORAGE_KEY = "learning.tutor.draft.v1";
+export const DRAFT_STORAGE_KEY = "learning.tutor.draft.v2";
 
 export function useTutorDraft() {
   const [form, setForm] = useState<TutorFormValues>(DEFAULT_TUTOR_FORM);
