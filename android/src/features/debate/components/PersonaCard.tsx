@@ -56,7 +56,6 @@ export function PersonaCard({ side, persona, topic, busy, regenPending, onSave, 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<PersonaDraft>(() => toDraft(persona));
   const isPro = side === "pro";
-  const palette = isPro ? colors.tone.emerald : colors.tone.rose;
 
   function update<K extends keyof PersonaDraft>(key: K, value: PersonaDraft[K]) {
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -82,8 +81,8 @@ export function PersonaCard({ side, persona, topic, busy, regenPending, onSave, 
   return (
     <Panel>
       <View style={styles.header}>
-        <View style={[styles.badge, { backgroundColor: palette.bg, borderColor: palette.border }]}>
-          <Text style={[styles.badgeText, { color: palette.fg }]}>{isPro ? "Pro" : "Con"}</Text>
+        <View style={[styles.badge, { borderColor: colors.border }]}>
+          <Text style={[styles.badgeText, { color: colors.foreground }]}>{isPro ? "Pro" : "Con"}</Text>
         </View>
         <Text style={[styles.name, { color: colors.foreground }]}>{persona.personaName || "Unnamed persona"}</Text>
       </View>
@@ -141,22 +140,14 @@ export function PersonaCard({ side, persona, topic, busy, regenPending, onSave, 
           <ListBlock title="Strategic priorities" items={textList(persona.strategicPriorities)} />
           <ListBlock title="Core values" items={textList(persona.coreValues)} />
           <ListBlock title="Linguistic quirks" items={textList(persona.linguisticQuirks)} />
-          <ActionButton
-            label="Edit persona"
-            icon={Pencil}
-            variant="outline"
-            onPress={() => {
-              if (!busy) startEdit();
-            }}
-          />
+          <ActionButton label="Edit persona" icon={Pencil} variant="outline" disabled={busy} onPress={startEdit} />
           <ActionButton
             label={regenPending ? "Regenerating…" : "Regenerate with AI"}
             icon={RefreshCw}
             variant="outline"
             loading={regenPending}
-            onPress={() => {
-              if (!busy) onRegenerate();
-            }}
+            disabled={busy}
+            onPress={onRegenerate}
           />
         </>
       )}

@@ -70,15 +70,15 @@ export function TheoreticalQuestionCard({
   return (
     <Panel>
       <View style={styles.header}>
-        <View style={[styles.badge, { backgroundColor: colors.tone.sky.bg }]}>
-          <Text style={[styles.badgeNumber, { color: colors.primary }]}>{index + 1}</Text>
+        <View style={[styles.badge, { backgroundColor: colors.muted }]}>
+          <Text style={[styles.badgeNumber, { color: colors.foreground }]}>{index + 1}</Text>
         </View>
         <View style={styles.headerBody}>
           <Text selectable style={[styles.questionText, { color: colors.foreground }]}>
             {question.questionText}
           </Text>
-          <View style={[styles.tag, { backgroundColor: colors.tone.rose.bg, borderColor: colors.tone.rose.border }]}>
-            <Text style={[styles.tagText, { color: colors.tone.rose.fg }]}>{question.focusArea}</Text>
+          <View style={[styles.tag, { borderColor: colors.border }]}>
+            <Text style={[styles.tagText, { color: colors.mutedForeground }]}>{question.focusArea}</Text>
           </View>
           <Text style={[styles.criteria, { color: colors.mutedForeground }]}>
             Great answers cover: {question.evaluationCriteria}
@@ -100,7 +100,7 @@ export function TheoreticalQuestionCard({
         />
         <ImagePickerField value={image} onChange={setImage} disabled={grade.pending} />
         {grade.data && (
-          <Text style={[styles.hint, { color: answerChanged ? colors.tone.amber.fg : colors.mutedForeground }]}>
+          <Text style={[styles.hint, { color: answerChanged ? colors.foreground : colors.mutedForeground }]}>
             {answerChanged
               ? "Your answer has changed. Resubmit to update the feedback."
               : "Edit your answer above and resubmit to get new feedback."}
@@ -142,9 +142,9 @@ export function TheoreticalQuestionCard({
                   {expert.data.keyConceptsCovered.map((concept, conceptIndex) => (
                     <View
                       key={`${concept}-${conceptIndex}`}
-                      style={[styles.chip, { backgroundColor: colors.tone.amber.bg, borderColor: colors.tone.amber.border }]}
+                      style={[styles.chip, { backgroundColor: colors.muted, borderColor: colors.border }]}
                     >
-                      <Text style={[styles.chipText, { color: colors.tone.amber.fg }]}>{concept}</Text>
+                      <Text style={[styles.chipText, { color: colors.foreground }]}>{concept}</Text>
                     </View>
                   ))}
                 </View>

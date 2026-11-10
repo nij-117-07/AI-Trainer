@@ -1,11 +1,3 @@
 // src/app/practice/grader/index.tsx
-import { GraderTab } from "@/features/testing-portal/components/GraderTab";
-import { ToolScreen } from "@/components/tool/ToolScreen";
-
-export default function GraderRoute() {
-  return (
-    <ToolScreen title="Performance Grader">
-      <GraderTab />
-    </ToolScreen>
-  );
-}
+// The dashboard tile and the Testing Portal menu open the same Grader pages.
+export { default } from "@/app/practice/testing-portal/grader/index";

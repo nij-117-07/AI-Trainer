@@ -45,8 +45,8 @@ export function McqQuiz({ questions, contextSetting }: McqQuizProps) {
     <View style={styles.quiz}>
       <View style={styles.toolbar}>
         <ChoiceChips options={VIEW_MODES} value={mode} onChange={setMode} />
-        <View style={[styles.scorePill, { borderColor: colors.tone.sky.border, backgroundColor: colors.tone.sky.bg }]}>
-          <Text style={[styles.scoreText, { color: colors.primary }]}>
+        <View style={[styles.scorePill, { borderColor: colors.border, backgroundColor: colors.card }]}>
+          <Text style={[styles.scoreText, { color: colors.foreground }]}>
             Score: {score}/{total}
           </Text>
         </View>
@@ -100,7 +100,7 @@ export function McqQuiz({ questions, contextSetting }: McqQuizProps) {
       {allAnswered && (
         <Panel>
           <View style={styles.summary}>
-            <Trophy size={20} color={colors.tone.amber.fg} />
+            <Trophy size={20} color={colors.primary} />
             <Text style={[styles.summaryText, { color: colors.foreground }]}>
               You answered {score} of {total} correctly.
             </Text>

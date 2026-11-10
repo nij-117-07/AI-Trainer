@@ -1,7 +1,7 @@
 // src/features/rss/lib/viewer-filters.ts
 /** Pure filtering, sorting, and category collection for the RSS viewer. */
 import { ALL_CATEGORIES, ALL_FEEDS } from "../options";
-import type { RssFeedConfig, RssFeedItem, RssTimeRange, RssViewerFilters } from "../types";
+import { RSS_TIME_RANGES, type RssFeedConfig, type RssFeedItem, type RssTimeRange, type RssViewerFilters } from "../types";
 import { asText } from "./validation";
 
 export const DEFAULT_VIEWER_FILTERS: RssViewerFilters = {
@@ -16,6 +16,17 @@ const WINDOW_MS: Record<Exclude<RssTimeRange, "all">, number> = {
   "7d": 7 * 24 * 60 * 60 * 1000,
   "30d": 30 * 24 * 60 * 60 * 1000,
 };
+
+/** Keeps saved filters only when they have the right type. An unknown time range falls back to "all time". */
+export function sanitizeViewerFilters(raw: RssViewerFilters): RssViewerFilters {
+  const timeRange = (RSS_TIME_RANGES as readonly string[]).includes(raw.timeRange) ? raw.timeRange : DEFAULT_VIEWER_FILTERS.timeRange;
+  return {
+    feedId: typeof raw.feedId === "string" ? raw.feedId : DEFAULT_VIEWER_FILTERS.feedId,
+    category: typeof raw.category === "string" ? raw.category : DEFAULT_VIEWER_FILTERS.category,
+    search: typeof raw.search === "string" ? raw.search : DEFAULT_VIEWER_FILTERS.search,
+    timeRange: timeRange as RssTimeRange,
+  };
+}
 
 function itemCategories(item: RssFeedItem): string[] {
   return Array.isArray(item.categories) ? item.categories.filter((category) => asText(category) !== "") : [];

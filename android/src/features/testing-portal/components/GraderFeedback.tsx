@@ -23,7 +23,6 @@ function BulletList({ title, items }: { title: string; items: string[] }) {
 export function GraderFeedback({ result }: { result: GradingResult }) {
   const colors = useThemeColors();
   const met = result.isTargetMet;
-  const tone = met ? colors.tone.emerald : colors.tone.amber;
 
   return (
     <View
@@ -35,8 +34,10 @@ export function GraderFeedback({ result }: { result: GradingResult }) {
           {result.score.toFixed(1)}
           <Text style={[styles.scoreOf, { color: colors.mutedForeground }]}> / 10</Text>
         </Text>
-        <View style={[styles.badge, { backgroundColor: tone.bg, borderColor: tone.border }]}>
-          <Text style={[styles.badgeText, { color: tone.fg }]}>{met ? "Target met" : "Target not met"}</Text>
+        <View style={[styles.badge, { borderColor: met ? colors.primary : colors.border }]}>
+          <Text style={[styles.badgeText, { color: met ? colors.foreground : colors.mutedForeground }]}>
+            {met ? "Target met" : "Target not met"}
+          </Text>
         </View>
       </View>
 

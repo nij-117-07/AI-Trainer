@@ -106,4 +106,6 @@ export interface DebateSession {
   conTranscript: string;
   complete: boolean;
   verdict: JudgeVerdict | null;
+  /** The form values the debate was built from, so a persona can be regenerated on the same topic. */
+  setup?: PersonaFormValues;
 }

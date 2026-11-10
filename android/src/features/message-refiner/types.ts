@@ -14,3 +14,12 @@ export interface MessageRefinerResult {
   subjectLine: string;
   changes: string[];
 }
+
+export interface MessageEditValues {
+  message: string;
+  subjectLine: string;
+  instruction: string;
+  tone: MessageTone;
+  audience: string;
+  goal: string;
+}

@@ -72,7 +72,6 @@ When fonts are added (via `expo-font`), keep the sizes and weights below.
 | --- | --- | --- | --- | --- |
 | Brand | 20 | 700 | -0.3 | AI**Trainer** header |
 | Hero title | 30 | 700 | -0.5, line height 36 | "What are we learning today?" |
-| Settings title | 24 | 700 | -0.4 | "Model connection" |
 | Section title | 18 | 600 | 0 | "Explore hubs" |
 | Card title | 18 | 600 | 0 | "Learning" |
 | Body | 15 | 400 | 0, line height 23 | Hero description |
@@ -139,12 +138,17 @@ Base unit 4px. Named scale: `xs` 4, `sm` 8, `md` 12, `lg` 16, `xl` 24, `2xl` 32.
 - Icons: `lucide-react-native`, 18–24px, stroke 2. Same family as the webui (`lucide-react`).
 
 ### Settings screen (`/admin/settings`)
-- Header bar with a round back button on the left and the title "AI settings" centered.
-- One `card` panel with three labeled fields: Model name, API key, Base URL. Each field has a hint line in `mutedForeground`.
-- Inputs: `background` fill, 1px `border`, radius `lg`. The API key input is masked, with a round eye toggle beside it.
-- Validation: the base URL must start with `http://` or `https://`. The error appears in `destructive` above the save button.
-- Save button: full width, `primary` fill, round, with a save icon. Saved confirmation uses the `emerald` tone.
+- Uses `ToolScreen` with `usesAi={false}`: round back button, the title "Settings" in the header, and no "not configured" notice.
+- Body, top to bottom: the Appearance panel, a one-line intro, then one `Panel` per connection: Chat model, Voice input, and Text to speech. Each card has a `SectionTitle` and its main fields first.
+- Optional separate base URL and key (voice and speech) sit behind a "Separate connection" toggle inside their card. It opens by itself when those values are already set.
+- Fields use the shared `TextField` and `SelectField`. The API key input is masked, with a round eye toggle beside it.
+- Footer: the error (`destructive`) or "Settings saved." (`emerald`) above a full-width primary "Save settings" button. The button is disabled until a value changes.
+- Validation: each base URL must start with `http://` or `https://`.
 - Values are stored on the device only (SecureStore on Android, localStorage on web). Other apps read them through `useAiSettings()`.
+
+### Disclosure (dropdown section)
+- `src/components/tool/Disclosure.tsx`: a panel with a tappable header (title, optional one-line summary, chevron) and a body that shows or hides.
+- Starts closed unless `defaultOpen` is set. Use it for long secondary sections, such as a turn breakdown or an input that is not needed on every turn, so the screen stays short. The summary keeps the closed section informative.
 
 ### Loading
 - While stored settings load, the settings screen shows a centered `primary` activity indicator.
@@ -321,6 +325,15 @@ Use this pattern when the result is short and reads best on its own, and the for
 - Poet Engine: `src/app/language-learner/poet-engine/index.tsx` and `new.tsx`, with `src/features/poet-engine/components/PoetEngineForm.tsx` and `PoetEngineResultView.tsx`
 - Language Lesson: `src/app/language-learner/lesson/index.tsx` and `new.tsx`, with `src/features/lesson/components/LessonForm.tsx` and `LessonResultView.tsx`. Storage in `src/features/lesson/lib/persistence.ts`, hooks in `hooks/usePersistedDraft.ts`.
 - Observation Trainer: `src/app/practice/observation-trainer/index.tsx` (report) and `new.tsx` (form), with `src/features/observation-trainer/components/ObservationForm.tsx` and `ObservationResult.tsx`. Hooks are `hooks/useObservationForm.ts` and `hooks/usePersistedTraining.ts`. Its form (image search and picker) is long, so the form page holds the image and the fields, and the footer holds only the button.
+- Message Refiner: `src/app/tools/message-refiner/index.tsx` (result) and `new.tsx` (form), with `src/features/message-refiner/components/MessageRefinerForm.tsx` and `MessageRefinerResultView.tsx`. Storage is in `lib/persistence.ts`, with the hook in `hooks/usePersistedDraft.ts`.
+- RSS: the Viewer is `src/app/tools/rss/viewer.tsx` (filters in the body, Refresh in the footer, Reset in the header). The Manager is `src/app/tools/rss/manager/index.tsx` (list, with "Add feed" in the footer), with `new.tsx` and `edit.tsx` as the form pages. The form is `src/features/rss/components/manager/FeedForm.tsx`, with the hook in `hooks/useFeedForm.ts`.
+- Brain Dump: `src/app/tools/brain-dump/index.tsx` (list, with "New note" in the footer), `new.tsx` (capture form), and `edit.tsx` (note editor, opened by id). Components are in `src/features/brain-dump/components/`, and storage is in `lib/storage.ts`.
+- Reminders: `src/app/tools/reminders/index.tsx` (list, with "New reminder" in the footer) and `new.tsx` (form). The form is in `components/ReminderForm.tsx`. The add step writes through `lib/storage.ts`, and the list reloads on focus, so the two pages never hold separate copies of the list.
+- MCQ Generator: `src/app/practice/testing-portal/mcq/index.tsx` (quiz, with "Generate more" in the footer and "Clear all" in the header) and `mcq/new.tsx` (form). The form is in `components/McqForm.tsx`, with hooks `hooks/useMcqSetup.ts` and `hooks/useMcqResult.ts`. Generate appends to the saved list, so "Generate more" keeps the questions already made. The quiz answers stay in memory and are not saved.
+- Theoretical: `src/app/practice/testing-portal/theoretical/index.tsx` (questions, with "Generate more" in the footer and "Clear all" in the header, which asks for confirmation) and `theoretical/new.tsx` (form). The form is in `components/TheoreticalForm.tsx`, the questions in `components/TheoreticalResultView.tsx` and `TheoreticalQuestionCard.tsx`. Hooks are `hooks/useTheoreticalSetup.ts` and `useTheoreticalResult.ts`. The saved result keeps the context and difficulty, so each question can be graded and given a model answer later. Answers and grades stay in memory and are not saved.
+- Expert answer: `src/app/practice/testing-portal/answer/index.tsx` (the question and answer, with "New answer" in the footer) and `answer/new.tsx` (form). The form is in `components/AnswerForm.tsx` and the answer in `components/AnswerResultView.tsx`. Hooks are `hooks/useAnswerSetup.ts` and `useAnswerResult.ts`. Generate replaces the saved answer. Response format has no Custom, because the type is fixed.
+- Performance Grader: `src/app/practice/testing-portal/grader/index.tsx` (the grade, with "New grade" in the footer) and `grader/new.tsx` (form). `src/app/practice/grader/index.tsx`, the dashboard tile route, re-exports the result page. The form is in `components/GraderForm.tsx` and the grade in `components/GraderResultView.tsx`. Hooks are `hooks/useGraderSetup.ts` and `useGraderResult.ts`. The image is not saved, because it is large. Scenario is limited to 200 characters, the same as the generator.
+- Solve an MCQ: `src/app/practice/testing-portal/solver/index.tsx` (the question, its options, and the model's pick, with "New question" in the footer) and `solver/new.tsx` (form). The form is in `components/SolverForm.tsx` and the solution in `components/SolverResultView.tsx`. Hooks are `hooks/useSolverSetup.ts` and `useSolverResult.ts`. The form keeps its original storage keys, so saved drafts still load. The model's option is marked with a border and the words "Model answer", not by colour alone.
 
 ### 12.7 Chat with a persona (Roleplay pattern)
 
@@ -349,6 +362,8 @@ The Socratic Challenger (`practice/socratic`) uses the same pattern. Its setting
 Negotiation Practice (`practice/negotiation`) uses the chat pattern with a setup page, like the Riddle. The practice page shows the brief, report, and transcript in the body, and the reply box in the footer. While ending, the footer asks for the outcome instead. A finished session shows "New negotiation" in the footer. The setup page is `practice/negotiation/new.tsx`, with Difficulty (no Custom) and Domain. Its Reset clears the form only.
 
 Executive EQ Trainer (`practice/executive-eq`) uses the chat pattern with a setup page (`practice/executive-eq/new.tsx`): role, narrative arc, learning focus, difficulty, and industry context. Learning focus and difficulty have no Custom, because validation enforces them. The practice page shows the scene, counterpart, briefing, and transcript in the body, and the reply box in the footer. Its header Reset clears the simulation only, and the setup page's Reset clears the form only.
+
+Debate Engine (`practice/debate`) uses the chat pattern with a setup page (`practice/debate/new.tsx`): archetype, speech style, intensity, influences, topic, and custom constraints. The practice page body holds the status with "End & judge", a closed "Personas" dropdown (`components/DebatePersonas.tsx`), the transcript, a closed "Turn breakdown" dropdown, and the verdict. Inside the personas dropdown, Pro and Con sit side by side, and tapping a column shows that persona below, with Edit and Regenerate. Once judged, the verdict sits right under the status, above the personas. Each transcript entry shows a Pro or Con badge and the speaker's name. The transcript is a box with its own scroll that jumps to the newest entry. "End & judge" needs at least one statement and asks for confirmation, and the header "Reset debate" asks for confirmation too. Turns alternate: after each statement the side switches to the other one. Persona actions are disabled (not just ignored) while a request runs. The footer holds the turn form (`components/DebateTurnFooter.tsx`): side, mode, the AI options when generating, and the statement box. The AI options scroll inside a capped height. The statement box allows an empty message in AI mode (`AnswerComposer` `allowEmpty`), since the direction is optional. Once judged, the footer shows "New debate". The header Reset clears the debate only. The debate stores the form values it was built from, so Regenerate uses the same topic. A debate saved before this change has no stored values, so Regenerate asks for a new debate. Persona cards use neutral badges, not hub tones (section 2).
 
 **Reference files (Roleplay)**
 
@@ -389,6 +404,8 @@ The Interview Simulator (`practice/interview`) is a multi-step session, so it fo
 The Foresight Trainer (`practice/foresight-trainer`) follows the same pattern. Its setup page is `practice/foresight-trainer/new.tsx` (context, theme, difficulty, and max scenes in the body; error and "Start scenario" in the footer). The scenario page `practice/foresight-trainer/index.tsx` shows the transcript and the current options in the body, with the option choice made in the body. The footer holds the reasoning box, whose submit is "Commit". Difficulty has no Custom, because validation enforces it. The header Reset clears the scenario only, and the setup page's Reset clears the form only. Storage is in `src/features/foresight-trainer/lib/persistence.ts`, with hooks `useForesightSetup.ts` and `useForesightRun.ts`.
 
 The Clarity Trainer (`practice/clarity-trainer`) follows the same pattern. Its setup page is `practice/clarity-trainer/new.tsx` (difficulty, scenario category, and context in the body; error and "Generate scenario" in the footer). The practice page shows the scenario and prompt in the body, with the reply box in the footer. After the review, the footer shows "New scenario" and the body shows the analysis, coach feedback, tightened rewrite, and gold standard. Difficulty and category have no Custom, because validation enforces them. The header has no Reset; the setup page's Reset clears the form only. Storage is in `src/features/clarity-trainer/lib/persistence.ts`, with hooks `useClaritySetup.ts` and `useClarityRound.ts`.
+
+The Battleground Simulator (`practice/battleground`) follows this pattern. Its setup page is `practice/battleground/new.tsx` (callsign, expertise, style, and background are optional; topic is required; difficulty has no Custom). The battle page body shows the health meters, the mission, the current challenge, a closed "Reference material" dropdown, and the round adjudication (open by default). The footer is the move box ("Commit"), and it clears only after the round resolves. Once the mission ends, the footer shows "New battle". The header Reset clears the battle only, and the setup page's Reset clears the form only. Storage is in `src/features/battleground/lib/persistence.ts`, with hooks `useBattleSetup.ts` and `useBattleSession.ts`.
 
 **Reference files (Riddle)**
 

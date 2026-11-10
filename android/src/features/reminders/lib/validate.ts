@@ -37,7 +37,8 @@ export function validateReminderInput(input: ReminderInput): ReminderCheck {
     return { ok: false, error: "Active times must look like 09:00." };
   }
 
-  if (input.weekdays.length === 0) return { ok: false, error: "Pick at least one day." };
+  const weekdays = [...new Set(input.weekdays.filter((day) => Number.isInteger(day) && day >= 0 && day <= 6))].sort((a, b) => a - b);
+  if (weekdays.length === 0) return { ok: false, error: "Pick at least one day." };
 
   return {
     ok: true,
@@ -47,7 +48,7 @@ export function validateReminderInput(input: ReminderInput): ReminderCheck {
       unit: input.unit,
       windowStart: input.windowStart.trim(),
       windowEnd: input.windowEnd.trim(),
-      weekdays: [...new Set(input.weekdays)].sort((a, b) => a - b),
+      weekdays,
     },
   };
 }

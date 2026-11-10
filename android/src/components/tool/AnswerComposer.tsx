@@ -14,6 +14,8 @@ interface AnswerComposerProps {
   pending: boolean;
   error: string | null;
   submitLabel: string;
+  /** Lets an empty message submit, for modes where the text is optional. */
+  allowEmpty?: boolean;
   onChangeText: (text: string) => void;
   onSubmit: () => void;
 }
@@ -26,11 +28,12 @@ export function AnswerComposer({
   pending,
   error,
   submitLabel,
+  allowEmpty = false,
   onChangeText,
   onSubmit,
 }: AnswerComposerProps) {
   const colors = useThemeColors();
-  const canSubmit = !pending && value.trim().length > 0;
+  const canSubmit = !pending && (allowEmpty || value.trim().length > 0);
 
   return (
     <View style={styles.wrap}>

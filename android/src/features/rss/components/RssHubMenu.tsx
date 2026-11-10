@@ -39,7 +39,7 @@ export function RssHubMenu() {
   const router = useRouter();
 
   return (
-    <ToolScreen title="RSS Feed">
+    <ToolScreen title="RSS Feed" usesAi={false}>
       <View style={styles.list}>
         {LINKS.map((link) => {
           const Icon = link.icon;

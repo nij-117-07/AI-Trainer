@@ -33,8 +33,8 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
   return (
     <Panel>
       <View style={styles.header}>
-        <View style={[styles.badge, { backgroundColor: colors.tone.sky.bg }]}>
-          <Text style={[styles.badgeText, { color: colors.primary }]}>{index + 1}</Text>
+        <View style={[styles.badge, { backgroundColor: colors.muted }]}>
+          <Text style={[styles.badgeText, { color: colors.foreground }]}>{index + 1}</Text>
         </View>
         <Text style={[styles.question, { color: colors.foreground }]}>{question.questionText}</Text>
       </View>
@@ -43,8 +43,8 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
       {revealed &&
         (isCorrect ? (
           <View style={styles.feedback}>
-            <CircleCheck size={16} color={colors.tone.emerald.fg} />
-            <Text style={[styles.feedbackText, { color: colors.tone.emerald.fg }]}>
+            <CircleCheck size={16} color={colors.foreground} />
+            <Text style={[styles.feedbackText, { color: colors.foreground }]}>
               Correct: {question.correctAnswer}
             </Text>
           </View>
@@ -61,11 +61,7 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
         {OPTION_KEYS.map((key) => {
           const isCorrectOption = revealed && key === question.correctAnswer;
           const isWrongPick = revealed && selected === key && key !== question.correctAnswer;
-          const borderColor = isCorrectOption
-            ? colors.tone.emerald.fg
-            : isWrongPick
-              ? colors.destructive
-              : colors.border;
+          const borderColor = isCorrectOption ? colors.primary : isWrongPick ? colors.destructive : colors.border;
           return (
             <Pressable
               key={key}
@@ -75,7 +71,7 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
               accessibilityLabel={`Option ${key}: ${question.options[key]}`}
               style={({ pressed }) => [
                 styles.option,
-                { borderColor, backgroundColor: isCorrectOption ? colors.tone.emerald.bg : colors.background },
+                { borderColor, backgroundColor: isCorrectOption ? colors.muted : colors.background },
                 pressed && !revealed && { backgroundColor: colors.muted },
               ]}
             >

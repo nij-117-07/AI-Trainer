@@ -15,7 +15,7 @@ import {
   tacticsSignature,
   userProfileSignature,
 } from "./signatures";
-import { BATTLE_FORM_DEFAULTS } from "../options";
+import { DEFAULT_CALLSIGN } from "../options";
 import type {
   BattleChallenge,
   BattleFormValues,
@@ -79,7 +79,7 @@ export async function startBattle(
   const llm = createLlm(settings);
   const topic = requireText(values.topic, "Battleground topic", 300);
   const difficulty = requireDifficulty(values.difficulty);
-  const name = optionalText(values.name, "Callsign", 100) ?? BATTLE_FORM_DEFAULTS.name;
+  const name = optionalText(values.name, "Callsign", 100) ?? DEFAULT_CALLSIGN;
   const expertise = optionalText(values.expertise, "Expertise", 300) ?? "Not specified";
   const preferredStyle = optionalText(values.preferredStyle, "Preferred style", 300) ?? "Not specified";
   const background = optionalText(values.background, "Background", 1000) ?? "Not specified";

@@ -1,5 +1,5 @@
 // src/features/debate/lib/session.test.ts
-import { appendStatement, buildJudgeInput, buildTurnInput, createSession, historyText } from "./session";
+import { appendStatement, buildJudgeInput, buildTurnInput, createSession, historyText, parseLogEntry } from "./session";
 import type { PersonaProfile } from "../types";
 
 const PRO: PersonaProfile = {
@@ -71,5 +71,17 @@ describe("buildJudgeInput", () => {
       proTranscript: "Yes.",
       conTranscript: "No statements were made.",
     });
+  });
+});
+
+describe("parseLogEntry", () => {
+  it("reads the side and speaker from a statement line", () => {
+    const log = appendStatement(createSession("UBI", PRO, CON), "con", "Cost is too high.", null).log[1];
+    expect(parseLogEntry(log)).toEqual({ side: "con", speaker: "Bram", text: "Cost is too high." });
+  });
+
+  it("treats the opening line as having no side", () => {
+    const [intro] = createSession("UBI", PRO, CON).log;
+    expect(parseLogEntry(intro)).toEqual({ side: null, speaker: "", text: intro });
   });
 });

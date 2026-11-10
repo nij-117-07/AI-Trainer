@@ -16,11 +16,14 @@ export const DIFFICULTY_OPTIONS: BattleChoice[] = [
   { value: "hard", label: "Hard" },
 ];
 
+/** Callsign used when the user leaves the field empty. */
+export const DEFAULT_CALLSIGN = "Commander";
+
 export const BATTLE_FORM_DEFAULTS: BattleFormValues = {
-  name: "Commander",
-  expertise: "cybersecurity",
-  preferredStyle: "defensive",
-  background: "10 years as a SOC analyst",
-  topic: "Cybersecurity Ransomware Attack",
+  name: "",
+  expertise: "",
+  preferredStyle: "",
+  background: "",
+  topic: "",
   difficulty: "medium",
 };

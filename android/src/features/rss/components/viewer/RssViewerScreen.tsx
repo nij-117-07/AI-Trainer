@@ -1,12 +1,13 @@
-// src/features/rss/components/viewer/RssViewerScreen.tsx
-/** RSS Viewer: loads the chosen channel, applies the filters, and lists articles newest first. */
+/** RSS Viewer: the filters and the articles from the chosen channels, newest first. Refresh is in the footer, and Reset clears the filters. */
 import { useCallback, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
-import { RefreshCw } from "lucide-react-native";
-import { useThemeColors } from "@/theme";
+import { StyleSheet, Text } from "react-native";
+import { useFocusEffect } from "expo-router";
+import { Newspaper, RefreshCw } from "lucide-react-native";
+import { spacing, useThemeColors } from "@/theme";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { ActionButton, ErrorText, Panel } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
+import { ResetButton } from "@/components/tool/ResetButton";
 import { Section } from "@/components/tool/Section";
 import { useFeedViewer } from "../../hooks/useFeedViewer";
 import { useRssFeeds } from "../../hooks/useRssFeeds";
@@ -17,7 +18,6 @@ import { ViewerFilters } from "./ViewerFilters";
 
 export function RssViewerScreen() {
   const colors = useThemeColors();
-  const router = useRouter();
   const { feeds, error: feedsError, reload } = useRssFeeds();
   const viewer = useFeedViewer(feeds);
   const [shown, setShown] = useState(VIEWER_PAGE_SIZE);
@@ -32,70 +32,61 @@ export function RssViewerScreen() {
   const anyEnabled = (feeds ?? []).some((feed) => feed.enabled);
 
   return (
-    <ToolScreen title="RSS Viewer">
-      <RssTabs active="viewer" />
-      <Section>
-        <View style={styles.header}>
-          <Text style={[styles.heading, { color: colors.foreground }]}>RSS Viewer</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            Browse the latest posts from your configured channels.
-          </Text>
+    <ToolScreen
+      title="RSS Viewer"
+      usesAi={false}
+      headerRight={<ResetButton onPress={viewer.resetFilters} />}
+      footer={
+        viewer.hasFeeds ? (
           <ActionButton
-            label="Refresh"
+            label={viewer.refreshing ? "Refreshing…" : "Refresh articles"}
             icon={RefreshCw}
-            variant="outline"
             loading={viewer.refreshing}
             onPress={() => void viewer.refresh()}
           />
-        </View>
-
+        ) : null
+      }
+    >
+      <RssTabs active="viewer" />
+      <Section>
         {feeds === null ? (
           feedsError ? (
             <ErrorText message={feedsError} />
           ) : (
-            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Loading feeds…</Text>
+            <Text style={[styles.note, { color: colors.mutedForeground }]}>Loading feeds…</Text>
           )
         ) : !viewer.hasFeeds ? (
-          <Panel>
-            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No feeds yet</Text>
-            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-              Head to the Manager to add a provider, then come back here to browse its articles.
-            </Text>
-            <ActionButton label="Open Manager" variant="outline" onPress={() => router.replace("/tools/rss/manager")} />
-          </Panel>
+          <EmptyHint
+            icon={Newspaper}
+            title="No feeds yet"
+            hint="Open the Manager above to add a provider. Then come back here to read its articles."
+          />
         ) : (
           <>
-            <ViewerFilters
-              feeds={feeds}
-              filters={viewer.filters}
-              categories={viewer.categories}
-              onChange={viewer.setFilter}
-            />
+            <ViewerFilters feeds={feeds} filters={viewer.filters} categories={viewer.categories} onChange={viewer.setFilter} />
 
             {viewer.failures.map((failure) => (
-              <ErrorText
-                key={failure.feedId}
-                message={`Could not load ${failure.feedName}: ${failure.message}`}
-              />
+              <ErrorText key={failure.feedId} message={`Could not load ${failure.feedName}: ${failure.message}`} />
             ))}
             <ErrorText message={viewer.error} />
 
             {viewer.loading ? (
-              <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Loading articles…</Text>
+              <Text style={[styles.note, { color: colors.mutedForeground }]}>Loading articles…</Text>
             ) : total === 0 ? (
-              <Panel>
-                <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No articles match</Text>
-                <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-                  {!anyEnabled
+              <EmptyHint
+                icon={Newspaper}
+                title="No articles match"
+                hint={
+                  !anyEnabled
                     ? "All feeds are disabled. Enable one in the Manager to load articles."
                     : viewer.filters.search
-                      ? "Try a different search term or widen the time range."
-                      : "Your channels have no posts for the current filters."}
-                </Text>
-              </Panel>
+                      ? "Try a different search term, or widen the time range."
+                      : "Your channels have no posts for the current filters."
+                }
+              />
             ) : (
               <>
-                <Text style={[styles.count, { color: colors.mutedForeground }]}>
+                <Text style={[styles.note, { color: colors.mutedForeground }]}>
                   {total} {total === 1 ? "article" : "articles"}
                 </Text>
                 {viewer.items.slice(0, shown).map((item) => (
@@ -118,22 +109,9 @@ export function RssViewerScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    gap: 4,
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  subtitle: {
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  count: {
-    fontSize: 12,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+  note: {
+    fontSize: 13,
+    lineHeight: 18,
+    paddingHorizontal: spacing.xs,
   },
 });

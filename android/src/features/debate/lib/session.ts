@@ -51,6 +51,21 @@ export function appendStatement(
   };
 }
 
+export interface LogEntry {
+  side: DebateSide | null;
+  speaker: string;
+  text: string;
+}
+
+const STATEMENT_LOG = /^\*\*(PRO|CON) \((.*)\)\*\*: ([\s\S]*)$/;
+
+/** Splits a chat log line into its side, speaker, and text. The opening line has no side. */
+export function parseLogEntry(entry: string): LogEntry {
+  const match = STATEMENT_LOG.exec(entry);
+  if (!match) return { side: null, speaker: "", text: entry };
+  return { side: match[1] === "PRO" ? "pro" : "con", speaker: match[2], text: match[3] };
+}
+
 export function historyText(history: HistoryEntry[]): string {
   if (history.length === 0) return "No exchanges yet.";
   return history.map((entry) => `${entry.role}: ${entry.content}`).join("\n");

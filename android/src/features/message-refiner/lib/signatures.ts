@@ -15,3 +15,18 @@ export const messageRefinerSignature = f()
   .output("subjectLine", f.string("A short subject line if the message is an email, otherwise empty."))
   .output("changes", f.string("One change made and why, in plain language.").array())
   .build();
+
+export const messageEditSignature = f()
+  .description(
+    "You edit a message that was already refined. Apply only the user's edit instruction to the current message. Keep the tone, audience, and goal unless the instruction changes them. Keep every fact and commitment from the message, and do not invent new ones. If the message is an email, keep a clear subject line; otherwise return an empty subject. List the changes you made in this edit.",
+  )
+  .input("message", f.string("The current refined message to edit."))
+  .input("currentSubjectLine", f.string("The current subject line, or 'None' if there is none."))
+  .input("instruction", f.string("What to change, e.g. make it shorter, sound less formal, add a deadline."))
+  .input("tone", f.string("The tone the message should keep."))
+  .input("audience", f.string("Who receives the message. 'None' if not given."))
+  .input("goal", f.string("What the message should achieve. 'None' if not given."))
+  .output("refinedMessage", f.string("The edited message, ready to send."))
+  .output("subjectLine", f.string("The subject line after the edit, or empty if the message is not an email."))
+  .output("changes", f.string("One change made in this edit and why, in plain language.").array())
+  .build();

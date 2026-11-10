@@ -1,11 +1,14 @@
 // src/features/rss/hooks/useFeedViewer.ts
 /** Viewer state: channel, category, search, and time filters, the items loaded for the active channel, and refresh. */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { messageOf } from "../lib/errors";
 import { loadFeedItems } from "../lib/fetch-feed";
 import { ALL_CATEGORIES, ALL_FEEDS } from "../options";
-import { collectCategories, DEFAULT_VIEWER_FILTERS, filterFeedItems } from "../lib/viewer-filters";
+import { collectCategories, DEFAULT_VIEWER_FILTERS, filterFeedItems, sanitizeViewerFilters } from "../lib/viewer-filters";
 import type { FeedLoadFailure, RssFeedConfig, RssFeedItem, RssViewerFilters } from "../types";
+
+const VIEWER_FILTERS_KEY = "tools.rss.viewer-filters.v1";
 
 interface LoadedItems {
   feedId: string | null;
@@ -16,7 +19,8 @@ interface LoadedItems {
 const NOTHING_LOADED: LoadedItems = { feedId: null, items: [], failures: [] };
 
 export function useFeedViewer(feeds: RssFeedConfig[] | null) {
-  const [filters, setFilters] = useState<RssViewerFilters>(DEFAULT_VIEWER_FILTERS);
+  const [storedFilters, setFilters] = usePersistedState<RssViewerFilters>(VIEWER_FILTERS_KEY, DEFAULT_VIEWER_FILTERS);
+  const filters = useMemo(() => sanitizeViewerFilters(storedFilters), [storedFilters]);
   const [loaded, setLoaded] = useState<LoadedItems>(NOTHING_LOADED);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -36,9 +40,16 @@ export function useFeedViewer(feeds: RssFeedConfig[] | null) {
     [loaded.items, activeFilters, feeds],
   );
 
-  const setFilter = useCallback(<K extends keyof RssViewerFilters>(key: K, value: RssViewerFilters[K]) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  }, []);
+  const setFilter = useCallback(
+    <K extends keyof RssViewerFilters>(key: K, value: RssViewerFilters[K]) => {
+      setFilters((prev) => ({ ...prev, [key]: value }));
+    },
+    [setFilters],
+  );
+
+  const resetFilters = useCallback(() => {
+    setFilters(DEFAULT_VIEWER_FILTERS);
+  }, [setFilters]);
 
   useEffect(() => {
     if (!feeds || feeds.length === 0) return;
@@ -77,6 +88,7 @@ export function useFeedViewer(feeds: RssFeedConfig[] | null) {
     hasFeeds,
     filters: activeFilters,
     setFilter,
+    resetFilters,
     items,
     categories,
     failures: loaded.failures,

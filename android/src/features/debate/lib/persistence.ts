@@ -9,11 +9,11 @@ export const DEBATE_STORAGE_KEYS = {
 } as const;
 
 export const FORM_DEFAULTS: PersonaFormValues = {
-  archetype: "Cynical Academic",
-  style: "data-driven",
+  archetype: "",
+  style: "",
   intensity: 7,
-  influences: "Keynes, Behavioral Economics",
-  topic: "Universal Basic Income",
+  influences: "",
+  topic: "",
   customConstraints: "",
 };
 
@@ -31,9 +31,12 @@ export function restoreForm(raw: unknown): PersonaFormValues {
   };
 }
 
-/** Accepts a saved session only when both personas and the topic are present. */
+/** Accepts a saved session only when both personas and the topic are present. Older sessions have no setup. */
 export function restoreSession(raw: unknown): DebateSession | null {
   if (!isRecord(raw) || typeof raw.topic !== "string") return null;
   if (!isRecord(raw.proPersona) || !isRecord(raw.conPersona)) return null;
-  return raw as unknown as DebateSession;
+  return {
+    ...(raw as unknown as DebateSession),
+    setup: isRecord(raw.setup) ? restoreForm(raw.setup) : undefined,
+  };
 }

@@ -1,11 +1,54 @@
 // src/features/testing-portal/options.ts
 /** Form choices for the Testing Portal tabs. Values match the webui options. */
-import type { ResponseFormat } from "./types";
+import type { AnswerFormValues, McqFormValues, Options, ResponseFormat, TheoreticalFormValues } from "./types";
+
+export const EMPTY_OPTIONS: Options = { A: "", B: "", C: "", D: "" };
 
 export interface ChoiceItem<T extends string | number = string> {
   value: T;
   label: string;
 }
+
+export const MCQ_MAX_QUESTIONS = 10;
+
+export const MCQ_FORM_DEFAULTS: McqFormValues = {
+  topic: "",
+  questionType: "academic",
+  numQuestions: 3,
+  difficultyLevel: "intermediate",
+  contextSetting: "",
+  customInstructions: "",
+  pastQuestions: "",
+};
+
+export const ANSWER_FORM_DEFAULTS: AnswerFormValues = {
+  question: "",
+  context: "",
+  difficulty: "Intermediate",
+  responseFormat: "bullet_points",
+  customInstructions: "",
+};
+
+export const GRADER_FORM_DEFAULTS = {
+  scenario: "",
+  questionAsked: "",
+  targetObjective: "",
+  expectedLevel: "intermediate",
+  userAnswerText: "",
+};
+
+export const THEORETICAL_MAX_QUESTIONS = 5;
+
+export const THEORETICAL_FORM_DEFAULTS: TheoreticalFormValues = {
+  topic: "",
+  questionType: "architectural",
+  numQuestions: 2,
+  difficultyLevel: "advanced",
+  contextSetting: "",
+  sourceContext: "",
+  customInstructions: "",
+  pastQuestions: "",
+};
 
 export const mcqQuestionTypeOptions: ChoiceItem[] = [
   { value: "academic", label: "Academic" },

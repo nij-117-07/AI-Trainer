@@ -1,25 +1,23 @@
-// src/features/rss/components/manager/RssManagerScreen.tsx
-/** RSS Manager: lists the saved feed providers and handles add, edit, enable, fetch, and delete. */
+/** RSS Manager list: the saved feed providers, with enable, fetch, edit, and delete. Add and edit happen on their own pages. */
 import { useCallback, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "expo-router";
-import { Plus } from "lucide-react-native";
+import { Alert, StyleSheet, Text } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { Plus, Settings2 } from "lucide-react-native";
 import { useThemeColors } from "@/theme";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { ActionButton, ErrorText, Panel } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { messageOf } from "../../lib/errors";
 import { useRssFeeds } from "../../hooks/useRssFeeds";
-import type { RssFeedConfig, RssFeedInput } from "../../types";
+import type { RssFeedConfig } from "../../types";
 import { RssTabs } from "../RssTabs";
 import { FeedCard } from "./FeedCard";
-import { FeedFormModal } from "./FeedFormModal";
 
 export function RssManagerScreen() {
   const colors = useThemeColors();
-  const { feeds, error, busyId, reload, create, update, remove } = useRssFeeds();
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<RssFeedConfig | null>(null);
+  const router = useRouter();
+  const { feeds, error, busyId, reload, update, remove } = useRssFeeds();
   const [notice, setNotice] = useState<string | null>(null);
 
   useFocusEffect(
@@ -29,27 +27,6 @@ export function RssManagerScreen() {
   );
 
   const list = feeds ?? [];
-
-  function openCreate() {
-    setEditing(null);
-    setNotice(null);
-    setFormOpen(true);
-  }
-
-  function openEdit(feed: RssFeedConfig) {
-    setEditing(feed);
-    setNotice(null);
-    setFormOpen(true);
-  }
-
-  async function handleSave(input: RssFeedInput) {
-    if (editing) {
-      await update(editing.id, input);
-    } else {
-      await create(input);
-    }
-    setFormOpen(false);
-  }
 
   async function handleToggle(feed: RssFeedConfig, enabled: boolean) {
     setNotice(null);
@@ -79,67 +56,43 @@ export function RssManagerScreen() {
   }
 
   return (
-    <ToolScreen title="RSS Manager">
+    <ToolScreen
+      title="RSS Manager"
+      usesAi={false}
+      footer={<ActionButton label="Add feed" icon={Plus} onPress={() => router.push("/tools/rss/manager/new")} />}
+    >
       <RssTabs active="manager" />
       <Section>
-        <View style={styles.header}>
-          <Text style={[styles.heading, { color: colors.foreground }]}>RSS Feed Manager</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            Configure the RSS and Atom providers that power the viewer.
-          </Text>
-        </View>
-
-        <ActionButton label="Add feed" icon={Plus} onPress={openCreate} />
         <ErrorText message={notice ?? error} />
 
         {feeds === null ? (
-          error ? null : <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Loading feeds…</Text>
+          error ? null : <Text style={[styles.note, { color: colors.mutedForeground }]}>Loading feeds…</Text>
         ) : list.length === 0 ? (
-          <Panel>
-            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No feeds configured yet</Text>
-            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-              Add your first provider — a blog, news site, or any RSS/Atom feed — to start curating content.
-            </Text>
-          </Panel>
+          <EmptyHint
+            icon={Settings2}
+            title="No feeds yet"
+            hint="Tap Add feed below. Any blog, news site, or RSS or Atom feed works."
+          />
         ) : (
           list.map((feed) => (
             <FeedCard
               key={feed.id}
               feed={feed}
               busy={busyId === feed.id}
-              onEdit={() => openEdit(feed)}
+              onEdit={() => router.push({ pathname: "/tools/rss/manager/edit", params: { feedId: feed.id } })}
               onDelete={() => confirmDelete(feed)}
               onToggle={(enabled) => void handleToggle(feed, enabled)}
             />
           ))
         )}
       </Section>
-
-      <FeedFormModal
-        visible={formOpen}
-        feed={editing}
-        busy={busyId === "new" || (editing !== null && busyId === editing.id)}
-        onClose={() => setFormOpen(false)}
-        onSave={handleSave}
-      />
     </ToolScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    gap: 4,
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  subtitle: {
+  note: {
     fontSize: 14,
     lineHeight: 21,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: "600",
   },
 });

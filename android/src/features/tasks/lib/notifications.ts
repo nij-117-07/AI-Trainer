@@ -25,6 +25,11 @@ export function configureReminderNotifications(): void {
   });
 }
 
+export async function hasReminderPermission(): Promise<boolean> {
+  if (!NATIVE) return false;
+  return (await Notifications.getPermissionsAsync()).granted;
+}
+
 export async function requestReminderPermission(): Promise<boolean> {
   if (!NATIVE) return false;
   const current = await Notifications.getPermissionsAsync();

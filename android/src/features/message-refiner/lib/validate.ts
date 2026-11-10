@@ -4,6 +4,8 @@
 export const MESSAGE_MAX = 4000;
 export const AUDIENCE_MAX = 300;
 export const GOAL_MAX = 300;
+export const SUBJECT_MAX = 200;
+export const EDIT_INSTRUCTION_MAX = 500;
 
 export function requireText(value: string, label: string, max: number): string {
   const trimmed = value.trim();

@@ -143,7 +143,7 @@ export async function gradeAnswer(settings: AiSettings, values: GradeInput): Pro
   const result = await ax(graderSignature).forward(
     llm,
     {
-      scenario: requireText(values.scenario, "Context", 200),
+      scenario: requireText(values.scenario, "Scenario", 200),
       questionAsked: requireText(values.questionAsked, "Question", 2000),
       targetObjective: requireText(values.targetObjective, "Evaluation criteria", 2000),
       expectedLevel: requireText(values.expectedLevel, "Difficulty", 100),

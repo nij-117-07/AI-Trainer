@@ -1,37 +1,48 @@
-/** Reminders kept on the device. Changes and each app open refresh the scheduled notifications. */
+/** The saved reminder list for the list page. It reloads each time the page is focused, and changes are saved at once. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
-import { loadDocument, saveDocument } from "@/lib/document-store";
-import { newId } from "@/features/tasks/lib/ids";
-import { configureReminderNotifications } from "@/features/tasks/lib/notifications";
+import { useFocusEffect } from "expo-router";
+import { saveDocument } from "@/lib/document-store";
+import { configureReminderNotifications, hasReminderPermission } from "@/features/tasks/lib/notifications";
 import type { Reminder } from "../types";
 import { syncReminderNotifications } from "../lib/reminder-notifications";
-import { MAX_REMINDERS, normalizeReminders } from "../lib/validate";
-
-const STORAGE_KEY = "tools.reminders.v1";
+import { loadReminders, REMINDERS_KEY } from "../lib/storage";
 
 export function useReminders() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [notificationsOn, setNotificationsOn] = useState(true);
   const latest = useRef(reminders);
   latest.current = reminders;
 
   useEffect(() => {
     configureReminderNotifications();
-    let active = true;
-    loadDocument<unknown>(STORAGE_KEY, []).then((stored) => {
-      if (!active) return;
-      setReminders(normalizeReminders(stored));
-      setLoaded(true);
-    });
-    return () => {
-      active = false;
-    };
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadReminders()
+        .then((list) => {
+          if (!active) return;
+          setReminders(list);
+          setLoaded(true);
+        })
+        .catch(() => undefined);
+      hasReminderPermission()
+        .then((granted) => {
+          if (active) setNotificationsOn(granted);
+        })
+        .catch(() => undefined);
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   useEffect(() => {
     if (!loaded) return;
-    void saveDocument(STORAGE_KEY, reminders);
+    void saveDocument(REMINDERS_KEY, reminders);
     void syncReminderNotifications(reminders);
   }, [loaded, reminders]);
 
@@ -43,14 +54,6 @@ export function useReminders() {
     return () => subscription.remove();
   }, []);
 
-  const addReminder = useCallback((value: Omit<Reminder, "id" | "createdAt" | "enabled">) => {
-    setReminders((prev) => {
-      if (prev.length >= MAX_REMINDERS) return prev;
-      const reminder: Reminder = { ...value, id: newId(), enabled: true, createdAt: new Date().toISOString() };
-      return [...prev, reminder];
-    });
-  }, []);
-
   const toggleReminder = useCallback((id: string) => {
     setReminders((prev) => prev.map((item) => (item.id === id ? { ...item, enabled: !item.enabled } : item)));
   }, []);
@@ -59,5 +62,7 @@ export function useReminders() {
     setReminders((prev) => prev.filter((item) => item.id !== id));
   }, []);
 
-  return { reminders, loaded, addReminder, toggleReminder, removeReminder };
+  return { reminders, loaded, notificationsOn, toggleReminder, removeReminder };
 }
+
+export type ReminderStore = ReturnType<typeof useReminders>;

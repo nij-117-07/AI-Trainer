@@ -1,60 +1,53 @@
 // src/features/battleground/components/BattleBoard.tsx
 /**
- * The running battleground: health meters, mission brief, the current tactical challenge with an
- * answer composer, the last round's adjudication, and the conclusion once the mission ends.
+ * The battle on the practice page: health meters, the mission, the current tactical challenge, the
+ * round adjudication, and the conclusion once the mission ends. The move box is the page footer
+ * (BattleMoveFooter).
  */
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Crosshair, Flag, FileText, Swords } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { Crosshair, FileText, Flag, Swords } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { AnswerComposer } from "@/components/tool/AnswerComposer";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
+import type { BattleSessionState } from "../hooks/useBattleSession";
 import { averageScore } from "../lib/game";
 import { textList } from "../lib/text";
 import type { BattleSession } from "../types";
 
-interface BattleBoardProps {
-  session: BattleSession;
-  pending: boolean;
-  error: string | null;
-  onCommit: (answer: string) => void;
-}
-
-export function BattleBoard({ session, pending, error, onCommit }: BattleBoardProps) {
+export function BattleBoard({ session, pending }: { session: BattleSession; pending: boolean }) {
   const colors = useThemeColors();
-  const [answer, setAnswer] = useState("");
+  const router = useRouter();
   const challenge = session.currentChallenge;
   const average = averageScore(session.roundScores) * 100;
   const evaluation = session.lastEvaluation;
   const rules = textList(session.rulesOfEngagement);
   const constraints = challenge ? textList(challenge.constraints) : [];
   const reference = challenge?.referenceMaterial ?? {};
-
-  function submit() {
-    const trimmed = answer.trim();
-    if (!trimmed || pending) return;
-    onCommit(trimmed);
-    setAnswer("");
-  }
+  const referenceCount = Object.keys(reference).length;
 
   return (
     <View style={styles.board}>
-      <View style={styles.statusRow}>
-        <View style={styles.statusPills}>
-          <Pill label={`Round ${session.roundNumber}`} filled />
-          <Pill label={session.difficulty} />
+      <Panel>
+        <View style={styles.statusRow}>
+          <View style={styles.statusPills}>
+            <Pill label={`Round ${session.roundNumber}`} filled />
+            <Pill label={session.difficulty} />
+          </View>
+          <Text style={[styles.average, { color: colors.foreground }]}>Avg score: {average.toFixed(0)}%</Text>
         </View>
-        <Text style={[styles.average, { color: colors.foreground }]}>Avg score: {average.toFixed(0)}%</Text>
-      </View>
-
-      <View style={styles.healthRow}>
-        <HealthBar label="Your health" value={session.userHealth} tone="emerald" />
-        <HealthBar label="Opponent health" value={session.opponentHealth} tone="rose" />
-      </View>
+        <View style={styles.healthRow}>
+          <HealthBar label="Your health" value={session.userHealth} />
+          <HealthBar label="Opponent health" value={session.opponentHealth} />
+        </View>
+      </Panel>
 
       {!session.isActive && (
         <ResultCallout icon={Flag} title="Mission concluded" tone="amber">
@@ -94,43 +87,29 @@ export function BattleBoard({ session, pending, error, onCommit }: BattleBoardPr
           )}
           <ListenButton text={challenge.question} label="Question" />
           {constraints.length > 0 && <TagList items={constraints} />}
-          {Object.keys(reference).length > 0 && (
-            <View style={[styles.reference, { backgroundColor: colors.muted }]}>
-              <Text style={[styles.strong, { color: colors.mutedForeground }]}>Reference material</Text>
-              <MarkdownText content={formatReference(reference)} />
-            </View>
-          )}
           {challenge.environmentChange !== "" && challenge.environmentChange !== "No significant changes." && (
-            <Text style={[styles.note, { color: colors.destructive }]}>{challenge.environmentChange}</Text>
+            <Text style={[styles.note, { color: colors.mutedForeground }]}>{challenge.environmentChange}</Text>
           )}
-
-          <TextField
-            label="Your move"
-            placeholder="What's your move? Walk through your tactical decision…"
-            value={answer}
-            onChangeText={setAnswer}
-            editable={!pending}
-            maxLength={2000}
-            multiline
-            voice
-          />
-          <ActionButton
-            label={pending ? "Resolving your move…" : "Commit to your action"}
-            icon={Swords}
-            loading={pending}
-            onPress={submit}
-          />
         </Panel>
       )}
 
-      <ErrorText message={error} />
+      {challenge && session.isActive && referenceCount > 0 && (
+        <Disclosure
+          title="Reference material"
+          icon={FileText}
+          summary={`${referenceCount} ${referenceCount === 1 ? "item" : "items"}`}
+        >
+          <MarkdownText content={formatReference(reference)} />
+        </Disclosure>
+      )}
 
       {evaluation && (
-        <Panel>
-          <View style={styles.challengeHeader}>
-            <SectionTitle icon={Crosshair} title="Round adjudication" />
-            <Text style={[styles.score, { color: colors.foreground }]}>{Math.round(evaluation.score * 100)}%</Text>
-          </View>
+        <Disclosure
+          title="Round adjudication"
+          icon={Crosshair}
+          summary={`${Math.round(evaluation.score * 100)}% · You ${signed(evaluation.hpDeltaUser)} HP · Opponent ${signed(evaluation.hpDeltaOpponent)} HP`}
+          defaultOpen
+        >
           <View style={[styles.track, { backgroundColor: colors.muted }]}>
             <View
               style={[
@@ -154,13 +133,47 @@ export function BattleBoard({ session, pending, error, onCommit }: BattleBoardPr
           {evaluation.battlefieldShift !== "" && (
             <Text style={[styles.body, { color: colors.mutedForeground }]}>{evaluation.battlefieldShift}</Text>
           )}
-        </Panel>
+        </Disclosure>
+      )}
+
+      {session.isActive && (
+        <ActionButton
+          label="Start a different battle"
+          icon={Swords}
+          variant="outline"
+          disabled={pending}
+          onPress={() => router.push("/practice/battleground/new")}
+        />
       )}
     </View>
   );
 }
 
-function HealthBar({ label, value, tone }: { label: string; value: number; tone: "emerald" | "rose" }) {
+export function BattleMoveFooter({ battle }: { battle: BattleSessionState }) {
+  const [answer, setAnswer] = useState("");
+
+  async function submit() {
+    const trimmed = answer.trim();
+    if (!trimmed || battle.pending) return;
+    if (await battle.commit(trimmed)) setAnswer("");
+  }
+
+  return (
+    <AnswerComposer
+      label="Your move"
+      value={answer}
+      placeholder="What's your move? Walk through your tactical decision…"
+      maxLength={2000}
+      pending={battle.pending}
+      error={battle.error}
+      submitLabel="Commit"
+      onChangeText={setAnswer}
+      onSubmit={() => void submit()}
+    />
+  );
+}
+
+function HealthBar({ label, value }: { label: string; value: number }) {
   const colors = useThemeColors();
   const width = Math.max(0, Math.min(100, value));
   return (
@@ -170,7 +183,7 @@ function HealthBar({ label, value, tone }: { label: string; value: number; tone:
         <Text style={[styles.body, { color: colors.mutedForeground }]}>{value} HP</Text>
       </View>
       <View style={[styles.track, { backgroundColor: colors.muted }]}>
-        <View style={[styles.fill, { backgroundColor: colors.tone[tone].fg, width: `${width}%` }]} />
+        <View style={[styles.fill, { backgroundColor: colors.primary, width: `${width}%` }]} />
       </View>
     </View>
   );
@@ -246,15 +259,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: spacing.sm,
-  },
-  score: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  reference: {
-    borderRadius: radius.lg,
-    padding: spacing.md,
     gap: spacing.sm,
   },
   pill: {
