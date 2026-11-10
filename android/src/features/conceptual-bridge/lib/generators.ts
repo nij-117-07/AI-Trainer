@@ -7,11 +7,13 @@ import { ax } from "@ax-llm/ax";
 import type { AiSettings } from "@/features/ai-settings/types";
 import { createLlm } from "@/features/ai-settings/lib/llm";
 import type { BridgeFormValues, BridgeResult } from "../types";
-import { isAbstractionDepth, normalizeBridge } from "./normalize";
+import { normalizeBridge } from "./normalize";
 import { bridgeSignature } from "./signatures";
 
 const TEMPERATURE = 0.8;
 const CONCEPT_MAX = 200;
+const CUSTOM_INPUT_MAX = 1000;
+const NONE = "None";
 const SEED_MAX = 100000;
 
 function requireText(value: string, label: string, max: number): string {
@@ -21,19 +23,24 @@ function requireText(value: string, label: string, max: number): string {
   return trimmed;
 }
 
+function optionalText(value: string, max: number): string {
+  const trimmed = value.trim();
+  if (trimmed.length > max) throw new Error(`Custom input must be ${max} characters or fewer.`);
+  return trimmed;
+}
+
 function randomSeed(): number {
   return Math.floor(Math.random() * SEED_MAX) + 1;
 }
 
 export async function generateBridge(settings: AiSettings, values: BridgeFormValues): Promise<BridgeResult> {
   const llm = createLlm(settings);
-  if (!isAbstractionDepth(values.abstractionDepth)) throw new Error("Choose an abstraction depth.");
   const result = await ax(bridgeSignature).forward(
     llm,
     {
       conceptA: requireText(values.conceptA, "First concept", CONCEPT_MAX),
       conceptB: requireText(values.conceptB, "Second concept", CONCEPT_MAX),
-      abstractionDepth: values.abstractionDepth,
+      customUserInput: optionalText(values.customUserInput, CUSTOM_INPUT_MAX) || NONE,
       seed: randomSeed(),
     },
     { modelConfig: { temperature: TEMPERATURE } },

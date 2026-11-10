@@ -15,6 +15,9 @@ Single-user Android build. There is no login or passcode gate. The app opens on 
 3. **Generous rounding.** Cards and hero panels are very rounded; circular controls are fully round.
 4. **Hierarchy through type and space**, not through heavy borders or shadows.
 5. **Mobile first, with the webui breakpoints kept in mind** (see section 7).
+6. **Minimalist.** Each page does one job. Show only the fields that job needs.
+7. **Don't make me think.** The next step is always obvious: one primary button, plain labels, sensible defaults.
+8. **Remember what I typed.** Values and the last result stay when the user leaves and comes back. Nobody retypes a form (see section 12).
 
 ---
 
@@ -210,3 +213,53 @@ Layout rules:
 | Hub list | `src/features/dashboard/data/hubs.ts` | `HUBS` in dashboard page |
 | Header | `DashboardScreen.tsx` header | `src/features/navigation/components/Navbar.tsx` |
 | AI settings | `src/features/ai-settings/`, `src/app/admin/settings.tsx` | No webui counterpart; single-user admin page |
+
+---
+
+## 12. Tool Pages
+
+Every tool page (Learning, Practice, Tools) follows the same layout, the same field rules, and the same memory rules. A user who knows one tool can use all of them.
+
+### 12.1 Layout
+
+- Use `ToolScreen`. Header: round back button on the left, title in the middle, and the `ResetButton` on the right.
+- The body scrolls and holds the results. When there is no result yet, show an `EmptyHint` with a title and one sentence about the next step.
+- The form sits in the **footer** (`ToolScreen` `footer` prop). The footer stays pinned at the bottom, has a 1px top border, and holds:
+  1. The fields. Cap the height and let them scroll inside the footer if they are long.
+  2. The error message, just above the button.
+  3. One full-width primary `ActionButton`, the only primary action on the screen.
+- While the request runs, the button shows a loading label (for example "Connecting concepts…") and the fields are disabled.
+
+### 12.2 Fields
+
+- **Plain labels.** Required fields have no marker. Optional fields say `(optional)` in the label.
+- **Placeholders show examples.** Never pre-fill real values. Filled-in defaults get sent to the AI without the user noticing.
+- **Few fields.** If a form has more than about five fields, remove or merge some.
+- **Choices only when they help.** Use a dropdown or chips with one sensible default selected (for example "Beginner"). Do not add options the AI does not need.
+- **Long text is multiline.** Show voice input on fields where the user might speak.
+- **Length limits on every text field.** Use `maxLength` in the UI and a matching check in the generator.
+- **Blank handling.** An empty optional field sends a fallback such as "None". An empty required field shows a plain message above the button, such as "Broader topic is required."
+- **Errors use words, not codes.** Say what to fix, in `destructive`.
+
+### 12.3 Remembering values
+
+- Every tool saves its form, and its last result, on the device. Use `loadDocument` and `saveDocument` from `src/lib/document-store.ts`, or the shared hook `src/hooks/usePersistedState.ts`.
+- **Key naming:** `learning.<tool>.v1`. Bump the version suffix when the saved shape changes.
+- **Restore safely.** Stored JSON is not trusted. Read it through a normaliser (see `normalizeDraft` in `features/conceptual-bridge/lib/draft.ts`) that keeps valid fields and uses defaults for anything else.
+- **Wait before saving.** Do not save until the stored value has loaded. Otherwise the defaults overwrite the user's values on startup.
+- **Reset** clears the form and the result, then saves the empty state.
+- **Do not save** API keys (they belong in AI settings), in-progress request state, or error messages.
+- **Live data is not saved.** Data that comes from elsewhere, such as completed roadmap items, loads when the screen is focused.
+
+### 12.4 New tool checklist
+
+1. One job, one primary button in the footer.
+2. Every field has a plain label, and optional fields say so.
+3. Placeholders, not pre-filled values.
+4. Form and last result are saved under `learning.<tool>.v1`, and load before the first save.
+5. Reset is in the header and clears the saved copy.
+6. Empty state tells the user what to do next.
+
+### 12.5 Current gaps
+
+- **Webui** tools do not follow this section. It describes the Android app only.

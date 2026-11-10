@@ -43,12 +43,16 @@ describe("normalizeDraft", () => {
     expect(normalizeDraft(null)).toEqual({ form: DEFAULT_BRIDGE_FORM, result: null });
   });
 
-  it("rejects an unknown abstraction depth and keeps valid concepts", () => {
+  it("keeps the saved concepts and custom input", () => {
     const draft = normalizeDraft({
-      form: { conceptA: "Cells", conceptB: "Cities", abstractionDepth: "deep" },
+      form: { conceptA: "Cells", conceptB: "Cities", customUserInput: "Use a kitchen analogy" },
       result: null,
     });
-    expect(draft.form).toEqual({ conceptA: "Cells", conceptB: "Cities", abstractionDepth: "structural" });
+    expect(draft.form).toEqual({
+      conceptA: "Cells",
+      conceptB: "Cities",
+      customUserInput: "Use a kitchen analogy",
+    });
   });
 
   it("normalises a stored result", () => {

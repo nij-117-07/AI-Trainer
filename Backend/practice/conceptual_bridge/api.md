@@ -21,7 +21,6 @@ Builds a conceptual bridge between two unrelated concepts. Uses ChainOfThought f
 |-------|------|----------|-------------|
 | `concept_a` | `string` | ✅ | First concept (e.g., `Photosynthesis`) |
 | `concept_b` | `string` | ✅ | Second seemingly unrelated concept (e.g., `Blockchain`) |
-| `abstraction_depth` | `string` | ❌ | `surface`, `structural`, `systemic` (default `structural`) |
 
 **Example request**:
 
@@ -31,8 +30,7 @@ curl -X POST http://localhost:8000/practice/conceptual_bridge/generate \
   -H "X-API-Key: <your-key>" \
   -d '{
     "concept_a": "Photosynthesis",
-    "concept_b": "Blockchain",
-    "abstraction_depth": "structural"
+    "concept_b": "Blockchain"
   }'
 ```
 

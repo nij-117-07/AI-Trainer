@@ -38,6 +38,7 @@ import {
   Network,
   NotebookPen,
   Palette,
+  Route,
   Puzzle,
   Wrench,
   Rss,
@@ -224,6 +225,15 @@ export const APPS: AppCard[] = [
     icon: ListTree,
     group: "learning",
     tone: "emerald",
+  },
+  {
+    key: "next-topic-suggestor",
+    title: "Next Topic Suggestor",
+    description: "Recommend the next topics to study, built on what you already know.",
+    route: "/learning/next-topic-suggestor",
+    icon: Route,
+    group: "learning",
+    tone: "sky",
   },
   {
     key: "projects",

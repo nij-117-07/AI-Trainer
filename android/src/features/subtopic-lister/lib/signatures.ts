@@ -7,11 +7,17 @@ const INSTRUCTION =
 
 export const subtopicListerSignature = f()
   .description(INSTRUCTION)
+  .input("topic", f.string("The subject to suggest subtopics for. 'Not chosen' means continue from what the learner has completed."))
+  .input("level", f.string("The learner's level: beginner, intermediate, or advanced. Subtopics should match it."))
   .input(
     "learnedTopics",
     f.string(
       "What the learner has completed, one subject per line, with its finished items separated by semicolons. 'Nothing yet' means no progress is recorded.",
     ),
+  )
+  .input(
+    "userInstructions",
+    f.string("Extra instructions from the learner, such as preferences or recent topics. 'None' means there are none."),
   )
   .output(
     "subtopics",

@@ -1,8 +1,4 @@
-from typing import Literal
-
 from pydantic import BaseModel, Field
-
-AbstractionDepth = Literal["surface", "structural", "systemic"]
 
 
 class BridgeRequest(BaseModel):
@@ -10,7 +6,6 @@ class BridgeRequest(BaseModel):
 
     concept_a: str = Field(..., description="First concept (e.g., 'Photosynthesis')")
     concept_b: str = Field(..., description="Second seemingly unrelated concept (e.g., 'Blockchain')")
-    abstraction_depth: AbstractionDepth = Field("structural", description="How deep the analogy should be")
 
 
 class BridgeResponse(BaseModel):

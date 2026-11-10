@@ -3,7 +3,7 @@
  * Turns model output and stored JSON into typed bridge values. Missing or malformed fields fall
  * back to safe defaults, so the screen never reads a field the model left out.
  */
-import { ABSTRACTION_DEPTHS, type AbstractionDepth, type BridgeResult } from "../types";
+import type { BridgeResult } from "../types";
 
 const DEFAULT_SCORE = 3;
 const MIN_SCORE = 1;
@@ -15,10 +15,6 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function textOf(value: unknown): string {
   return typeof value === "string" ? value : "";
-}
-
-export function isAbstractionDepth(value: unknown): value is AbstractionDepth {
-  return typeof value === "string" && (ABSTRACTION_DEPTHS as readonly string[]).includes(value);
 }
 
 /** Truncates to a whole number and clamps to 1-5. Blank or non-numeric values use the default. */

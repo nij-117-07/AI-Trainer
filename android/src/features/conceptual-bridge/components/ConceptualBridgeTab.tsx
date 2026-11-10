@@ -1,14 +1,15 @@
 // src/features/conceptual-bridge/components/ConceptualBridgeTab.tsx
 /**
  * Conceptual Bridge: links two unrelated concepts through a structural analogy, a narrative,
- * and a question to think about. The form and the last result are kept on the device.
+ * and a question to think about. The form sits in the footer; the last result is kept on the device.
  */
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { BookOpen, Brain, Lightbulb, Link2, RefreshCcw, Sparkles } from "lucide-react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { BookOpen, Brain, Lightbulb, Link2, Sparkles } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, Field, Panel, ChoiceChips, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
@@ -16,13 +17,23 @@ import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { loadDocument, saveDocument } from "@/lib/document-store";
-import { abstractionDepthOptions } from "../options";
 import { generateBridge } from "../lib/generators";
 import { BRIDGE_DRAFT_KEY, DEFAULT_BRIDGE_FORM, normalizeDraft } from "../lib/draft";
 import type { BridgeFormValues, BridgeResult } from "../types";
 
-export function ConceptualBridgeTab() {
-  const colors = useThemeColors();
+const CUSTOM_INPUT_MAX = 1000;
+
+export interface ConceptualBridgeState {
+  form: BridgeFormValues;
+  result: BridgeResult | null;
+  pending: boolean;
+  error: string | null;
+  update: (patch: Partial<BridgeFormValues>) => void;
+  submit: () => Promise<void>;
+  reset: () => void;
+}
+
+export function useConceptualBridge(): ConceptualBridgeState {
   const { settings } = useAiSettings();
   const [form, setForm] = useState<BridgeFormValues>(DEFAULT_BRIDGE_FORM);
   const [result, setResult] = useState<BridgeResult | null>(null);
@@ -67,15 +78,67 @@ export function ConceptualBridgeTab() {
     request.reset();
   }
 
+  return {
+    form,
+    result,
+    pending: request.pending,
+    error: request.error,
+    update,
+    submit,
+    reset,
+  };
+}
+
+export function ConceptualBridgeResults({ bridge }: { bridge: ConceptualBridgeState }) {
+  const { form, result } = bridge;
+
+  if (!result) {
+    return (
+      <EmptyHint
+        icon={Link2}
+        title="Build a bridge"
+        hint="Enter two unrelated concepts in the form below, then tap Build the bridge to see how they connect."
+      />
+    );
+  }
+
   return (
     <Section>
+      <ConnectionHeader conceptA={form.conceptA.trim()} conceptB={form.conceptB.trim()} />
+      <FlexibilityScore score={result.cognitiveFlexibilityScore} />
+
       <Panel>
+        <SectionTitle icon={Link2} title="Structural analogy" />
+        <MarkdownText content={result.structuralAnalogy} />
+        <ListenButton text={result.structuralAnalogy} label="Structural analogy" />
+      </Panel>
+
+      <Panel>
+        <SectionTitle icon={BookOpen} title="Bridging narrative" />
+        <MarkdownText content={result.bridgingNarrative} />
+        <ListenButton text={result.bridgingNarrative} label="Bridging narrative" />
+      </Panel>
+
+      <ResultCallout icon={Lightbulb} title="Think about this" tone="amber">
+        <MarkdownText content={result.insightQuestion} />
+        <ListenButton text={result.insightQuestion} label="Question" />
+      </ResultCallout>
+    </Section>
+  );
+}
+
+export function ConceptualBridgeFooter({ bridge }: { bridge: ConceptualBridgeState }) {
+  const { form, pending, error, update, submit } = bridge;
+
+  return (
+    <View style={styles.footer}>
+      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
         <TextField
           label="Concept A"
           placeholder="e.g. Photosynthesis"
           value={form.conceptA}
           onChangeText={(text) => update({ conceptA: text })}
-          editable={!request.pending}
+          editable={!pending}
           maxLength={200}
         />
         <TextField
@@ -83,70 +146,97 @@ export function ConceptualBridgeTab() {
           placeholder="e.g. Blockchain"
           value={form.conceptB}
           onChangeText={(text) => update({ conceptB: text })}
-          editable={!request.pending}
+          editable={!pending}
           maxLength={200}
         />
-        <Field label="Abstraction depth">
-          <ChoiceChips
-            options={abstractionDepthOptions}
-            value={form.abstractionDepth}
-            onChange={(value) => update({ abstractionDepth: value })}
-          />
-        </Field>
-        <ActionButton
-          label={request.pending ? "Connecting concepts…" : "Build the bridge"}
-          icon={Sparkles}
-          loading={request.pending}
-          onPress={submit}
+        <TextField
+          label="Custom input (optional)"
+          placeholder="e.g. Use a kitchen analogy, or keep it under 3 sentences"
+          value={form.customUserInput}
+          onChangeText={(text) => update({ customUserInput: text })}
+          editable={!pending}
+          maxLength={CUSTOM_INPUT_MAX}
+          multiline
+          voice
+          style={styles.compactInput}
         />
-      </Panel>
+      </ScrollView>
+      <ErrorText message={error} />
+      <ActionButton
+        label={pending ? "Connecting concepts…" : "Build the bridge"}
+        icon={Sparkles}
+        loading={pending}
+        onPress={submit}
+      />
+    </View>
+  );
+}
 
-      <ErrorText message={request.error} />
+function ConnectionHeader({ conceptA, conceptB }: { conceptA: string; conceptB: string }) {
+  const colors = useThemeColors();
+  return (
+    <Panel>
+      <View style={styles.connection}>
+        <Text style={[styles.concept, { color: colors.foreground }]} numberOfLines={2}>
+          {conceptA || "Concept A"}
+        </Text>
+        <View style={[styles.linkBadge, { backgroundColor: colors.muted }]}>
+          <Link2 size={18} color={colors.primary} />
+        </View>
+        <Text style={[styles.concept, { color: colors.foreground }]} numberOfLines={2}>
+          {conceptB || "Concept B"}
+        </Text>
+      </View>
+    </Panel>
+  );
+}
 
-      {result && (
-        <>
-          <Panel>
-            <SectionTitle icon={Brain} title="Cognitive flexibility" />
-            <View style={styles.scoreRow}>
-              <View style={[styles.track, { backgroundColor: colors.muted }]}>
-                <View
-                  style={[
-                    styles.fill,
-                    { backgroundColor: colors.primary, width: `${(result.cognitiveFlexibilityScore / 5) * 100}%` },
-                  ]}
-                />
-              </View>
-              <Text style={[styles.scoreText, { color: colors.foreground }]}>
-                {result.cognitiveFlexibilityScore} / 5
-              </Text>
-            </View>
-          </Panel>
-
-          <Panel>
-            <SectionTitle icon={Link2} title="Structural analogy" />
-            <MarkdownText content={result.structuralAnalogy} />
-            <ListenButton text={result.structuralAnalogy} label="Structural analogy" />
-          </Panel>
-
-          <Panel>
-            <SectionTitle icon={BookOpen} title="Bridging narrative" />
-            <MarkdownText content={result.bridgingNarrative} />
-            <ListenButton text={result.bridgingNarrative} label="Bridging narrative" />
-          </Panel>
-
-          <ResultCallout icon={Lightbulb} title="Think about this" tone="amber">
-            <MarkdownText content={result.insightQuestion} />
-            <ListenButton text={result.insightQuestion} label="Question" />
-          </ResultCallout>
-        </>
-      )}
-
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={reset} />
-    </Section>
+function FlexibilityScore({ score }: { score: number }) {
+  const colors = useThemeColors();
+  return (
+    <Panel>
+      <SectionTitle icon={Brain} title="Cognitive flexibility" />
+      <View style={styles.scoreRow}>
+        <View style={[styles.track, { backgroundColor: colors.muted }]}>
+          <View style={[styles.fill, { backgroundColor: colors.primary, width: `${(score / 5) * 100}%` }]} />
+        </View>
+        <Text style={[styles.scoreText, { color: colors.foreground }]}>{score} / 5</Text>
+      </View>
+    </Panel>
   );
 }
 
 const styles = StyleSheet.create({
+  footer: {
+    gap: spacing.md,
+  },
+  fields: {
+    maxHeight: 380,
+  },
+  fieldsContent: {
+    gap: spacing.md,
+  },
+  compactInput: {
+    minHeight: 72,
+  },
+  connection: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  concept: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  linkBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full / 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   scoreRow: {
     flexDirection: "row",
     alignItems: "center",

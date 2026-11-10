@@ -19,7 +19,7 @@ const configured: AiSettings = {
 const valid: BridgeFormValues = {
   conceptA: "Photosynthesis",
   conceptB: "Blockchain",
-  abstractionDepth: "structural",
+  customUserInput: "",
 };
 
 describe("generateBridge input checks", () => {
@@ -46,16 +46,6 @@ describe("generateBridge input checks", () => {
     await expect(generateBridge(configured, { ...valid, conceptB: "x".repeat(201) })).rejects.toThrow(
       "Second concept must be 200 characters or fewer.",
     );
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("rejects an unknown abstraction depth", async () => {
-    const fetchMock = jest.fn();
-    globalThis.fetch = fetchMock as unknown as typeof fetch;
-
-    await expect(
-      generateBridge(configured, { ...valid, abstractionDepth: "deep" as BridgeFormValues["abstractionDepth"] }),
-    ).rejects.toThrow("Choose an abstraction depth.");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

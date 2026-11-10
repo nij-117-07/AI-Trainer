@@ -13,8 +13,6 @@ export const CONCEPTUAL_BRIDGE_DESCRIPTIONS = {
     conceptA: "First concept (e.g., 'Photosynthesis').",
     // concept_b
     conceptB: "Second seemingly unrelated concept (e.g., 'Blockchain').",
-    // abstraction_depth
-    abstractionDepth: "How deep the analogy should be.",
     // seed
     seed: "Seed for variation in creative connections.",
   },

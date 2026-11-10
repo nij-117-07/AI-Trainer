@@ -5,7 +5,6 @@ import dspy
 
 from core.dspy_utils import build_lm, run_predictor
 from practice.conceptual_bridge.schemas import (
-    AbstractionDepth,
     BridgeRequest,
     BridgeResponse,
 )
@@ -29,9 +28,6 @@ class ConceptualBridgeBuilder(dspy.Signature):
 
     concept_a: str = dspy.InputField(description="First concept (e.g., 'Photosynthesis').")
     concept_b: str = dspy.InputField(description="Second seemingly unrelated concept (e.g., 'Blockchain').")
-    abstraction_depth: AbstractionDepth = dspy.InputField(
-        description="How deep the analogy should be."
-    )
     seed: int = dspy.InputField(description="Seed for variation in creative connections.")
 
     structural_analogy: str = dspy.OutputField(
@@ -107,7 +103,6 @@ class ConceptualBridgeService:
                 self.lm,
                 concept_a=data.concept_a,
                 concept_b=data.concept_b,
-                abstraction_depth=data.abstraction_depth,
                 seed=random.randint(1, 100000),
             )
             logger.info("Built conceptual bridge between '%s' and '%s'", data.concept_a, data.concept_b)

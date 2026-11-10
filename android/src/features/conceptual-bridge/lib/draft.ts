@@ -4,14 +4,14 @@
  * trusted, so every field is checked when it is read back.
  */
 import type { BridgeFormValues, BridgeResult } from "../types";
-import { isAbstractionDepth, isRecord, normalizeBridge } from "./normalize";
+import { isRecord, normalizeBridge } from "./normalize";
 
 export const BRIDGE_DRAFT_KEY = "learning.conceptual-bridge.v1";
 
 export const DEFAULT_BRIDGE_FORM: BridgeFormValues = {
-  conceptA: "Photosynthesis",
-  conceptB: "Blockchain",
-  abstractionDepth: "structural",
+  conceptA: "",
+  conceptB: "",
+  customUserInput: "",
 };
 
 export interface BridgeDraft {
@@ -26,9 +26,8 @@ export function normalizeDraft(raw: unknown): BridgeDraft {
     form: {
       conceptA: typeof form.conceptA === "string" ? form.conceptA : DEFAULT_BRIDGE_FORM.conceptA,
       conceptB: typeof form.conceptB === "string" ? form.conceptB : DEFAULT_BRIDGE_FORM.conceptB,
-      abstractionDepth: isAbstractionDepth(form.abstractionDepth)
-        ? form.abstractionDepth
-        : DEFAULT_BRIDGE_FORM.abstractionDepth,
+      customUserInput:
+        typeof form.customUserInput === "string" ? form.customUserInput : DEFAULT_BRIDGE_FORM.customUserInput,
     },
     result: isRecord(source.result) ? normalizeBridge(source.result) : null,
   };

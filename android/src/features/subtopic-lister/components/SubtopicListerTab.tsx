@@ -1,14 +1,16 @@
 // src/features/subtopic-lister/components/SubtopicListerTab.tsx
-/** Subtopic Lister body: what the learner has finished at the top, suggested next subtopics below. */
-import { StyleSheet, Text, View } from "react-native";
+/** Subtopic Lister body: what the learner has finished at the top, suggested subtopics below. The form lives in the footer. */
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { BookOpen, ListTree, Sparkles } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { SelectField } from "@/components/tool/SelectField";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
 import type { SubtopicListerState } from "../hooks/useSubtopicLister";
+import { INSTRUCTIONS_MAX, isSubtopicLevel, subtopicLevelOptions, TOPIC_MAX } from "../options";
 import type { LearnedTopic, Subtopic } from "../types";
 
 export function SubtopicListerTab({ lister }: { lister: SubtopicListerState }) {
@@ -31,7 +33,7 @@ export function SubtopicListerTab({ lister }: { lister: SubtopicListerState }) {
         <EmptyHint
           icon={ListTree}
           title="Your next subtopics"
-          hint="Tap Suggest next subtopics below. The AI picks what to study next from what you have finished."
+          hint="Pick a topic and level in the form below, then tap Suggest. Leave the topic empty to continue from what you have finished."
         />
       )}
     </Section>
@@ -39,14 +41,46 @@ export function SubtopicListerTab({ lister }: { lister: SubtopicListerState }) {
 }
 
 export function SubtopicFooter({ lister }: { lister: SubtopicListerState }) {
+  const { form, pending, error, update, suggest } = lister;
+
   return (
     <View style={styles.footer}>
-      <ErrorText message={lister.error} />
+      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
+        <TextField
+          label="Topic (optional)"
+          placeholder="e.g. Machine learning, or leave empty"
+          value={form.topic}
+          onChangeText={(text) => update("topic", text)}
+          editable={!pending}
+          maxLength={TOPIC_MAX}
+        />
+        <SelectField
+          label="Level"
+          options={subtopicLevelOptions}
+          value={form.level}
+          onChange={(value) => {
+            if (isSubtopicLevel(value)) update("level", value);
+          }}
+          allowCustom={false}
+        />
+        <TextField
+          label="Last topics learnt or custom instructions (optional)"
+          placeholder="e.g. I just finished loops. Or prefer examples over theory."
+          value={form.instructions}
+          onChangeText={(text) => update("instructions", text)}
+          editable={!pending}
+          maxLength={INSTRUCTIONS_MAX}
+          multiline
+          voice
+          style={styles.compactInput}
+        />
+      </ScrollView>
+      <ErrorText message={error} />
       <ActionButton
-        label={lister.pending ? "Finding subtopics…" : "Suggest next subtopics"}
+        label={pending ? "Finding subtopics…" : "Suggest subtopics"}
         icon={Sparkles}
-        loading={lister.pending}
-        onPress={lister.suggest}
+        loading={pending}
+        onPress={suggest}
       />
     </View>
   );
@@ -94,6 +128,9 @@ function SubtopicCard({ item, index }: { item: Subtopic; index: number }) {
 
 const styles = StyleSheet.create({
   footer: { gap: spacing.md },
+  fields: { maxHeight: 340 },
+  fieldsContent: { gap: spacing.md },
+  compactInput: { minHeight: 72 },
   topic: { gap: spacing.sm },
   subject: { fontSize: 15, fontWeight: "600" },
   hint: { fontSize: 14, lineHeight: 20 },
