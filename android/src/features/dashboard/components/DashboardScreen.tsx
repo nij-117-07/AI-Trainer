@@ -7,12 +7,13 @@ import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ChevronRight, Settings } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { contentWidth, radius, spacing, useLayout, useThemeColors } from "@/theme";
 import { HUBS } from "../data/apps";
 
 export function DashboardScreen() {
   const colors = useThemeColors();
   const router = useRouter();
+  const { isTablet } = useLayout();
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
@@ -36,7 +37,7 @@ export function DashboardScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.section} accessibilityLabel="Areas">
+        <View style={[styles.section, { maxWidth: contentWidth.wide }]} accessibilityLabel="Areas">
           {HUBS.map((hub) => {
             const Icon = hub.icon;
             const tone = colors.tone[hub.tone];
@@ -48,7 +49,7 @@ export function DashboardScreen() {
                 accessibilityLabel={`Open ${hub.title}`}
                 style={({ pressed }) => [
                   styles.appCard,
-                  { backgroundColor: colors.card, borderColor: colors.border },
+                  { width: isTablet ? "48.5%" : "100%", backgroundColor: colors.card, borderColor: colors.border },
                   pressed && { backgroundColor: colors.muted },
                 ]}
               >
@@ -100,6 +101,11 @@ const styles = StyleSheet.create({
     gap: spacing["2xl"],
   },
   section: {
+    width: "100%",
+    alignSelf: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     gap: spacing.lg,
   },
   appCard: {

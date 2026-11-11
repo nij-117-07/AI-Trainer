@@ -59,7 +59,7 @@ export function ExplainerMenu() {
   const boxWidth = width >= breakpoints.tablet ? "48.5%" : "100%";
 
   return (
-    <ToolScreen title="Explainer Tools">
+    <ToolScreen title="Explainer Tools" wide>
       <View style={styles.grid}>
         {TOOLS.map((tool) => {
           const Icon = tool.icon;

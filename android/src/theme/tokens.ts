@@ -23,4 +23,10 @@ export const spacing = {
 
 export const breakpoints = {
   tablet: 640,
+  desktop: 1024,
+} as const;
+
+export const contentWidth = {
+  form: 720,
+  wide: 1100,
 } as const;

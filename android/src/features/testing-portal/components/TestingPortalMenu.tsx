@@ -67,7 +67,7 @@ export function TestingPortalMenu() {
   const boxWidth = width >= breakpoints.tablet ? "48.5%" : "100%";
 
   return (
-    <ToolScreen title="Testing Portal">
+    <ToolScreen title="Testing Portal" wide>
       <View style={styles.grid}>
         {TOOLS.map((tool) => {
           const Icon = tool.icon;

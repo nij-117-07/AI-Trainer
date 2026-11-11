@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { radius, spacing, useLayout, useThemeColors, type LayoutSize, type Tone } from "@/theme";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { TextField } from "@/components/tool/FormControls";
 import type { LucideIcon } from "lucide-react-native";
@@ -24,9 +24,16 @@ interface HubMenuProps {
   items: HubItem[];
 }
 
+const BOX_WIDTH: Record<LayoutSize, `${number}%`> = {
+  phone: "48%",
+  tablet: "31.5%",
+  desktop: "23.5%",
+};
+
 export function HubMenu({ title, items }: HubMenuProps) {
   const colors = useThemeColors();
   const router = useRouter();
+  const { size } = useLayout();
   const [query, setQuery] = useState("");
   const search = query.trim().toLowerCase();
   const visible = search
@@ -34,7 +41,7 @@ export function HubMenu({ title, items }: HubMenuProps) {
     : items;
 
   return (
-    <ToolScreen title={title}>
+    <ToolScreen title={title} wide>
       {items.length > 6 && (
         <TextField
           label="Search"
@@ -56,7 +63,7 @@ export function HubMenu({ title, items }: HubMenuProps) {
               accessibilityLabel={`Open ${item.title}`}
               style={({ pressed }) => [
                 styles.box,
-                { backgroundColor: tone.bg, borderColor: tone.border },
+                { width: BOX_WIDTH[size], backgroundColor: tone.bg, borderColor: tone.border },
                 pressed && { opacity: 0.85 },
               ]}
             >
@@ -88,7 +95,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   box: {
-    width: "48%",
     borderWidth: 1,
     borderRadius: radius["2xl"],
     padding: spacing.md,

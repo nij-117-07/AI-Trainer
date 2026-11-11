@@ -168,13 +168,16 @@ Base unit 4px. Named scale: `xs` 4, `sm` 8, `md` 12, `lg` 16, `xl` 24, `2xl` 32.
 
 From `webui/src/page_layout.md`, mapped to Android. Constants in `src/theme/tokens.ts`.
 
-| Range | Layout |
-| --- | --- |
-| `< 640px` (phones) | One column. Hub cards stack. Header shows brand and actions only. |
-| `>= 640px` (tablets, foldables) | Hub cards in a two-column grid (48.5% width each). |
+| Size | Range | Layout |
+| --- | --- | --- |
+| `phone` | `< 640px` | One column. Hub boxes in two columns (48%). Dashboard cards stack. |
+| `tablet` | `640–1023px` | Dashboard cards in two columns (48.5%). Hub boxes in three columns (31.5%). |
+| `desktop` | `>= 1024px` (Windows build) | Hub boxes in four columns (23.5%). Content width capped. |
 
 Layout rules:
-- Content width is capped on very wide tablets, as the webui does above 1536px. Add a `maxWidth` when tablet layouts are built.
+- Read the size with `useLayout()` from `src/theme/layout.ts`. Do not read `useWindowDimensions` directly for columns.
+- Forms and tool pages cap their content at `contentWidth.form` (720px). Grid and list pages pass `wide` to `ToolScreen` for `contentWidth.wide` (1100px).
+- The phone layout is the base. Tablet and desktop only add columns and width.
 - Keep the 2-column split pattern from the webui page layout guide for future screens with live preview.
 - Every screen must use `SafeAreaView` (or `useSafeAreaInsets`) so it clears notches and gesture bars.
 
