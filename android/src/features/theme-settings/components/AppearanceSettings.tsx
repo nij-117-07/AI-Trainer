@@ -2,7 +2,7 @@
 /** Appearance controls: light, dark, or system mode, and a colour preset picker. */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Check } from "lucide-react-native";
-import { radius, spacing, useTheme, type ThemePreference } from "@/theme";
+import { cardPadding, shape, spacing, touchTarget, typeScale, useTheme, type ThemePreference } from "@/theme";
 import { THEME_PRESETS, type ThemePreset } from "@/theme/palettes";
 import type { ThemeMode } from "@/theme/colors";
 
@@ -18,7 +18,7 @@ export function AppearanceSettings() {
   return (
     <View style={[styles.panel, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={styles.heading}>
-        <Text style={[styles.title, { color: colors.foreground }]}>Appearance</Text>
+        <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>Appearance</Text>
         <Text style={[styles.hint, { color: colors.mutedForeground }]}>
           Choose a colour theme and light or dark mode. Saved on this device.
         </Text>
@@ -110,20 +110,19 @@ function PresetCard({ preset, mode, selected, onPress }: PresetCardProps) {
 const styles = StyleSheet.create({
   panel: {
     borderWidth: 1,
-    borderRadius: radius["2xl"],
-    padding: spacing.xl,
+    borderRadius: shape.lg,
+    padding: cardPadding.medium,
     gap: spacing.lg,
   },
   heading: {
     gap: spacing.xs,
   },
   title: {
-    fontSize: 18,
-    fontWeight: "700",
+    ...typeScale.title,
   },
   hint: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
   },
   segmented: {
     flexDirection: "row",
@@ -131,13 +130,14 @@ const styles = StyleSheet.create({
   },
   segment: {
     flex: 1,
+    minHeight: touchTarget,
     alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderRadius: radius.full,
-    paddingVertical: spacing.sm,
+    borderRadius: shape.full,
   },
   segmentText: {
-    fontSize: 14,
+    ...typeScale.label,
     fontWeight: "600",
   },
   grid: {
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   preset: {
     width: "48%",
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     padding: spacing.md,
     gap: spacing.xs,
   },
@@ -161,13 +161,13 @@ const styles = StyleSheet.create({
   swatch: {
     width: 26,
     height: 26,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
   },
   check: {
     marginLeft: "auto",
     width: 22,
     height: 22,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },

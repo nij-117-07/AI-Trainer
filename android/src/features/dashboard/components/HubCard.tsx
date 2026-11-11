@@ -1,85 +1,80 @@
 // src/features/dashboard/components/HubCard.tsx
-import { StyleSheet, Text, View } from "react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import type { HubConfig } from "../data/hubs";
+/**
+ * Area card for the dashboard grid. The whole card is the touch target. A featured card uses a tinted
+ * fill and shows its full description, so it reads as the first thing to open.
+ */
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ChevronRight } from "lucide-react-native";
+import type { HubItem } from "@/components/tool/HubMenu";
+import { pointerCursor } from "@/components/tool/FormControls";
+import { cardPadding, shape, spacing, touchTarget, typeScale, useLayout, useThemeColors } from "@/theme";
 
 interface HubCardProps {
-  hub: HubConfig;
+  hub: HubItem;
   width: `${number}%`;
+  featured?: boolean;
+  onPress: () => void;
 }
 
-export function HubCard({ hub, width }: HubCardProps) {
+export function HubCard({ hub, width, featured = false, onPress }: HubCardProps) {
   const colors = useThemeColors();
+  const { size } = useLayout();
   const tone = colors.tone[hub.tone];
   const Icon = hub.icon;
+  const padding = size === "phone" ? cardPadding.compact : cardPadding.medium;
 
   return (
-    <View
-      accessibilityRole="summary"
-      accessibilityLabel={`${hub.title} hub, coming soon`}
-      style={[styles.card, { width, backgroundColor: tone.bg, borderColor: tone.border }]}
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Open ${hub.title}`}
+      accessibilityHint={hub.description}
+      style={({ pressed }) => [
+        styles.card,
+        pointerCursor,
+        { width, padding, backgroundColor: featured ? tone.bg : colors.card, borderColor: featured ? tone.border : colors.border },
+        pressed && { backgroundColor: colors.muted },
+      ]}
     >
-      <View style={styles.topRow}>
-        <View style={[styles.iconTile, { backgroundColor: colors.card, borderColor: tone.border }]}>
-          <Icon size={20} color={tone.fg} />
-        </View>
-        <Text style={[styles.tagline, { color: colors.mutedForeground }]}>{hub.tagline}</Text>
+      <View style={[styles.iconTile, { backgroundColor: colors.card, borderColor: tone.border }]}>
+        <Icon size={24} color={tone.fg} />
       </View>
-
       <View style={styles.body}>
         <Text style={[styles.title, { color: colors.foreground }]}>{hub.title}</Text>
-        <Text style={[styles.description, { color: colors.mutedForeground }]}>{hub.description}</Text>
+        <Text style={[styles.description, { color: colors.mutedForeground }]} numberOfLines={featured ? undefined : 2}>
+          {hub.description}
+        </Text>
       </View>
-
-      <View style={[styles.footer, { borderTopColor: colors.border }]}>
-        <Text style={[styles.footerText, { color: colors.mutedForeground }]}>Coming soon</Text>
-      </View>
-    </View>
+      <ChevronRight size={20} color={colors.mutedForeground} />
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    borderRadius: radius["2xl"],
-    padding: spacing.xl,
-    gap: spacing.lg,
-  },
-  topRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: spacing.lg,
+    minHeight: touchTarget,
+    borderWidth: 1,
+    borderRadius: shape.lg,
   },
   iconTile: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.lg,
+    width: 48,
+    height: 48,
+    borderRadius: shape.md,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
-  tagline: {
-    fontSize: 12,
-    fontWeight: "500",
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-  },
   body: {
-    gap: 6,
+    flex: 1,
+    gap: spacing.xs,
   },
   title: {
-    fontSize: 18,
-    fontWeight: "600",
+    ...typeScale.title,
   },
   description: {
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  footer: {
-    borderTopWidth: 1,
-    paddingTop: spacing.md,
-  },
-  footerText: {
-    fontSize: 14,
+    ...typeScale.body,
   },
 });

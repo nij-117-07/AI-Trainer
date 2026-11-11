@@ -8,7 +8,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import { contentWidth, radius, spacing, useLayout, useThemeColors } from "@/theme";
+import { contentWidth, radius, shape, spacing, touchTarget, typeScale, useLayout, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { isAiConfigured } from "@/features/ai-settings/lib/llm";
 import { ActionButton, Panel, pointerCursor } from "@/components/tool/FormControls";
@@ -83,16 +83,11 @@ export function ToolScreen({
           onPress={goBack}
           accessibilityRole="button"
           accessibilityLabel="Go back"
-          style={({ pressed }) => [
-            styles.iconButton,
-            pointerCursor,
-            { borderColor: colors.border },
-            pressed && { backgroundColor: colors.muted },
-          ]}
+          style={({ pressed }) => [styles.iconButton, pointerCursor, pressed && { backgroundColor: colors.muted }]}
         >
-          <ArrowLeft size={18} color={colors.foreground} />
+          <ArrowLeft size={22} color={colors.foreground} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]} numberOfLines={1}>
+        <Text accessibilityRole="header" style={[styles.headerTitle, { color: colors.foreground }]} numberOfLines={1}>
           {title}
         </Text>
         <View style={styles.headerRight}>{headerRight}</View>
@@ -141,20 +136,20 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerTitle: {
-    flexShrink: 1,
-    fontSize: 18,
-    fontWeight: "600",
+    flex: 1,
+    marginHorizontal: spacing.sm,
+    textAlign: "center",
+    ...typeScale.title,
   },
   iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
-    borderWidth: 1,
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
   headerRight: {
-    minWidth: 40,
+    minWidth: touchTarget,
     flexDirection: "row",
     justifyContent: "flex-end",
   },

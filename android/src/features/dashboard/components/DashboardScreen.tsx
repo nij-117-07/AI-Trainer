@@ -1,24 +1,37 @@
 // src/features/dashboard/components/DashboardScreen.tsx
 /**
- * Dashboard: header bar, page intro, and the area list. Each area opens its own hub menu of apps.
- * Mirrors the webui dashboard (webui/src/app/(authenticated)/dashboard/page.tsx).
+ * Dashboard: top bar with the brand and AI settings, a page intro, and a bento grid of areas. The
+ * first area is featured. Each area opens its own hub menu of apps.
  */
 import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { ChevronRight, Settings } from "lucide-react-native";
-import { CardGrid } from "@/components/tool/CardGrid";
+import { LayoutGrid, Settings } from "lucide-react-native";
 import { pointerCursor } from "@/components/tool/FormControls";
-import { contentWidth, radius, spacing, useThemeColors } from "@/theme";
+import { contentWidth, shape, spacing, touchTarget, typeScale, useLayout, useThemeColors, type LayoutSize } from "@/theme";
 import { HUBS } from "../data/apps";
+import { HubCard } from "./HubCard";
+
+const STANDARD_WIDTH: Record<LayoutSize, `${number}%`> = {
+  phone: "100%",
+  tablet: "48.5%",
+  desktop: "32%",
+};
+
+const FEATURED_WIDTH: Record<LayoutSize, `${number}%`> = {
+  phone: "100%",
+  tablet: "100%",
+  desktop: "66%",
+};
 
 export function DashboardScreen() {
   const colors = useThemeColors();
   const router = useRouter();
+  const { size } = useLayout();
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
-      <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
+      <View style={[styles.topBar, { borderBottomColor: colors.border }]}>
         <Text style={styles.brand}>
           <Text style={{ color: colors.primary }}>AI</Text>
           <Text style={{ color: colors.foreground }}>Trainer</Text>
@@ -27,14 +40,9 @@ export function DashboardScreen() {
           onPress={() => router.push("/admin/settings")}
           accessibilityRole="button"
           accessibilityLabel="Open AI settings"
-          style={({ pressed }) => [
-            styles.iconButton,
-            pointerCursor,
-            { borderColor: colors.border },
-            pressed && { backgroundColor: colors.muted },
-          ]}
+          style={({ pressed }) => [styles.iconButton, pointerCursor, pressed && { backgroundColor: colors.muted }]}
         >
-          <Settings size={18} color={colors.foreground} />
+          <Settings size={22} color={colors.foreground} />
         </Pressable>
       </View>
 
@@ -50,40 +58,26 @@ export function DashboardScreen() {
           </View>
 
           {HUBS.length === 0 ? (
-            <Text style={[styles.empty, { color: colors.mutedForeground }]}>No areas are available yet.</Text>
+            <View style={styles.empty}>
+              <LayoutGrid size={48} color={colors.mutedForeground} />
+              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No areas yet</Text>
+              <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Areas will appear here once they are added.</Text>
+            </View>
           ) : (
-            <CardGrid>
-              {HUBS.map((hub) => {
-                const Icon = hub.icon;
-                const tone = colors.tone[hub.tone];
+            <View style={styles.grid}>
+              {HUBS.map((hub, index) => {
+                const featured = index === 0 && size !== "phone";
                 return (
-                  <Pressable
+                  <HubCard
                     key={hub.key}
+                    hub={hub}
+                    featured={featured}
+                    width={featured ? FEATURED_WIDTH[size] : STANDARD_WIDTH[size]}
                     onPress={() => router.push(hub.route as never)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Open ${hub.title}`}
-                    accessibilityHint={hub.description}
-                    style={({ pressed }) => [
-                      styles.hubCard,
-                      pointerCursor,
-                      { backgroundColor: colors.card, borderColor: colors.border },
-                      pressed && { backgroundColor: colors.muted },
-                    ]}
-                  >
-                    <View style={[styles.hubIcon, { backgroundColor: tone.bg, borderColor: tone.border }]}>
-                      <Icon size={24} color={tone.fg} />
-                    </View>
-                    <View style={styles.hubBody}>
-                      <Text style={[styles.hubTitle, { color: colors.foreground }]}>{hub.title}</Text>
-                      <Text style={[styles.hubText, { color: colors.mutedForeground }]} numberOfLines={2}>
-                        {hub.description}
-                      </Text>
-                    </View>
-                    <ChevronRight size={20} color={colors.mutedForeground} />
-                  </Pressable>
+                  />
                 );
               })}
-            </CardGrid>
+            </View>
           )}
         </View>
       </ScrollView>
@@ -95,7 +89,7 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  header: {
+  topBar: {
     height: 64,
     flexDirection: "row",
     alignItems: "center",
@@ -104,15 +98,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   brand: {
-    fontSize: 20,
+    ...typeScale.title,
     fontWeight: "700",
-    letterSpacing: -0.3,
   },
   iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
-    borderWidth: 1,
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -122,54 +114,31 @@ const styles = StyleSheet.create({
   },
   page: {
     width: "100%",
-    maxWidth: contentWidth.wide,
+    maxWidth: contentWidth.dashboard,
     alignSelf: "center",
-    gap: spacing.xl,
+    gap: spacing["2xl"],
   },
   intro: {
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   title: {
-    fontSize: 26,
-    fontWeight: "700",
-    letterSpacing: -0.4,
+    ...typeScale.display,
   },
   subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
-  hubCard: {
+  grid: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.lg,
-    minHeight: 44,
-    borderWidth: 1,
-    borderRadius: radius["2xl"],
-    padding: spacing.xl,
-  },
-  hubIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  hubBody: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  hubTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  hubText: {
-    fontSize: 14,
-    lineHeight: 21,
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: spacing.sm,
   },
   empty: {
-    fontSize: 14,
-    textAlign: "center",
-    paddingVertical: spacing.lg,
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing["2xl"],
+  },
+  emptyTitle: {
+    ...typeScale.title,
   },
 });

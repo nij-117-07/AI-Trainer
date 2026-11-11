@@ -2,16 +2,15 @@
 /**
  * Settings page: the AI model connection first, then voice input and text to speech. Separate
  * connections for those two sit behind an advanced disclosure that opens by itself when they already
- * have values. Appearance comes last. Save is in the footer and is enabled only when something changed.
- * Loading and save status are announced through live regions.
+ * have values. Appearance comes last. Every change saves to the device after a short pause, so there
+ * is no save button. A value that is not valid is shown in place and is not saved.
  */
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { Eye, EyeOff, MessageSquare, Mic, Network, Save, Volume2, type LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Check, Eye, EyeOff, MessageSquare, Mic, Network, Volume2, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { Disclosure } from "@/components/tool/Disclosure";
-import { ActionButton, ErrorText, Field, Panel, TextField } from "@/components/tool/FormControls";
-import { SectionTitle } from "@/components/tool/SectionTitle";
+import { ErrorText, Field, Panel, TextField, ActionButton } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { AppearanceSettings } from "@/features/theme-settings/components/AppearanceSettings";
@@ -21,21 +20,69 @@ import { TTS_MODEL_OPTIONS, TTS_VOICE_OPTIONS } from "../lib/speech";
 import type { AiSettings } from "../types";
 
 const URL_PATTERN = /^https?:\/\/\S+$/i;
+const SAVE_DELAY_MS = 400;
+const SKELETON_DELAY_MS = 300;
+
+type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 export function AiSettingsScreen() {
   const colors = useThemeColors();
   const { settings, loaded, saveSettings } = useAiSettings();
 
   const [form, setForm] = useState<AiSettings>(settings);
-  const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const [status, setStatus] = useState<SaveStatus>("idle");
+  const pending = useRef<AiSettings | null>(null);
 
   useEffect(() => {
-    if (loaded) setForm(settings);
-  }, [loaded, settings]);
+    if (loaded && !hydrated) {
+      setForm(settings);
+      setHydrated(true);
+    }
+  }, [loaded, hydrated, settings]);
 
-  const dirty = loaded && JSON.stringify(form) !== JSON.stringify(settings);
+  useEffect(() => {
+    if (hydrated) return;
+    const timer = setTimeout(() => setShowSkeleton(true), SKELETON_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [hydrated]);
+
+  const commit = useCallback(
+    async (next: AiSettings) => {
+      pending.current = null;
+      setStatus("saving");
+      try {
+        await saveSettings(next);
+        setStatus("saved");
+      } catch {
+        setStatus("error");
+      }
+    },
+    [saveSettings]
+  );
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const next = normalizeSettings(form);
+    const message = validateSettings(next);
+    setProblem(message);
+    if (message || isSameSettings(next, settings)) {
+      pending.current = null;
+      return;
+    }
+    pending.current = next;
+    const timer = setTimeout(() => void commit(next), SAVE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [form, hydrated, settings, commit]);
+
+  useEffect(() => {
+    return () => {
+      if (pending.current) void saveSettings(pending.current);
+    };
+  }, [saveSettings]);
+
   const hasSeparateConnection =
     settings.transcriptionBaseUrl !== "" ||
     settings.transcriptionApiKey !== "" ||
@@ -44,78 +91,40 @@ export function AiSettingsScreen() {
 
   function update<K extends keyof AiSettings>(key: K, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
-    setSaved(false);
-    setError(null);
   }
 
-  async function handleSave() {
-    const next: AiSettings = {
-      modelName: form.modelName.trim(),
-      apiKey: form.apiKey.trim(),
-      baseUrl: trimUrl(form.baseUrl),
-      transcriptionModel: form.transcriptionModel.trim(),
-      transcriptionBaseUrl: trimUrl(form.transcriptionBaseUrl),
-      transcriptionApiKey: form.transcriptionApiKey.trim(),
-      ttsModel: form.ttsModel.trim(),
-      ttsVoice: form.ttsVoice.trim(),
-      ttsBaseUrl: trimUrl(form.ttsBaseUrl),
-      ttsApiKey: form.ttsApiKey.trim(),
-    };
-    if (next.baseUrl && !URL_PATTERN.test(next.baseUrl)) {
-      setError("Base URL must start with http:// or https://");
-      return;
-    }
-    if (next.transcriptionBaseUrl && !URL_PATTERN.test(next.transcriptionBaseUrl)) {
-      setError("Voice base URL must start with http:// or https://");
-      return;
-    }
-    if (next.ttsBaseUrl && !URL_PATTERN.test(next.ttsBaseUrl)) {
-      setError("Speech base URL must start with http:// or https://");
-      return;
-    }
-    setBusy(true);
-    try {
-      await saveSettings(next);
-      setForm(next);
-      setSaved(true);
-    } catch {
-      setError("Could not save settings. Please try again.");
-    } finally {
-      setBusy(false);
-    }
+  function retry() {
+    const next = normalizeSettings(form);
+    if (!validateSettings(next)) void commit(next);
   }
-
-  const footer = loaded ? (
-    <View style={styles.footer}>
-      <View accessibilityLiveRegion="polite" style={styles.status}>
-        <ErrorText message={error} />
-        {!error && saved && !dirty ? (
-          <Text style={[styles.saved, { color: colors.tone.emerald.fg }]}>Saved. Your AI settings are stored on this device.</Text>
-        ) : null}
-      </View>
-      {!dirty && !saved ? <Text style={[styles.note, { color: colors.mutedForeground }]}>Change a setting to enable saving.</Text> : null}
-      <ActionButton
-        label={busy ? "Saving AI settings…" : "Save AI settings"}
-        icon={Save}
-        loading={busy}
-        disabled={!dirty}
-        onPress={handleSave}
-      />
-    </View>
-  ) : undefined;
 
   return (
-    <ToolScreen title="Settings" usesAi={false} footer={footer} wide>
-      {!loaded ? (
-        <View accessibilityLiveRegion="polite" style={styles.loading}>
-          <ActivityIndicator color={colors.primary} />
-          <Text style={[styles.note, { color: colors.mutedForeground }]}>Loading settings…</Text>
-        </View>
+    <ToolScreen title="Settings" usesAi={false}>
+      {!hydrated ? (
+        showSkeleton ? <SettingsSkeleton /> : null
       ) : (
         <>
           <Text style={[styles.intro, { color: colors.mutedForeground }]}>
-            Used by every feature that calls an AI model. Stored only on this device.
+            Used by every feature that calls an AI model. Changes save to this device as you make them.
           </Text>
+
+          <View accessibilityLiveRegion="polite" style={styles.status}>
+            {problem ? (
+              <ErrorText message={problem} />
+            ) : status === "saving" ? (
+              <Text style={[styles.statusText, { color: colors.mutedForeground }]}>Saving…</Text>
+            ) : status === "saved" ? (
+              <View style={styles.statusRow}>
+                <Check size={16} color={colors.tone.emerald.fg} />
+                <Text style={[styles.statusText, { color: colors.tone.emerald.fg }]}>Saved on this device.</Text>
+              </View>
+            ) : status === "error" ? (
+              <View style={styles.statusStack}>
+                <ErrorText message="Could not save settings. Check your device storage, then try again." />
+                <ActionButton label="Try saving again" variant="outline" onPress={retry} />
+              </View>
+            ) : null}
+          </View>
 
           <Panel>
             <SectionHeading
@@ -131,6 +140,7 @@ export function AiSettingsScreen() {
               onChangeText={(text) => update("modelName", text)}
               autoCapitalize="none"
               autoCorrect={false}
+              style={styles.field}
             />
             <SecretField
               label="API key"
@@ -139,14 +149,15 @@ export function AiSettingsScreen() {
               onChangeText={(text) => update("apiKey", text)}
             />
             <TextField
-              label="Base URL"
-              hint="Optional. Leave empty to use your provider's default address."
+              label="Base URL (optional)"
+              hint="Leave empty to use your provider's default address."
               placeholder="e.g. https://openrouter.ai/api/v1"
               value={form.baseUrl}
               onChangeText={(text) => update("baseUrl", text)}
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="url"
+              style={styles.field}
             />
           </Panel>
 
@@ -190,8 +201,7 @@ export function AiSettingsScreen() {
                 Voice input
               </Text>
               <TextField
-                label="Voice base URL"
-                accessibilityLabel="Voice base URL, optional"
+                label="Voice base URL (optional)"
                 hint="Leave empty to use the chat base URL."
                 placeholder="Same as the chat base URL"
                 value={form.transcriptionBaseUrl}
@@ -199,9 +209,10 @@ export function AiSettingsScreen() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="url"
+                style={styles.field}
               />
               <SecretField
-                label="Voice API key"
+                label="Voice API key (optional)"
                 hint="Leave empty to use the chat API key."
                 placeholder="Same as the chat API key"
                 value={form.transcriptionApiKey}
@@ -214,8 +225,7 @@ export function AiSettingsScreen() {
                 Text to speech
               </Text>
               <TextField
-                label="Speech base URL"
-                accessibilityLabel="Speech base URL, optional"
+                label="Speech base URL (optional)"
                 hint="Leave empty to use the chat base URL."
                 placeholder="Same as the chat base URL"
                 value={form.ttsBaseUrl}
@@ -223,9 +233,10 @@ export function AiSettingsScreen() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="url"
+                style={styles.field}
               />
               <SecretField
-                label="Speech API key"
+                label="Speech API key (optional)"
                 hint="Leave empty to use the chat API key."
                 placeholder="Same as the chat API key"
                 value={form.ttsApiKey}
@@ -241,12 +252,51 @@ export function AiSettingsScreen() {
   );
 }
 
+function normalizeSettings(form: AiSettings): AiSettings {
+  return {
+    modelName: form.modelName.trim(),
+    apiKey: form.apiKey.trim(),
+    baseUrl: trimUrl(form.baseUrl),
+    transcriptionModel: form.transcriptionModel.trim(),
+    transcriptionBaseUrl: trimUrl(form.transcriptionBaseUrl),
+    transcriptionApiKey: form.transcriptionApiKey.trim(),
+    ttsModel: form.ttsModel.trim(),
+    ttsVoice: form.ttsVoice.trim(),
+    ttsBaseUrl: trimUrl(form.ttsBaseUrl),
+    ttsApiKey: form.ttsApiKey.trim(),
+  };
+}
+
+function validateSettings(next: AiSettings): string | null {
+  if (next.baseUrl && !URL_PATTERN.test(next.baseUrl)) return "Base URL must start with http:// or https://";
+  if (next.transcriptionBaseUrl && !URL_PATTERN.test(next.transcriptionBaseUrl)) {
+    return "Voice base URL must start with http:// or https://";
+  }
+  if (next.ttsBaseUrl && !URL_PATTERN.test(next.ttsBaseUrl)) return "Speech base URL must start with http:// or https://";
+  return null;
+}
+
+function isSameSettings(first: AiSettings, second: AiSettings): boolean {
+  return (Object.keys(first) as (keyof AiSettings)[]).every((key) => first[key] === second[key]);
+}
+
 function trimUrl(value: string): string {
   return value.trim().replace(/\/+$/, "");
 }
 
+function SettingsSkeleton() {
+  const colors = useThemeColors();
+  return (
+    <View accessibilityLabel="Loading settings" style={styles.skeleton}>
+      {[200, 140, 140].map((height, index) => (
+        <View key={index} style={[styles.skeletonBlock, { height, backgroundColor: colors.muted }]} />
+      ))}
+    </View>
+  );
+}
+
 function SectionHeading({
-  icon,
+  icon: Icon,
   title,
   description,
 }: {
@@ -257,7 +307,14 @@ function SectionHeading({
   const colors = useThemeColors();
   return (
     <View style={styles.heading}>
-      <SectionTitle icon={icon} title={title} />
+      <View style={styles.headingRow}>
+        <View style={[styles.headingIcon, { backgroundColor: colors.muted }]}>
+          <Icon size={20} color={colors.primary} />
+        </View>
+        <Text accessibilityRole="header" style={[styles.sectionTitle, { color: colors.foreground }]}>
+          {title}
+        </Text>
+      </View>
       <Text style={[styles.description, { color: colors.mutedForeground }]}>{description}</Text>
     </View>
   );
@@ -299,7 +356,7 @@ function SecretField({
           accessibilityLabel={visible ? `Hide ${label}` : `Show ${label}`}
           style={({ pressed }) => [styles.toggle, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
         >
-          {visible ? <EyeOff size={18} color={colors.foreground} /> : <Eye size={18} color={colors.foreground} />}
+          {visible ? <EyeOff size={20} color={colors.foreground} /> : <Eye size={20} color={colors.foreground} />}
         </Pressable>
       </View>
     </Field>
@@ -308,46 +365,64 @@ function SecretField({
 
 const styles = StyleSheet.create({
   intro: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
-  loading: {
-    paddingVertical: spacing["2xl"],
-    alignItems: "center",
+  status: {
+    minHeight: 24,
     justifyContent: "center",
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
+  },
+  statusStack: {
+    gap: spacing.sm,
+  },
+  statusText: {
+    ...typeScale.label,
+  },
+  skeleton: {
+    gap: spacing.lg,
+  },
+  skeletonBlock: {
+    borderRadius: shape.lg,
   },
   heading: {
     gap: spacing.xs,
   },
+  headingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  headingIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: shape.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sectionTitle: {
+    ...typeScale.title,
+  },
   description: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
   },
   subheading: {
+    ...typeScale.title,
     fontSize: 15,
-    fontWeight: "600",
   },
   group: {
     gap: spacing.lg,
   },
-  footer: {
-    gap: spacing.sm,
-  },
-  status: {
-    gap: spacing.xs,
-  },
-  saved: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  note: {
-    fontSize: 14,
-    lineHeight: 20,
+  field: {
+    minHeight: 56,
   },
   input: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     fontSize: 16,
@@ -359,11 +434,12 @@ const styles = StyleSheet.create({
   },
   keyInput: {
     flex: 1,
+    minHeight: 56,
   },
   toggle: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.full,
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",

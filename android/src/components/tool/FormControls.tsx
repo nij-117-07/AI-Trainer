@@ -5,7 +5,7 @@
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps, type ViewStyle } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { cardPadding, radius, shape, spacing, useThemeColors } from "@/theme";
 import { appendTranscript } from "@/features/chatbot/lib/voice-text";
 import { VoiceInputRow } from "./VoiceInputRow";
 
@@ -161,8 +161,8 @@ export function ErrorText({ message }: { message: string | null }) {
 const styles = StyleSheet.create({
   panel: {
     borderWidth: 1,
-    borderRadius: radius.xl,
-    padding: spacing.xl,
+    borderRadius: shape.lg,
+    padding: cardPadding.medium,
     gap: spacing.lg,
   },
   field: {
