@@ -13,6 +13,7 @@ export default function IdiomsNewRoute() {
     <ToolScreen
       title="New idiom"
       headerRight={<ResetButton onPress={idioms.reset} />}
+      footerSide={false}
       footer={<IdiomsFormFooter idioms={idioms} />}
     >
       <ActiveLanguageNotice />

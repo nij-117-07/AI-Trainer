@@ -84,7 +84,7 @@ export function useRoleplayChat() {
     const text = draft.trim();
     if (!text || pending) return;
     if (!settings.systemPrompt.trim()) {
-      setError("Write a persona first. Tap Edit persona above.");
+      setError("Write a persona first. Tap Edit persona.");
       return;
     }
 

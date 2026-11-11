@@ -26,11 +26,16 @@ export function StagePanel({
   return (
     <Panel>
       <View style={styles.titleRow}>
-        <Text style={[styles.title, { color: colors.foreground }]}>{label}</Text>
+        <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>
+          {label}
+        </Text>
       </View>
       {hint ? <Text style={[styles.hint, { color: colors.mutedForeground }]}>{hint}</Text> : null}
       {isPending ? (
-        <View style={[styles.pending, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+        <View
+          accessibilityLiveRegion="polite"
+          style={[styles.pending, { backgroundColor: colors.muted, borderColor: colors.border }]}
+        >
           <ActivityIndicator color={colors.primary} />
           <Text style={[styles.hint, { color: colors.mutedForeground }]}>{pendingLabel ?? "Working…"}</Text>
         </View>
@@ -81,7 +86,11 @@ export function BulletList({ items }: { items: string[] }) {
 
 export function SubHeading({ children }: { children: string }) {
   const colors = useThemeColors();
-  return <Text style={[styles.subheading, { color: colors.foreground }]}>{children}</Text>;
+  return (
+    <Text accessibilityRole="header" style={[styles.subheading, { color: colors.foreground }]}>
+      {children}
+    </Text>
+  );
 }
 
 export function EmptyNote({ children }: { children: string }) {

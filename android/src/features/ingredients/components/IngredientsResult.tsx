@@ -7,6 +7,7 @@ import { StyleSheet, Text } from "react-native";
 import { FileText, Gauge, ShieldAlert } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { ResultCallout } from "@/components/tool/ResultCallout";
@@ -25,27 +26,29 @@ export function IngredientsResult({ result }: { result: IngredientAnalysis }) {
         <Text style={[styles.levelText, { color: colors.foreground }]}>{level.description}</Text>
       </ResultCallout>
 
-      <Panel>
-        <SectionTitle icon={FileText} title="Detected ingredients" />
-        {result.extractedIngredients.length > 0 ? (
-          <TagList items={result.extractedIngredients} />
-        ) : (
-          <Text style={[styles.empty, { color: colors.mutedForeground }]}>No ingredients detected.</Text>
-        )}
-      </Panel>
-
-      {result.riskFactors.length > 0 && (
+      <CardGrid>
         <Panel>
-          <SectionTitle icon={ShieldAlert} title="Risk factors" />
-          <MarkdownText content={result.riskFactors.map((risk) => `- ${risk}`).join("\n")} />
+          <SectionTitle icon={FileText} title="Detected ingredients" />
+          {result.extractedIngredients.length > 0 ? (
+            <TagList items={result.extractedIngredients} />
+          ) : (
+            <Text style={[styles.empty, { color: colors.mutedForeground }]}>No ingredients detected.</Text>
+          )}
         </Panel>
-      )}
 
-      <Panel>
-        <SectionTitle icon={FileText} title="Analysis" />
-        <MarkdownText content={result.summaryAnalysis} />
-        <ListenButton text={result.summaryAnalysis} label="Analysis" />
-      </Panel>
+        {result.riskFactors.length > 0 && (
+          <Panel>
+            <SectionTitle icon={ShieldAlert} title="Risk factors" />
+            <MarkdownText content={result.riskFactors.map((risk) => `- ${risk}`).join("\n")} />
+          </Panel>
+        )}
+
+        <Panel>
+          <SectionTitle icon={FileText} title="Analysis" />
+          <MarkdownText content={result.summaryAnalysis} />
+          <ListenButton text={result.summaryAnalysis} label="Analysis" />
+        </Panel>
+      </CardGrid>
     </>
   );
 }

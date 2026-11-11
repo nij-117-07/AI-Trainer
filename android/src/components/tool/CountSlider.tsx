@@ -28,8 +28,12 @@ export function CountSlider({ label, min = 1, max, value, onChange }: CountSlide
           minimumTrackTintColor={colors.primary}
           maximumTrackTintColor={colors.border}
           thumbTintColor={colors.primary}
+          accessibilityLabel={label}
+          accessibilityValue={{ min, max, now: value }}
         />
-        <Text style={[styles.value, { color: colors.foreground }]}>{value}</Text>
+        <Text accessibilityElementsHidden style={[styles.value, { color: colors.foreground }]}>
+          {value}
+        </Text>
       </View>
     </Field>
   );
@@ -43,7 +47,7 @@ const styles = StyleSheet.create({
   },
   slider: {
     flex: 1,
-    height: 40,
+    height: 44,
   },
   value: {
     minWidth: 28,

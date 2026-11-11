@@ -8,10 +8,10 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import { contentWidth, radius, spacing, useThemeColors } from "@/theme";
+import { contentWidth, radius, spacing, useLayout, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { isAiConfigured } from "@/features/ai-settings/lib/llm";
-import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { ActionButton, Panel, pointerCursor } from "@/components/tool/FormControls";
 import { useGoBack } from "@/lib/navigation";
 import { ToolScrollContext } from "./ToolScrollContext";
 
@@ -24,16 +24,57 @@ interface ToolScreenProps {
   usesAi?: boolean;
   /** Set for tool grids and lists that need more room than a form on tablet and desktop. */
   wide?: boolean;
+  /**
+   * On tablet and desktop, show the footer as a panel beside the content instead of along the bottom,
+   * so the form and the results are visible together. Phones always use the bottom footer.
+   */
+  footerSide?: boolean;
 }
 
-export function ToolScreen({ title, children, footer, headerRight, usesAi = true, wide = false }: ToolScreenProps) {
+export function ToolScreen({
+  title,
+  children,
+  footer,
+  headerRight,
+  usesAi = true,
+  wide = false,
+  footerSide = true,
+}: ToolScreenProps) {
   const colors = useThemeColors();
   const router = useRouter();
   const goBack = useGoBack();
   const { settings, loaded } = useAiSettings();
+  const { size } = useLayout();
   const configured = isAiConfigured(settings);
   const scrollRef = useRef<ScrollViewInstance>(null);
-  const columnStyle = { maxWidth: wide ? contentWidth.wide : contentWidth.form };
+  const sideBySide = footerSide && !!footer && size !== "phone";
+  const columnStyle = { maxWidth: sideBySide ? undefined : wide ? contentWidth.wide : contentWidth.form };
+
+  const notice =
+    usesAi && loaded && !configured ? (
+      <Panel>
+        <Text style={[styles.noticeTitle, { color: colors.foreground }]}>AI model not configured</Text>
+        <Text style={[styles.noticeText, { color: colors.mutedForeground }]}>
+          Add a model name and API key in AI settings before generating content.
+        </Text>
+        <ActionButton label="Open AI settings" variant="outline" onPress={() => router.push("/admin/settings")} />
+      </Panel>
+    ) : null;
+
+  const scroll = (
+    <ScrollView
+      ref={scrollRef}
+      style={sideBySide ? styles.flex : undefined}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
+    >
+      <View style={[styles.column, columnStyle]}>
+        {notice}
+        {children}
+      </View>
+    </ScrollView>
+  );
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
@@ -42,7 +83,12 @@ export function ToolScreen({ title, children, footer, headerRight, usesAi = true
           onPress={goBack}
           accessibilityRole="button"
           accessibilityLabel="Go back"
-          style={({ pressed }) => [styles.iconButton, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
+          style={({ pressed }) => [
+            styles.iconButton,
+            pointerCursor,
+            { borderColor: colors.border },
+            pressed && { backgroundColor: colors.muted },
+          ]}
         >
           <ArrowLeft size={18} color={colors.foreground} />
         </Pressable>
@@ -54,26 +100,25 @@ export function ToolScreen({ title, children, footer, headerRight, usesAi = true
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <ToolScrollContext.Provider value={scrollRef}>
-          <ScrollView ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
-            <View style={[styles.column, columnStyle]}>
-              {usesAi && loaded && !configured && (
-                <Panel>
-                  <Text style={[styles.noticeTitle, { color: colors.foreground }]}>AI model not configured</Text>
-                  <Text style={[styles.noticeText, { color: colors.mutedForeground }]}>
-                    Add a model name and API key in AI settings before generating content.
-                  </Text>
-                  <ActionButton label="Open AI settings" variant="outline" onPress={() => router.push("/admin/settings")} />
-                </Panel>
-              )}
-
-              {children}
+          {sideBySide ? (
+            <View style={[styles.split, { maxWidth: wide ? contentWidth.wide + contentWidth.sidePanel : contentWidth.wide }]}>
+              {scroll}
+              <View style={[styles.sidePanel, { backgroundColor: colors.background, borderLeftColor: colors.border }]}>
+                <ScrollView contentContainerStyle={styles.sidePanelContent} keyboardShouldPersistTaps="handled">
+                  {footer}
+                </ScrollView>
+              </View>
             </View>
-          </ScrollView>
-          {footer ? (
-            <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
-              <View style={[styles.footerColumn, columnStyle]}>{footer}</View>
-            </View>
-          ) : null}
+          ) : (
+            <>
+              {scroll}
+              {footer ? (
+                <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
+                  <View style={[styles.footerColumn, { maxWidth: contentWidth.form }]}>{footer}</View>
+                </View>
+              ) : null}
+            </>
+          )}
         </ToolScrollContext.Provider>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -101,8 +146,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   iconButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radius.full,
     borderWidth: 1,
     alignItems: "center",
@@ -121,6 +166,20 @@ const styles = StyleSheet.create({
     width: "100%",
     alignSelf: "center",
     gap: spacing.lg,
+  },
+  split: {
+    flex: 1,
+    width: "100%",
+    alignSelf: "center",
+    flexDirection: "row",
+  },
+  sidePanel: {
+    width: contentWidth.sidePanel,
+    borderLeftWidth: 1,
+  },
+  sidePanelContent: {
+    padding: spacing.lg,
+    paddingBottom: spacing["2xl"],
   },
   footer: {
     padding: spacing.lg,

@@ -4,8 +4,9 @@ import { useCallback, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Plus } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { Section } from "@/components/tool/Section";
 import type { SkillArchitectTree } from "../types";
 import { loadTrees, saveTrees } from "../lib/store";
@@ -73,6 +74,8 @@ export function SkillTreeList() {
 
       <ErrorText message={error} />
 
+      {!loaded && <Text style={[styles.lead, { color: colors.mutedForeground }]}>Loading your skill trees…</Text>}
+
       {loaded && trees.length === 0 && (
         <Panel>
           <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No skill trees yet</Text>
@@ -82,11 +85,11 @@ export function SkillTreeList() {
         </Panel>
       )}
 
-      <View style={styles.list}>
+      <CardGrid>
         {trees.map((tree) => (
           <SkillTreeCard key={tree.id} tree={tree} onOpen={() => open(tree)} onDelete={() => confirmDelete(tree)} />
         ))}
-      </View>
+      </CardGrid>
     </Section>
   );
 }
@@ -99,8 +102,5 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: "600",
-  },
-  list: {
-    gap: spacing.lg,
   },
 });

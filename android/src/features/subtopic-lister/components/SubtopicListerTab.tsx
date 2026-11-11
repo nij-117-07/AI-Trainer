@@ -14,7 +14,8 @@ import { INSTRUCTIONS_MAX, isSubtopicLevel, subtopicLevelOptions, TOPIC_MAX } fr
 import type { LearnedTopic, Subtopic } from "../types";
 
 export function SubtopicListerTab({ lister }: { lister: SubtopicListerState }) {
-  const { learned, result } = lister;
+  const colors = useThemeColors();
+  const { learned, result, pending } = lister;
 
   return (
     <Section>
@@ -24,7 +25,7 @@ export function SubtopicListerTab({ lister }: { lister: SubtopicListerState }) {
         <>
           <SectionTitle icon={ListTree} title="Suggested next subtopics" />
           {result.subtopics.length === 0 ? (
-            <Text style={styles.empty}>No subtopics returned. Try again.</Text>
+            <Text style={[styles.empty, { color: colors.mutedForeground }]}>No subtopics returned. Try again.</Text>
           ) : (
             result.subtopics.map((item, index) => <SubtopicCard key={`${item.name}-${index}`} item={item} index={index} />)
           )}
@@ -32,8 +33,12 @@ export function SubtopicListerTab({ lister }: { lister: SubtopicListerState }) {
       ) : (
         <EmptyHint
           icon={ListTree}
-          title="Your next subtopics"
-          hint="Pick a topic and level in the form below, then tap Suggest. Leave the topic empty to continue from what you have finished."
+          title={pending ? "Finding subtopics…" : "Your next subtopics"}
+          hint={
+            pending
+              ? "This can take a moment."
+              : "Pick a topic and level in the form, then tap Suggest subtopics. Leave the topic empty to continue from what you have finished."
+          }
         />
       )}
     </Section>

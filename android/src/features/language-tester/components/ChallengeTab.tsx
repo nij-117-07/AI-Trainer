@@ -123,7 +123,7 @@ export function ChallengeTab() {
         <EmptyNote message="Pick a language, level, and scenario to generate a translation challenge." />
       )}
 
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />
+      <ActionButton label="Reset form and results" icon={RefreshCcw} variant="outline" onPress={handleReset} />
     </Section>
   );
 }

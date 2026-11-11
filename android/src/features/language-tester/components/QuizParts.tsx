@@ -2,7 +2,7 @@
 /** Pieces shared by the Language Tester quizzes: mode switch, question heading, feedback box, and empty note. */
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { contentWidth, radius, spacing, useThemeColors, type Tone } from "@/theme";
 import { ChoiceChips } from "@/components/tool/FormControls";
 
 export type QuizMode = "list" | "step";
@@ -12,6 +12,10 @@ const MODES: { value: QuizMode; label: string }[] = [
   { value: "step", label: "One by one" },
 ];
 
+export function FormWidth({ children }: { children: ReactNode }) {
+  return <View style={styles.formWidth}>{children}</View>;
+}
+
 export function QuizModeBar({ mode, onChange }: { mode: QuizMode; onChange: (mode: QuizMode) => void }) {
   return <ChoiceChips options={MODES} value={mode} onChange={onChange} />;
 }
@@ -19,7 +23,10 @@ export function QuizModeBar({ mode, onChange }: { mode: QuizMode; onChange: (mod
 export function ScorePill({ text }: { text: string }) {
   const colors = useThemeColors();
   return (
-    <View style={[styles.pill, { borderColor: colors.tone.sky.border, backgroundColor: colors.tone.sky.bg }]}>
+    <View
+      accessibilityLiveRegion="polite"
+      style={[styles.pill, { borderColor: colors.tone.sky.border, backgroundColor: colors.tone.sky.bg }]}
+    >
       <Text style={[styles.pillText, { color: colors.primary }]}>{text}</Text>
     </View>
   );
@@ -32,7 +39,9 @@ export function QuestionHeading({ index, text }: { index: number; text: string }
       <View style={[styles.badge, { backgroundColor: colors.tone.sky.bg }]}>
         <Text style={[styles.badgeText, { color: colors.primary }]}>{index + 1}</Text>
       </View>
-      <Text style={[styles.headingText, { color: colors.foreground }]}>{text}</Text>
+      <Text accessibilityRole="header" style={[styles.headingText, { color: colors.foreground }]}>
+        {text}
+      </Text>
     </View>
   );
 }
@@ -41,7 +50,10 @@ export function FeedbackBox({ tone, title, children }: { tone: Tone; title: stri
   const colors = useThemeColors();
   const palette = colors.tone[tone];
   return (
-    <View style={[styles.feedback, { backgroundColor: palette.bg, borderColor: palette.border }]}>
+    <View
+      accessibilityLiveRegion="polite"
+      style={[styles.feedback, { backgroundColor: palette.bg, borderColor: palette.border }]}
+    >
       <Text style={[styles.feedbackTitle, { color: palette.fg }]}>{title}</Text>
       {children}
     </View>
@@ -54,6 +66,12 @@ export function EmptyNote({ message }: { message: string }) {
 }
 
 const styles = StyleSheet.create({
+  formWidth: {
+    width: "100%",
+    maxWidth: contentWidth.form,
+    alignSelf: "center",
+    gap: spacing.lg,
+  },
   pill: {
     borderWidth: 1,
     borderRadius: radius.full,

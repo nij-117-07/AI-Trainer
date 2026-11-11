@@ -7,6 +7,7 @@ import { ResetButton } from "@/components/tool/ResetButton";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { McqQuiz } from "@/features/testing-portal/components/McqQuiz";
+import { PortalLoading } from "@/features/testing-portal/components/PortalLoading";
 import { useMcqResult } from "@/features/testing-portal/hooks/useMcqResult";
 
 export default function McqRoute() {
@@ -34,14 +35,14 @@ export default function McqRoute() {
             questions={questions}
             contextSetting={mcq.result.contextSetting}
           />
+        ) : mcq.loaded ? (
+          <EmptyHint
+            icon={ListChecks}
+            title="No questions yet"
+            hint="Tap Generate MCQs, choose a topic and context, then generate."
+          />
         ) : (
-          mcq.loaded && (
-            <EmptyHint
-              icon={ListChecks}
-              title="No questions yet"
-              hint="Tap Generate MCQs below, choose a topic and context, then generate."
-            />
-          )
+          <PortalLoading />
         )}
       </Section>
     </ToolScreen>

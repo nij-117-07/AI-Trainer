@@ -25,6 +25,7 @@ export function SessionHeader({ state, isPending, onEnd }: SessionHeaderProps) {
   const TrendIcon = trend.icon;
   const minutes = Math.max(0, state.timeRemainingMinutes);
   const questionNumber = Math.min(state.questionsAsked + 1, state.setup.maxQuestions);
+  const answeredPercent = Math.round(Math.min(100, (state.questionsAsked / Math.max(1, state.setup.maxQuestions)) * 100));
 
   return (
     <View style={[styles.box, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -42,6 +43,14 @@ export function SessionHeader({ state, isPending, onEnd }: SessionHeaderProps) {
       <Text style={[styles.meta, { color: colors.mutedForeground }]}>
         {state.setup.positionRole} · {state.setup.positionLevel}
       </Text>
+      <View
+        accessibilityRole="progressbar"
+        accessibilityLabel="Questions answered"
+        accessibilityValue={{ min: 0, max: state.setup.maxQuestions, now: state.questionsAsked }}
+        style={[styles.track, { backgroundColor: colors.muted }]}
+      >
+        <View style={[styles.fill, { backgroundColor: colors.primary, width: `${answeredPercent}%` }]} />
+      </View>
       <ActionButton label="End interview" icon={Flag} variant="outline" loading={isPending} onPress={onEnd} />
     </View>
   );
@@ -69,5 +78,13 @@ const styles = StyleSheet.create({
   },
   meta: {
     fontSize: 13,
+  },
+  track: {
+    height: 6,
+    borderRadius: radius.full,
+    overflow: "hidden",
+  },
+  fill: {
+    height: "100%",
   },
 });

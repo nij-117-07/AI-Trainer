@@ -1,8 +1,8 @@
 // src/features/sentence-of-the-day/components/SentenceOfTheDayForm.tsx
 /**
- * Sentence of the Day form, shown on its own page. The fields fill the page body; the button is
- * pinned in the footer. A successful generate saves the sentence and calls onGenerated, which
- * returns to the Sentence of the Day page.
+ * Sentence of the Day form, shown on its own page. On a phone the fields fill the page body and the
+ * button is pinned in the footer; on tablet and desktop the form sits in the side panel. A successful
+ * generate saves the sentence and calls onGenerated, which returns to the Sentence of the Day page.
  */
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
@@ -119,8 +119,20 @@ export function SentenceFormFooter({ sentence }: { sentence: SentenceFormState }
   );
 }
 
+export function SentenceFormSidePanel({ sentence }: { sentence: SentenceFormState }) {
+  return (
+    <View style={styles.sidePanel}>
+      <SentenceFormFields sentence={sentence} />
+      <SentenceFormFooter sentence={sentence} />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   footer: {
     gap: spacing.md,
+  },
+  sidePanel: {
+    gap: spacing.lg,
   },
 });

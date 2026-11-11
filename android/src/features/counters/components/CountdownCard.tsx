@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Pause, Play, RotateCcw, Trash2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { radius, spacing, useLayout, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
 import { ensureCountdownPermission, cancelCountdownEnd, scheduleCountdownEnd } from "../lib/countdown-notifications";
 import { formatClock, idleTimer, pauseTimer, remainingMs, startTimer, syncTimer } from "../lib/timer";
@@ -26,6 +26,7 @@ interface CountdownCardProps {
 
 export function CountdownCard({ countdown, timer, onChange, onDelete }: CountdownCardProps) {
   const colors = useThemeColors();
+  const { size } = useLayout();
   const durationMs = countdown.durationSec * 1000;
   const [now, setNow] = useState(() => Date.now());
   const running = timer.status === "running";
@@ -50,6 +51,7 @@ export function CountdownCard({ countdown, timer, onChange, onDelete }: Countdow
 
   const left = remainingMs(timer, now);
   const done = timer.status === "done";
+  const toggleLabel = running ? "Pause" : timer.status === "paused" ? "Resume" : "Start";
   const fraction = durationMs > 0 ? Math.max(0, Math.min(1, left / durationMs)) : 0;
 
   async function togglePlay() {
@@ -86,36 +88,53 @@ export function CountdownCard({ countdown, timer, onChange, onDelete }: Countdow
         <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={1}>
           {countdown.name}
         </Text>
-        <Pressable onPress={confirmDelete} accessibilityRole="button" accessibilityLabel={`Delete ${countdown.name}`} hitSlop={8} style={styles.deleteButton}>
+        <Pressable onPress={confirmDelete} accessibilityRole="button" accessibilityLabel={`Delete ${countdown.name}`} style={styles.deleteButton}>
           <Trash2 size={18} color={colors.destructive} />
         </Pressable>
       </View>
 
-      <Text style={[styles.clock, { color: done ? colors.primary : colors.foreground }]}>{formatClock(left)}</Text>
+      <Text
+        accessibilityRole="timer"
+        accessibilityLabel={`${countdown.name} time left ${formatClock(left)}`}
+        style={[styles.clock, { color: done ? colors.primary : colors.foreground, fontSize: size === "phone" ? 48 : 72 }]}
+      >
+        {formatClock(left)}
+      </Text>
 
       <View
         style={[styles.track, { backgroundColor: colors.muted }]}
         accessibilityRole="progressbar"
+        accessibilityLabel={`${countdown.name} progress`}
         accessibilityValue={{ min: 0, max: 100, now: Math.round((1 - fraction) * 100) }}
       >
         <View style={[styles.fill, { backgroundColor: colors.primary, width: `${fraction * 100}%` }]} />
       </View>
-      <Text style={[styles.status, { color: done ? colors.primary : colors.mutedForeground }]}>
+      <Text
+        accessibilityLiveRegion="polite"
+        style={[styles.status, { color: done ? colors.primary : colors.mutedForeground }]}
+      >
         {STATUS_TEXT[timer.status]} · set for {formatClock(durationMs)}
       </Text>
 
       <View style={styles.buttons}>
         {done ? (
-          <PillButton label="Restart" icon={RotateCcw} primary onPress={reset} />
+          <PillButton label="Restart" accessibilityLabel={`Restart ${countdown.name}`} icon={RotateCcw} primary onPress={reset} />
         ) : (
           <>
             <PillButton
-              label={running ? "Pause" : timer.status === "paused" ? "Resume" : "Start"}
+              label={toggleLabel}
+              accessibilityLabel={`${toggleLabel} ${countdown.name}`}
               icon={running ? Pause : Play}
               primary
               onPress={togglePlay}
             />
-            <PillButton label="Reset" icon={RotateCcw} disabled={timer.status === "idle"} onPress={reset} />
+            <PillButton
+              label="Reset"
+              accessibilityLabel={`Reset ${countdown.name}`}
+              icon={RotateCcw}
+              disabled={timer.status === "idle"}
+              onPress={reset}
+            />
           </>
         )}
       </View>
@@ -135,14 +154,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   deleteButton: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: radius.full,
   },
   clock: {
-    fontSize: 40,
     fontWeight: "700",
     letterSpacing: -1,
     fontVariant: ["tabular-nums"],

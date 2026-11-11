@@ -6,8 +6,9 @@
  */
 import { StyleSheet, Text, View } from "react-native";
 import { BookOpenText, Languages, ListChecks, Lightbulb, Target } from "lucide-react-native";
-import { useThemeColors } from "@/theme";
+import { radius, spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
@@ -20,7 +21,9 @@ export function LessonResultView({ lesson }: { lesson: Lesson }) {
     <>
       {lesson.header !== "" && (
         <Panel>
-          <Text style={[styles.header, { color: colors.foreground }]}>{lesson.header}</Text>
+          <Text accessibilityRole="header" style={[styles.header, { color: colors.foreground }]}>
+            {lesson.header}
+          </Text>
         </Panel>
       )}
 
@@ -45,14 +48,21 @@ export function LessonResultView({ lesson }: { lesson: Lesson }) {
         {lesson.vocabulary.length === 0 ? (
           <EmptyNote message="No vocabulary returned." />
         ) : (
-          lesson.vocabulary.map((entry, index) => (
-            <View key={`${entry.word}-${index}`} style={[styles.word, { borderColor: colors.border }]}>
-              <Text style={[styles.wordText, { color: colors.foreground }]}>{entry.word}</Text>
-              {entry.ipa !== "" && <Text style={[styles.ipa, { color: colors.mutedForeground }]}>/{entry.ipa}/</Text>}
-              {entry.translation !== "" && <Text style={[styles.body, { color: colors.foreground }]}>{entry.translation}</Text>}
-              {entry.example !== "" && <Text style={[styles.example, { color: colors.mutedForeground }]}>{entry.example}</Text>}
-            </View>
-          ))
+          <CardGrid>
+            {lesson.vocabulary.map((entry, index) => (
+              <View
+                key={`${entry.word}-${index}`}
+                style={[styles.word, { backgroundColor: colors.background, borderColor: colors.border }]}
+              >
+                <Text selectable style={[styles.wordText, { color: colors.foreground }]}>
+                  {entry.word}
+                </Text>
+                {entry.ipa !== "" && <Text style={[styles.ipa, { color: colors.mutedForeground }]}>/{entry.ipa}/</Text>}
+                {entry.translation !== "" && <Text style={[styles.body, { color: colors.foreground }]}>{entry.translation}</Text>}
+                {entry.example !== "" && <Text style={[styles.example, { color: colors.mutedForeground }]}>{entry.example}</Text>}
+              </View>
+            ))}
+          </CardGrid>
         )}
       </Panel>
 
@@ -98,9 +108,10 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   word: {
-    borderTopWidth: 1,
-    paddingTop: 12,
-    gap: 4,
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.xs,
   },
   wordText: {
     fontSize: 17,

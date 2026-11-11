@@ -4,7 +4,7 @@ import { FibTab } from "@/features/language-tester/components/FibTab";
 
 export default function LanguageTesterFibRoute() {
   return (
-    <ToolScreen title="Fill in the Blank">
+    <ToolScreen title="Fill in the Blank" wide>
       <FibTab />
     </ToolScreen>
   );

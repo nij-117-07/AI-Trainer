@@ -43,7 +43,7 @@ export default function GuessGameRoute() {
           <AnswerComposer
             label="Your guess"
             value={game.draft}
-            placeholder={guessesLeft(session) === 0 ? "Out of guesses — keep trying!" : "Make a guess…"}
+            placeholder={guessesLeft(session) === 0 ? "No guesses left. Keep trying or ask for a hint." : "Make a guess…"}
             maxLength={GUESS_MAX_LENGTH}
             pending={game.pending === "guess"}
             error={game.error}
@@ -64,7 +64,7 @@ export default function GuessGameRoute() {
             <EmptyHint
               icon={Gamepad2}
               title="No game yet"
-              hint="Tap New game below, choose a category and difficulty, then start."
+              hint="Tap New game, choose a category and difficulty, then start."
             />
           )
         )}

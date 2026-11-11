@@ -35,7 +35,7 @@ export default function SocialPostsRoute() {
           <EmptyHint
             icon={Megaphone}
             title="No posts yet"
-            hint="Tap New posts below, describe the platform and topic, then generate."
+            hint="Tap New posts, describe the platform and topic, then generate."
           />
         )}
       </Section>

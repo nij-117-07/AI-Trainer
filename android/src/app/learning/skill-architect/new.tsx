@@ -18,7 +18,7 @@ export default function SkillArchitectNewRoute() {
       <EmptyHint
         icon={Layers}
         title="Describe what you want to master"
-        hint="Fill in the form below and tap Generate skill tree. Your tree opens when it is ready."
+        hint="Fill in the form and tap Generate skill tree. Your tree opens when it is ready."
       />
     </ToolScreen>
   );

@@ -21,7 +21,7 @@ export default function SocraticRoute() {
           maxLength={STATEMENT_MAX}
           pending={chat.pending}
           error={chat.error}
-          submitLabel="Send"
+          submitLabel="Send reply"
           onChangeText={chat.setDraft}
           onSubmit={() => void chat.send()}
         />

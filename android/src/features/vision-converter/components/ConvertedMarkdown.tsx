@@ -46,7 +46,9 @@ export function ConvertedMarkdown({ markdown }: { markdown: string }) {
       </View>
 
       {text === "" ? (
-        <Text style={[styles.empty, { color: colors.mutedForeground }]}>The model returned no Markdown.</Text>
+        <Text style={[styles.empty, { color: colors.mutedForeground }]}>
+          The model returned no Markdown. Try a clearer image or a more specific instruction.
+        </Text>
       ) : mode === "preview" ? (
         <View style={[styles.viewer, { borderColor: colors.border, backgroundColor: colors.background }]}>
           <ScrollView nestedScrollEnabled contentContainerStyle={styles.viewerContent}>

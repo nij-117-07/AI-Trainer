@@ -18,6 +18,7 @@ export default function LessonRoute() {
       footer={
         <ActionButton label="New lesson" icon={Sparkles} onPress={() => router.push("/language-learner/lesson/new")} />
       }
+      footerSide={false}
     >
       <Section>
         {lesson ? (
@@ -26,7 +27,7 @@ export default function LessonRoute() {
           <EmptyHint
             icon={Sparkles}
             title="No lesson yet"
-            hint="Tap New lesson below, choose your level and focus, then generate."
+            hint="Tap New lesson, pick your level and focus, then generate."
           />
         )}
       </Section>

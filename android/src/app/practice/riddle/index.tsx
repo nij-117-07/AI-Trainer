@@ -64,7 +64,7 @@ export default function RiddleRoute() {
             <EmptyHint
               icon={Brain}
               title="No riddle yet"
-              hint="Tap New riddle below, choose a topic and difficulty, then generate."
+              hint="Tap New riddle, choose a topic and difficulty, then generate."
             />
           )
         )}

@@ -37,7 +37,9 @@ export function RoleplayChatBody({ chat }: { chat: RoleplayChatState }) {
         ) : (
           <>
             <ActivityIndicator color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>Loading conversation…</Text>
+            <Text accessibilityLiveRegion="polite" style={[styles.loadingText, { color: colors.mutedForeground }]}>
+              Loading conversation…
+            </Text>
           </>
         )}
       </View>
@@ -70,7 +72,7 @@ export function RoleplayChatBody({ chat }: { chat: RoleplayChatState }) {
           title="No conversation yet"
           hint={
             hasPersona
-              ? "Send a message below to step into character."
+              ? "Type a message to step into character."
               : "Write a persona first, then send your first message."
           }
         />
@@ -78,12 +80,14 @@ export function RoleplayChatBody({ chat }: { chat: RoleplayChatState }) {
         history.map((message, index) => <MessageBubble key={index} message={message} speaker="Persona" />)
       )}
 
-      {pending && (
-        <View style={styles.typingRow}>
-          <Loader2 size={14} color={colors.primary} />
-          <Text style={[styles.typingText, { color: colors.mutedForeground }]}>The persona is responding…</Text>
-        </View>
-      )}
+      <View accessibilityLiveRegion="polite" style={styles.typingRow}>
+        {pending && (
+          <>
+            <Loader2 size={14} color={colors.primary} />
+            <Text style={[styles.typingText, { color: colors.mutedForeground }]}>The persona is responding…</Text>
+          </>
+        )}
+      </View>
     </Section>
   );
 }

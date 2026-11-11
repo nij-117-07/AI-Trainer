@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    minHeight: 36,
+    minHeight: 44,
     justifyContent: "center",
   },
   changeText: {

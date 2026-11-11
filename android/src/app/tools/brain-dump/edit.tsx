@@ -1,6 +1,8 @@
 // src/app/tools/brain-dump/edit.tsx
+import { StyleSheet, Text } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SearchX } from "lucide-react-native";
+import { spacing, useThemeColors } from "@/theme";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
@@ -9,11 +11,16 @@ import { useNoteEditor, useStoredNote } from "@/features/brain-dump/hooks/useNot
 import type { Note } from "@/features/brain-dump/types";
 
 export default function BrainDumpEditRoute() {
+  const colors = useThemeColors();
   const { noteId } = useLocalSearchParams<{ noteId: string }>();
   const note = useStoredNote(noteId);
 
   if (note === undefined) {
-    return <ToolScreen title="Edit note" usesAi={false}>{null}</ToolScreen>;
+    return (
+      <ToolScreen title="Edit note" usesAi={false}>
+        <Text style={[styles.loading, { color: colors.mutedForeground }]}>Loading note…</Text>
+      </ToolScreen>
+    );
   }
 
   if (note === null) {
@@ -28,6 +35,14 @@ export default function BrainDumpEditRoute() {
 
   return <NoteEditPage key={note.id} note={note} />;
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    fontSize: 14,
+    lineHeight: 20,
+    paddingHorizontal: spacing.xs,
+  },
+});
 
 function NoteEditPage({ note }: { note: Note }) {
   const router = useRouter();

@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Check, ChevronDown } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { Field } from "@/components/tool/FormControls";
+import { Field, pointerCursor } from "@/components/tool/FormControls";
 
 const CUSTOM = "__custom__";
 
@@ -61,9 +61,11 @@ export function SelectField({
       <Pressable
         onPress={() => setOpen(true)}
         accessibilityRole="button"
-        accessibilityLabel={label}
+        accessibilityLabel={`${label}: ${selectedLabel}`}
+        accessibilityHint="Opens the list of options"
         style={({ pressed }) => [
           styles.trigger,
+          pointerCursor,
           { borderColor: colors.border, backgroundColor: colors.background },
           pressed && { backgroundColor: colors.muted },
         ]}
@@ -78,6 +80,7 @@ export function SelectField({
           onChangeText={onChange}
           placeholder={customPlaceholder}
           placeholderTextColor={colors.mutedForeground}
+          accessibilityLabel={`${label}, custom value`}
           returnKeyType="done"
           maxLength={100}
           style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
@@ -116,7 +119,7 @@ function OptionRow({ label, selected, onPress }: { label: string; selected: bool
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      style={({ pressed }) => [styles.option, pressed && { backgroundColor: colors.muted }]}
+      style={({ pressed }) => [styles.option, pointerCursor, pressed && { backgroundColor: colors.muted }]}
     >
       <Text style={[styles.optionText, { color: colors.foreground }, selected && { color: colors.primary, fontWeight: "600" }]}>
         {label}
@@ -131,6 +134,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    minHeight: 44,
     borderWidth: 1,
     borderRadius: radius.lg,
     paddingHorizontal: spacing.lg,

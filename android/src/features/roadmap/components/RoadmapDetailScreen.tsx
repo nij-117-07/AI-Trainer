@@ -115,7 +115,7 @@ export function RoadmapDetailScreen({ state }: { state: RoadmapDetailState }) {
         <Panel>
           <SectionTitle icon={Check} title="All stages done" />
           <Text style={[styles.muted, { color: colors.mutedForeground }]}>
-            You have finished every main point. Add a stage in the footer if you want to keep going.
+            You have finished every main point. Add a stage in the form to keep going.
           </Text>
         </Panel>
       ) : null}
@@ -126,7 +126,7 @@ export function RoadmapDetailScreen({ state }: { state: RoadmapDetailState }) {
           <EmptyHint
             icon={Flag}
             title="No stages yet"
-            hint="Add your first stage in the footer below."
+            hint="Add your first stage in the form."
           />
         ) : (
           roadmap.mainPoints.map((point, index) => (

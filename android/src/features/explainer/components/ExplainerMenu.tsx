@@ -4,7 +4,7 @@
  */
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
-import { BookOpenText, GraduationCap, Lightbulb, Puzzle, type LucideIcon } from "lucide-react-native";
+import { BookOpenText, ChevronRight, GraduationCap, Lightbulb, Puzzle, type LucideIcon } from "lucide-react-native";
 import { breakpoints, radius, spacing, useThemeColors, type Tone } from "@/theme";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 
@@ -21,7 +21,7 @@ const TOOLS: ExplainerTool[] = [
   {
     key: "explain",
     title: "Quick Explain",
-    description: "A structured explanation of any topic, tuned to your level, with a one-line takeaway.",
+    description: "A clear explanation of any topic at your level, plus a one-line takeaway.",
     route: "/learning/explainer/explain",
     icon: Lightbulb,
     tone: "amber",
@@ -29,7 +29,7 @@ const TOOLS: ExplainerTool[] = [
   {
     key: "atoz",
     title: "A-to-Z Tutorial",
-    description: "A full, markdown-formatted tutorial that covers your topic from A to Z.",
+    description: "A complete, step-by-step tutorial that takes any topic from basics to advanced.",
     route: "/learning/explainer/atoz",
     icon: BookOpenText,
     tone: "sky",
@@ -37,7 +37,7 @@ const TOOLS: ExplainerTool[] = [
   {
     key: "feynman",
     title: "Feynman",
-    description: "Simplify jargon-heavy ideas with metaphors, pitched to an age you choose.",
+    description: "Explain hard ideas in plain words, with metaphors pitched to the age you choose.",
     route: "/learning/explainer/feynman",
     icon: Puzzle,
     tone: "rose",
@@ -45,7 +45,7 @@ const TOOLS: ExplainerTool[] = [
   {
     key: "socratic",
     title: "Socratic Mentor",
-    description: "Discovery questions with hints that guide you to the crux without giving answers.",
+    description: "Answer guided questions with optional hints, so you reach the answer yourself.",
     route: "/learning/explainer/socratic",
     icon: GraduationCap,
     tone: "rose",
@@ -76,8 +76,11 @@ export function ExplainerMenu() {
                 pressed && { opacity: 0.85 },
               ]}
             >
-              <View style={[styles.iconTile, { backgroundColor: colors.card, borderColor: tone.border }]}>
-                <Icon size={20} color={tone.fg} />
+              <View style={styles.header}>
+                <View style={[styles.iconTile, { backgroundColor: colors.card, borderColor: tone.border }]}>
+                  <Icon size={20} color={tone.fg} />
+                </View>
+                <ChevronRight size={18} color={colors.mutedForeground} />
               </View>
               <Text style={[styles.title, { color: colors.foreground }]}>{tool.title}</Text>
               <Text style={[styles.description, { color: colors.mutedForeground }]}>{tool.description}</Text>
@@ -101,6 +104,11 @@ const styles = StyleSheet.create({
     borderRadius: radius["2xl"],
     padding: spacing.xl,
     gap: spacing.md,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   iconTile: {
     width: 44,

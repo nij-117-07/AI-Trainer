@@ -9,13 +9,14 @@ import { Check } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { StepNavigator } from "@/components/tool/StepNavigator";
 import { evaluateFibAnswer } from "../lib/generators";
 import { errorMessage } from "../lib/text";
 import { useRunSignal } from "../hooks/useRunSignal";
 import type { FibEvaluation, FibQuestion, FibResult } from "../types";
-import { EmptyNote, FeedbackBox, QuestionHeading, QuizModeBar, ScorePill, type QuizMode } from "./QuizParts";
+import { EmptyNote, FeedbackBox, FormWidth, QuestionHeading, QuizModeBar, ScorePill, type QuizMode } from "./QuizParts";
 import { usePersistedRunState } from "@/hooks/usePersistedRunState";
 
 const STORAGE_KEY = "language-learner.language-tester.fib.run.v1";
@@ -58,40 +59,44 @@ export function FibQuiz({ result }: { result: FibResult }) {
     }
   }
 
+  const cards = result.questions.map((question, index) =>
+    mode === "list" || index === activeIndex ? (
+      <QuestionCard
+        key={index}
+        index={index}
+        question={question}
+        answer={answers[index] ?? ""}
+        evaluation={feedback[index]}
+        isChecking={pendingIndex === index}
+        onChangeAnswer={(text) => setAnswers((current) => ({ ...current, [index]: text }))}
+        onCheck={() => void check(index)}
+      />
+    ) : null,
+  );
+
   return (
     <View style={styles.quiz}>
-      <View style={styles.toolbar}>
-        <QuizModeBar mode={mode} onChange={setMode} />
-        <ScorePill text={`${checkedCount}/${total} checked`} />
-      </View>
+      <FormWidth>
+        <View style={styles.toolbar}>
+          <QuizModeBar mode={mode} onChange={setMode} />
+          <ScorePill text={`${checkedCount}/${total} checked`} />
+        </View>
 
-      {mode === "step" && total > 0 && (
-        <StepNavigator
-          index={activeIndex}
-          total={total}
-          onPrevious={() => setActiveIndex((index) => Math.max(0, index - 1))}
-          onNext={() => setActiveIndex((index) => Math.min(total - 1, index + 1))}
-        />
-      )}
-
-      <ErrorText message={error} />
-
-      {total === 0 && <EmptyNote message="No sentences were returned. Try generating again." />}
-
-      {result.questions.map((question, index) =>
-        mode === "list" || index === activeIndex ? (
-          <QuestionCard
-            key={index}
-            index={index}
-            question={question}
-            answer={answers[index] ?? ""}
-            evaluation={feedback[index]}
-            isChecking={pendingIndex === index}
-            onChangeAnswer={(text) => setAnswers((current) => ({ ...current, [index]: text }))}
-            onCheck={() => void check(index)}
+        {mode === "step" && total > 0 && (
+          <StepNavigator
+            index={activeIndex}
+            total={total}
+            onPrevious={() => setActiveIndex((index) => Math.max(0, index - 1))}
+            onNext={() => setActiveIndex((index) => Math.min(total - 1, index + 1))}
           />
-        ) : null,
-      )}
+        )}
+
+        <ErrorText message={error} />
+
+        {total === 0 && <EmptyNote message="No sentences were returned. Try generating again." />}
+      </FormWidth>
+
+      {mode === "list" ? <CardGrid>{cards}</CardGrid> : <FormWidth>{cards}</FormWidth>}
     </View>
   );
 }
@@ -129,9 +134,10 @@ function QuestionCard({ index, question, answer, evaluation, isChecking, onChang
         voice
       />
       <ActionButton
-        label={isChecking ? "Checking…" : evaluation ? "Checked" : "Check"}
+        label={isChecking ? "Checking…" : evaluation ? "Checked" : "Check answer"}
         icon={evaluation ? Check : undefined}
         loading={isChecking}
+        disabled={evaluation !== undefined || answer.trim() === ""}
         variant="outline"
         onPress={onCheck}
       />

@@ -23,6 +23,8 @@ export function MessageList({ messages, persona, sending, onRegenerate, speech }
       ref={listRef}
       data={messages}
       keyExtractor={(item) => item.id}
+      accessibilityRole="log"
+      accessibilityLabel="Conversation"
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
       onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: !sending })}

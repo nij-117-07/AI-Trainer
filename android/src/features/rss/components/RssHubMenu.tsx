@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Newspaper, Settings2, type LucideIcon } from "lucide-react-native";
 import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 
 interface HubLink {
@@ -39,8 +40,8 @@ export function RssHubMenu() {
   const router = useRouter();
 
   return (
-    <ToolScreen title="RSS Feed" usesAi={false}>
-      <View style={styles.list}>
+    <ToolScreen title="RSS Feed" usesAi={false} wide>
+      <CardGrid>
         {LINKS.map((link) => {
           const Icon = link.icon;
           const tone = colors.tone[link.tone];
@@ -64,15 +65,12 @@ export function RssHubMenu() {
             </Pressable>
           );
         })}
-      </View>
+      </CardGrid>
     </ToolScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  list: {
-    gap: spacing.lg,
-  },
   card: {
     borderWidth: 1,
     borderRadius: radius["2xl"],

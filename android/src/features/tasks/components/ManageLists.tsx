@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { ActionButton, Panel, TextField } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { confirmAction } from "@/features/chatbot/lib/confirm";
@@ -26,24 +27,26 @@ export function ManageLists({ store, onBack }: { store: TaskStore; onBack: () =>
         <Text style={[styles.backText, { color: colors.foreground }]}>All tasks</Text>
       </Pressable>
 
-      <NamedListPanel
-        title="Projects"
-        noun="project"
-        hint="Group tasks, like Work or Home. Deleting a project keeps its tasks."
-        items={store.projects}
-        onAdd={store.addProject}
-        onRename={store.renameProject}
-        onRemove={store.removeProject}
-      />
-      <NamedListPanel
-        title="Labels"
-        noun="label"
-        hint="Tag tasks across projects. Deleting a label removes it from every task."
-        items={store.labels}
-        onAdd={store.addLabel}
-        onRename={store.renameLabel}
-        onRemove={store.removeLabel}
-      />
+      <CardGrid>
+        <NamedListPanel
+          title="Projects"
+          noun="project"
+          hint="Group tasks, like Work or Home. Deleting a project keeps its tasks."
+          items={store.projects}
+          onAdd={store.addProject}
+          onRename={store.renameProject}
+          onRemove={store.removeProject}
+        />
+        <NamedListPanel
+          title="Labels"
+          noun="label"
+          hint="Tag tasks across projects. Deleting a label removes it from every task."
+          items={store.labels}
+          onAdd={store.addLabel}
+          onRename={store.renameLabel}
+          onRemove={store.removeLabel}
+        />
+      </CardGrid>
     </Section>
   );
 }
@@ -71,11 +74,15 @@ function NamedListPanel({ title, noun, hint, items, onAdd, onRename, onRemove }:
 
   return (
     <Panel>
-      <Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>
+      <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>{title}</Text>
       <Text style={[styles.hint, { color: colors.mutedForeground }]}>{hint}</Text>
       <TextField label={`New ${noun}`} value={name} onChangeText={setName} onSubmitEditing={add} maxLength={60} />
       <ActionButton label={`Add ${noun}`} icon={Plus} onPress={add} />
-      {items.length === 0 ? <Text style={[styles.hint, { color: colors.mutedForeground }]}>No {title.toLowerCase()} yet.</Text> : null}
+      {items.length === 0 ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.hint, { color: colors.mutedForeground }]}>
+          No {title.toLowerCase()} yet.
+        </Text>
+      ) : null}
       {items.map((item) => (
         <NamedRow
           key={item.id}
@@ -137,7 +144,7 @@ function NamedRow({
         }
         accessibilityRole="button"
         accessibilityLabel={`Delete ${noun} ${item.name}`}
-        hitSlop={8}
+        style={styles.removeButton}
       >
         <Trash2 size={18} color={colors.destructive} />
       </Pressable>
@@ -150,6 +157,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
+    minHeight: 44,
   },
   backText: {
     fontSize: 15,
@@ -170,11 +178,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.lg,
     paddingLeft: spacing.lg,
-    paddingRight: spacing.md,
   },
   input: {
     flex: 1,
+    minHeight: 44,
     fontSize: 16,
     paddingVertical: spacing.md,
+  },
+  removeButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

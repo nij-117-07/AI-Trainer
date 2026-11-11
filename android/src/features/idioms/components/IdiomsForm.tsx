@@ -5,9 +5,9 @@
  * returns to the Idioms page.
  */
 import { useEffect, useRef } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Sparkles } from "lucide-react-native";
-import { spacing } from "@/theme";
+import { spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { languagePair } from "@/features/language-profiles/lib/profiles";
@@ -114,10 +114,16 @@ export function IdiomsFormFields({ idioms }: { idioms: IdiomFormState }) {
 }
 
 export function IdiomsFormFooter({ idioms }: { idioms: IdiomFormState }) {
+  const colors = useThemeColors();
   const { pending, error, submit } = idioms;
 
   return (
     <View style={styles.footer}>
+      {pending ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
+          Working on your idiom. This can take a moment.
+        </Text>
+      ) : null}
       <ErrorText message={error} />
       <ActionButton
         label={pending ? "Finding the perfect idiom…" : "Generate an idiom"}
@@ -132,5 +138,9 @@ export function IdiomsFormFooter({ idioms }: { idioms: IdiomFormState }) {
 const styles = StyleSheet.create({
   footer: {
     gap: spacing.md,
+  },
+  status: {
+    fontSize: 13,
+    lineHeight: 18,
   },
 });

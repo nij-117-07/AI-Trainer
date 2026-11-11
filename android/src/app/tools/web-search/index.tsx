@@ -4,7 +4,7 @@ import { ToolScreen } from "@/components/tool/ToolScreen";
 
 export default function WebSearchRoute() {
   return (
-    <ToolScreen title="Web Search">
+    <ToolScreen title="Web Search" usesAi={false} wide>
       <WebSearchTool />
     </ToolScreen>
   );

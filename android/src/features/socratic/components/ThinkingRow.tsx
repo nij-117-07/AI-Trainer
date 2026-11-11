@@ -6,7 +6,7 @@ import { spacing, useThemeColors } from "@/theme";
 export function ThinkingRow({ label }: { label: string }) {
   const colors = useThemeColors();
   return (
-    <View style={styles.row}>
+    <View style={styles.row} accessibilityLiveRegion="polite">
       <ActivityIndicator color={colors.primary} />
       <Text style={[styles.text, { color: colors.mutedForeground }]}>{label}</Text>
     </View>

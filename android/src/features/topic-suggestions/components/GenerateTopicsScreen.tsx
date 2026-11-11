@@ -43,7 +43,7 @@ export function GenerateTopicsScreen() {
 
 function GenerateBody({ state }: { state: SuggestTopicsState }) {
   const colors = useThemeColors();
-  const { batch, notice } = state;
+  const { batch, notice, busy } = state;
 
   if (!batch) {
     return (
@@ -51,8 +51,8 @@ function GenerateBody({ state }: { state: SuggestTopicsState }) {
         {notice ? <Text style={[styles.notice, { color: colors.foreground }]}>{notice}</Text> : null}
         <EmptyHint
           icon={Sparkles}
-          title="No new topics yet"
-          hint="Fill in the form below and tap Suggest topics. Then pick the ones you want to add."
+          title={busy ? "Finding topics…" : "No new topics yet"}
+          hint={busy ? "This can take a moment." : "Fill in the form and tap Suggest topics. Then pick the ones you want to add."}
         />
       </View>
     );
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   toggleAll: {
-    minHeight: 40,
+    minHeight: 44,
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
   },

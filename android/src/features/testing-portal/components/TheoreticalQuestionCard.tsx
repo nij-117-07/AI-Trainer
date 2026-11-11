@@ -100,10 +100,13 @@ export function TheoreticalQuestionCard({
         />
         <ImagePickerField value={image} onChange={setImage} disabled={grade.pending} />
         {grade.data && (
-          <Text style={[styles.hint, { color: answerChanged ? colors.foreground : colors.mutedForeground }]}>
+          <Text
+            accessibilityLiveRegion="polite"
+            style={[styles.hint, { color: answerChanged ? colors.foreground : colors.mutedForeground }]}
+          >
             {answerChanged
               ? "Your answer has changed. Resubmit to update the feedback."
-              : "Edit your answer above and resubmit to get new feedback."}
+              : "Edit your answer and resubmit to get new feedback."}
           </Text>
         )}
         <ActionButton

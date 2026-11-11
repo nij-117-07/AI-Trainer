@@ -15,7 +15,12 @@ export function ScoreBar({ label, value, max = 10 }: { label: string; value: num
           {value.toFixed(1)}/{max}
         </Text>
       </View>
-      <View style={[styles.track, { backgroundColor: colors.muted }]}>
+      <View
+        accessibilityRole="progressbar"
+        accessibilityLabel={`${label} ${value.toFixed(1)} out of ${max}`}
+        accessibilityValue={{ min: 0, max, now: value }}
+        style={[styles.track, { backgroundColor: colors.muted }]}
+      >
         <View style={[styles.fill, { backgroundColor: colors.primary, width: `${percent}%` }]} />
       </View>
     </View>

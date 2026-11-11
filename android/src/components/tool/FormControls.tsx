@@ -3,11 +3,14 @@
  * Shared form and layout controls for the Testing Portal tabs.
  */
 import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps, type ViewStyle } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { appendTranscript } from "@/features/chatbot/lib/voice-text";
 import { VoiceInputRow } from "./VoiceInputRow";
+
+/** Shows a hand pointer on web. Ignored on native. */
+export const pointerCursor = { cursor: "pointer" } as ViewStyle;
 
 export function Panel({ children }: { children: ReactNode }) {
   const colors = useThemeColors();
@@ -38,6 +41,7 @@ export function TextField({ label, hint, multiline = false, voice = false, style
     <Field label={label} hint={hint}>
       <TextInput
         placeholderTextColor={colors.mutedForeground}
+        accessibilityLabel={label}
         multiline={multiline}
         textAlignVertical={multiline ? "top" : "center"}
         blurOnSubmit={!multiline}
@@ -86,6 +90,7 @@ export function ChoiceChips<T extends string | number>({ options, value, onChang
             accessibilityState={{ selected }}
             style={[
               styles.chip,
+              pointerCursor,
               {
                 borderColor: selected ? colors.primary : colors.border,
                 backgroundColor: selected ? colors.primary : colors.card,
@@ -125,6 +130,7 @@ export function ActionButton({ label, icon: Icon, onPress, loading = false, vari
       accessibilityState={{ busy: loading, disabled: inactive }}
       style={({ pressed }) => [
         styles.button,
+        pointerCursor,
         filled
           ? { backgroundColor: colors.primary }
           : { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card },

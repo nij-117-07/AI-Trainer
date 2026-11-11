@@ -61,7 +61,7 @@ export default function PuzzleRoute() {
             <EmptyHint
               icon={PuzzleIcon}
               title="No puzzle yet"
-              hint="Tap New puzzle below, choose a puzzle type and difficulty, then generate."
+              hint="Tap New puzzle, choose a puzzle type and difficulty, then generate."
             />
           )
         )}

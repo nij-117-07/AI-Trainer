@@ -8,7 +8,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 import { useFocusEffect, useRouter } from "expo-router";
 import { BookOpenCheck, Drama, Sparkles, UserCog } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, Panel, TextField } from "@/components/tool/FormControls";
+import { ActionButton, Panel, TextField, pointerCursor } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRoleplayRoles } from "../hooks/useRoleplayRoles";
@@ -58,6 +58,7 @@ export function RoleplayPersonaFields({ persona }: { persona: PersonaState }) {
                   accessibilityState={{ selected }}
                   style={[
                     styles.chip,
+                    pointerCursor,
                     {
                       borderColor: selected ? colors.primary : colors.border,
                       backgroundColor: selected ? colors.primary : colors.card,
@@ -144,6 +145,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    minHeight: 44,
+    justifyContent: "center",
   },
   chipText: {
     fontSize: 14,

@@ -1,8 +1,8 @@
 // src/app/tools/creative-assets/index.tsx
 import { useRouter } from "expo-router";
 import { Palette, Sparkles } from "lucide-react-native";
-import { StyleSheet, View } from "react-native";
-import { spacing } from "@/theme";
+import { StyleSheet, Text, View } from "react-native";
+import { spacing, useThemeColors } from "@/theme";
 import { ActionButton } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
@@ -13,6 +13,7 @@ import { usePersistedResult } from "@/features/creative-assets/hooks/usePersiste
 
 export default function CreativeAssetsRoute() {
   const router = useRouter();
+  const colors = useThemeColors();
   const { result, setResult } = usePersistedResult();
   const liked = result ? likedTexts(result).length : 0;
 
@@ -27,6 +28,9 @@ export default function CreativeAssetsRoute() {
             disabled={liked === 0}
             onPress={() => router.push("/tools/creative-assets/more")}
           />
+          {liked === 0 && result ? (
+            <Text style={[styles.hint, { color: colors.mutedForeground }]}>Tick a suggestion to build on it.</Text>
+          ) : null}
           <ActionButton
             label="New assets"
             icon={Palette}
@@ -43,7 +47,7 @@ export default function CreativeAssetsRoute() {
           <EmptyHint
             icon={Palette}
             title="No assets yet"
-            hint="Tap New assets below, choose a task type and topic, then generate."
+            hint="Tap New assets, choose a task type and topic, then generate."
           />
         )}
       </Section>
@@ -54,5 +58,10 @@ export default function CreativeAssetsRoute() {
 const styles = StyleSheet.create({
   footer: {
     gap: spacing.md,
+  },
+  hint: {
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: "center",
   },
 });

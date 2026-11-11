@@ -39,6 +39,7 @@ export function SearchForm({ form, setForm, searxngUrl, onSearxngUrlChange, pend
     <Panel>
       <TextField
         label="Search the web"
+        accessibilityLabel="Search query"
         placeholder="Search the web…"
         value={form.query}
         onChangeText={(text) => update("query", text)}
@@ -56,6 +57,7 @@ export function SearchForm({ form, setForm, searxngUrl, onSearxngUrlChange, pend
       {form.engine === "searxng" && (
         <TextField
           label="SearXNG address"
+          accessibilityLabel="SearXNG address"
           placeholder="http://192.168.1.20:8888"
           hint="Your SearXNG instance, reachable from this phone. Saved on this device."
           value={searxngUrl}
@@ -118,6 +120,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
+    minHeight: 44,
   },
   filterTitle: {
     fontSize: 14,

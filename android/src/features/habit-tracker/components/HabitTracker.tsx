@@ -4,6 +4,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Check, Plus, Trash2 } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, ChoiceChips, Panel, TextField } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { dateKey } from "@/features/tasks/lib/dates";
@@ -24,6 +26,10 @@ export function HabitTracker() {
   const [view, setView] = useState<HabitView>("today");
   const today = dateKey(new Date());
 
+  if (!store.loaded) {
+    return <LoadingHabits />;
+  }
+
   return (
     <Section>
       <ChoiceChips options={VIEW_OPTIONS} value={view} onChange={setView} wrap={false} />
@@ -36,27 +42,41 @@ export function HabitTracker() {
   );
 }
 
+function LoadingHabits() {
+  const colors = useThemeColors();
+  return <Text style={[styles.empty, { color: colors.mutedForeground }]}>Loading habits…</Text>;
+}
+
 type HabitStore = ReturnType<typeof useHabits>;
 
 function TodayView({ store, today }: { store: HabitStore; today: string }) {
   const colors = useThemeColors();
   const doneToday = store.habits.filter((habit) => isDone(store.completions, today, habit.id)).length;
   const full = store.habits.length >= MAX_HABITS;
+  const allDone = store.habits.length > 0 && doneToday === store.habits.length;
 
   return (
     <>
       <Panel>
-        <Text style={[styles.bigNumber, { color: colors.foreground }]}>
+        <Text
+          accessibilityLiveRegion="polite"
+          accessibilityLabel={`${doneToday} of ${store.habits.length} habits done today`}
+          style={[styles.bigNumber, { color: colors.foreground }]}
+        >
           {doneToday} / {store.habits.length}
         </Text>
         <Text style={[styles.muted, { color: colors.mutedForeground }]}>
-          {store.habits.length === 0 ? "Add a habit below to get started." : "habits done today"}
+          {store.habits.length === 0 ? "Add your first habit in the form to get started." : allDone ? "All done for today" : "habits done today"}
         </Text>
       </Panel>
 
-      {store.habits.map((habit) => (
-        <HabitRow key={habit.id} habit={habit} store={store} today={today} />
-      ))}
+      {store.habits.length > 0 ? (
+        <CardGrid>
+          {store.habits.map((habit) => (
+            <HabitRow key={habit.id} habit={habit} store={store} today={today} />
+          ))}
+        </CardGrid>
+      ) : null}
 
       <AddHabitForm store={store} disabled={full} />
     </>
@@ -139,49 +159,58 @@ function DashboardView({ store, today }: { store: HabitStore; today: string }) {
     <>
       <View style={styles.statRow}>
         <StatCard label="Today" value={`${doneToday}/${store.habits.length}`} />
-        <StatCard label="Best streak" value={`${bestStreak}d`} />
+        <StatCard label="Best streak" value={`${bestStreak} days`} />
         <StatCard label={`${RATE_DAYS}-day rate`} value={`${averageRate}%`} />
       </View>
 
-      <SectionTitle icon={Check} title="Last 14 days" />
+      <SectionTitle icon={Check} title={`Last ${HISTORY_DAYS} days`} />
       {store.habits.length === 0 ? (
-        <Text style={[styles.empty, { color: colors.mutedForeground }]}>No habits yet. Add some on the Today tab.</Text>
+        <EmptyHint icon={Check} title="No habits yet" hint="Add habits on the Today tab to see your streaks here." />
       ) : (
-        store.habits.map((habit) => {
-          const rate = completionRate(store.completions, habit.id, today, RATE_DAYS);
-          return (
-            <Panel key={habit.id}>
-              <View style={styles.dashHeader}>
-                <Text style={[styles.habitName, { color: colors.foreground, flex: 1 }]} numberOfLines={1}>
-                  {habit.name}
+        <CardGrid>
+          {store.habits.map((habit) => {
+            const rate = completionRate(store.completions, habit.id, today, RATE_DAYS);
+            const streak = currentStreak(store.completions, habit.id, today);
+            const doneDays = days.filter((day) => isDone(store.completions, day, habit.id)).length;
+            return (
+              <Panel key={habit.id}>
+                <View style={styles.dashHeader}>
+                  <Text style={[styles.habitName, { color: colors.foreground, flex: 1 }]} numberOfLines={1}>
+                    {habit.name}
+                  </Text>
+                  <Text
+                    accessibilityLabel={`${rate} percent done in the last ${RATE_DAYS} days`}
+                    style={[styles.muted, { color: colors.mutedForeground }]}
+                  >
+                    {rate}%
+                  </Text>
+                  <Pressable
+                    onPress={() => store.removeOne(habit.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Delete ${habit.name}`}
+                    style={styles.deleteButton}
+                  >
+                    <Trash2 size={18} color={colors.destructive} />
+                  </Pressable>
+                </View>
+                <View accessible accessibilityLabel={`${doneDays} of ${HISTORY_DAYS} days done`} style={styles.grid}>
+                  {days.map((day) => (
+                    <View
+                      key={day}
+                      style={[
+                        styles.cell,
+                        { backgroundColor: isDone(store.completions, day, habit.id) ? colors.primary : colors.muted },
+                      ]}
+                    />
+                  ))}
+                </View>
+                <Text style={[styles.muted, { color: colors.mutedForeground }]}>
+                  Streak: {streak} {streak === 1 ? "day" : "days"}
                 </Text>
-                <Text style={[styles.muted, { color: colors.mutedForeground }]}>{rate}%</Text>
-                <Pressable
-                  onPress={() => store.removeOne(habit.id)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Delete ${habit.name}`}
-                  hitSlop={8}
-                >
-                  <Trash2 size={18} color={colors.destructive} />
-                </Pressable>
-              </View>
-              <View style={styles.grid}>
-                {days.map((day) => (
-                  <View
-                    key={day}
-                    style={[
-                      styles.cell,
-                      { backgroundColor: isDone(store.completions, day, habit.id) ? colors.primary : colors.muted },
-                    ]}
-                  />
-                ))}
-              </View>
-              <Text style={[styles.muted, { color: colors.mutedForeground }]}>
-                Streak: {currentStreak(store.completions, habit.id, today)} days
-              </Text>
-            </Panel>
-          );
-        })
+              </Panel>
+            );
+          })}
+        </CardGrid>
       )}
     </>
   );
@@ -201,7 +230,7 @@ const styles = StyleSheet.create({
   bigNumber: { fontSize: 30, fontWeight: "700", letterSpacing: -0.5 },
   muted: { fontSize: 13, lineHeight: 18 },
   empty: { fontSize: 14, textAlign: "center", paddingVertical: spacing.md },
-  row: { flexDirection: "row", alignItems: "center", gap: spacing.md, borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg },
+  row: { flexDirection: "row", alignItems: "center", gap: spacing.md, borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg, minHeight: 44 },
   tick: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, alignItems: "center", justifyContent: "center" },
   rowText: { flex: 1, gap: 2 },
   habitName: { fontSize: 16, fontWeight: "600" },
@@ -210,6 +239,7 @@ const styles = StyleSheet.create({
   stat: { flex: 1, borderWidth: 1, borderRadius: radius.md, padding: spacing.md, gap: 2, alignItems: "center" },
   statValue: { fontSize: 20, fontWeight: "700" },
   dashHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  deleteButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", borderRadius: radius.full },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
   cell: { width: 18, height: 18, borderRadius: 4 },
 });

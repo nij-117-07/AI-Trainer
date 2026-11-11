@@ -44,7 +44,7 @@ export default function TasksRoute() {
   const browsing = !managing && !selected;
 
   return (
-    <ToolScreen title="Task Manager" footer={browsing ? <TaskComposer store={store} /> : null}>
+    <ToolScreen title="Task Manager" wide={!selected} footer={browsing ? <TaskComposer store={store} /> : null}>
       {body}
     </ToolScreen>
   );

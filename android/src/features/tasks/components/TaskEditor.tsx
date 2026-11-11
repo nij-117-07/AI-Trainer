@@ -170,6 +170,7 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
           accessibilityRole="button"
           accessibilityLabel={dirty ? "Save changes" : "All changes saved"}
           accessibilityState={{ disabled: !dirty }}
+          accessibilityLiveRegion="polite"
           style={({ pressed }) => [
             styles.saveButton,
             { backgroundColor: dirty ? colors.primary : colors.muted },
@@ -184,10 +185,14 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
       </View>
 
       <ErrorText message={error} />
-      {notice ? <Text style={[styles.hint, { color: colors.mutedForeground }]}>{notice}</Text> : null}
+      {notice ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.hint, { color: colors.mutedForeground }]}>
+          {notice}
+        </Text>
+      ) : null}
 
       <Panel>
-        <Text style={[styles.heading, { color: colors.mutedForeground }]}>Details</Text>
+        <Text accessibilityRole="header" style={[styles.heading, { color: colors.mutedForeground }]}>Details</Text>
         <TextField label="Title" value={draft.title} onChangeText={(value) => update({ title: value })} maxLength={200} />
         <TextField
           label="Notes"
@@ -231,7 +236,7 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
       </Panel>
 
       <Panel>
-        <Text style={[styles.heading, { color: colors.mutedForeground }]}>Schedule</Text>
+        <Text accessibilityRole="header" style={[styles.heading, { color: colors.mutedForeground }]}>Schedule</Text>
         <Text style={[styles.label, { color: colors.foreground }]}>Due date</Text>
         <ChoiceChips
           options={dueDateOptions(new Date())}
@@ -268,7 +273,7 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
       </Panel>
 
       <Panel>
-        <Text style={[styles.heading, { color: colors.mutedForeground }]}>Subtasks</Text>
+        <Text accessibilityRole="header" style={[styles.heading, { color: colors.mutedForeground }]}>Subtasks</Text>
         {draft.subtasks.length === 0 ? (
           <Text style={[styles.hint, { color: colors.mutedForeground }]}>No subtasks yet.</Text>
         ) : null}
@@ -277,38 +282,47 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
             <Pressable
               onPress={() => toggleSubtask(subtask.id)}
               accessibilityRole="checkbox"
-              accessibilityLabel={`Complete subtask ${subtask.title}`}
+              accessibilityLabel={subtask.title}
               accessibilityState={{ checked: subtask.completed }}
-              hitSlop={8}
-              style={[
-                styles.checkbox,
-                { borderColor: colors.mutedForeground, backgroundColor: subtask.completed ? colors.primary : "transparent" },
-              ]}
+              style={styles.subtaskToggle}
             >
-              {subtask.completed ? <Check size={12} color={colors.primaryForeground} /> : null}
+              <View
+                style={[
+                  styles.checkbox,
+                  { borderColor: colors.mutedForeground, backgroundColor: subtask.completed ? colors.primary : "transparent" },
+                ]}
+              >
+                {subtask.completed ? <Check size={12} color={colors.primaryForeground} /> : null}
+              </View>
+              <Text
+                style={[
+                  styles.subtaskTitle,
+                  { color: subtask.completed ? colors.mutedForeground : colors.foreground },
+                  subtask.completed && styles.strike,
+                ]}
+              >
+                {subtask.title}
+              </Text>
             </Pressable>
-            <Text
-              style={[
-                styles.subtaskTitle,
-                { color: subtask.completed ? colors.mutedForeground : colors.foreground },
-                subtask.completed && styles.strike,
-              ]}
+            <Pressable
+              onPress={() => removeSubtask(subtask.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Remove subtask ${subtask.title}`}
+              style={styles.removeButton}
             >
-              {subtask.title}
-            </Text>
-            <Pressable onPress={() => removeSubtask(subtask.id)} accessibilityRole="button" accessibilityLabel={`Remove subtask ${subtask.title}`} hitSlop={8}>
               <X size={16} color={colors.mutedForeground} />
             </Pressable>
           </View>
         ))}
         <TextField
-          label="Add subtask"
+          label="Subtask"
+          placeholder="Name the next step"
           value={newSubtask}
           onChangeText={setNewSubtask}
           onSubmitEditing={addSubtask}
           maxLength={200}
         />
-        <ActionButton label="Add" icon={Plus} variant="outline" onPress={addSubtask} />
+        <ActionButton label="Add subtask" icon={Plus} variant="outline" onPress={addSubtask} />
       </Panel>
 
       <Panel>
@@ -321,7 +335,15 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
             onBack();
           }}
         />
-        <ActionButton label="Delete task" icon={Trash2} variant="outline" onPress={confirmDelete} />
+        <Pressable
+          onPress={confirmDelete}
+          accessibilityRole="button"
+          accessibilityLabel="Delete task"
+          style={({ pressed }) => [styles.deleteAction, pressed && { opacity: 0.7 }]}
+        >
+          <Trash2 size={18} color={colors.destructive} />
+          <Text style={[styles.deleteText, { color: colors.destructive }]}>Delete task</Text>
+        </Pressable>
       </Panel>
     </Section>
   );
@@ -338,7 +360,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 40,
+    minHeight: 44,
   },
   backText: {
     fontSize: 15,
@@ -348,7 +370,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 40,
+    minHeight: 44,
     paddingHorizontal: spacing.lg,
     borderRadius: radius.full,
   },
@@ -381,11 +403,35 @@ const styles = StyleSheet.create({
   subtaskRow: {
     flexDirection: "row",
     alignItems: "center",
+    gap: spacing.xs,
+  },
+  subtaskToggle: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.md,
+    minHeight: 44,
   },
   subtaskTitle: {
     flex: 1,
     fontSize: 15,
+  },
+  removeButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    minHeight: 44,
+  },
+  deleteText: {
+    fontSize: 16,
+    fontWeight: "600",
   },
   strike: {
     textDecorationLine: "line-through",

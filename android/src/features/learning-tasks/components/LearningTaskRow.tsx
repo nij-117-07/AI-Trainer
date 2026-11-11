@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 40,
+    minHeight: 44,
   },
   title: {
     flex: 1,
@@ -153,8 +153,8 @@ const styles = StyleSheet.create({
     textDecorationLine: "line-through",
   },
   remove: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -27,7 +27,9 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
       ]}
     >
       {copied ? <Check size={16} color={colors.foreground} /> : <Copy size={16} color={colors.foreground} />}
-      <Text style={[styles.text, { color: colors.foreground }]}>{copied ? "Copied" : "Copy"}</Text>
+      <Text accessibilityLiveRegion="polite" style={[styles.text, { color: colors.foreground }]}>
+        {copied ? "Copied" : "Copy"}
+      </Text>
     </Pressable>
   );
 }
@@ -37,6 +39,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
+    minHeight: 44,
     borderWidth: 1,
     borderRadius: radius.lg,
     paddingHorizontal: spacing.md,

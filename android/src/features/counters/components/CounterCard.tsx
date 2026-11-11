@@ -33,7 +33,7 @@ export function CounterCard({ counter, onChange, onReset, onDelete }: CounterCar
         <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={1}>
           {counter.name}
         </Text>
-        <Pressable onPress={confirmDelete} accessibilityRole="button" accessibilityLabel={`Delete ${counter.name}`} hitSlop={8} style={styles.deleteButton}>
+        <Pressable onPress={confirmDelete} accessibilityRole="button" accessibilityLabel={`Delete ${counter.name}`} style={styles.deleteButton}>
           <Trash2 size={18} color={colors.destructive} />
         </Pressable>
       </View>
@@ -46,18 +46,34 @@ export function CounterCard({ counter, onChange, onReset, onDelete }: CounterCar
       <View
         style={[styles.track, { backgroundColor: colors.muted }]}
         accessibilityRole="progressbar"
+        accessibilityLabel={`${counter.name} progress`}
         accessibilityValue={{ min: 0, max: counter.target, now: counter.count }}
       >
         <View style={[styles.fill, { backgroundColor: colors.primary, width: `${progress * 100}%` }]} />
       </View>
-      <Text style={[styles.status, { color: reached ? colors.primary : colors.mutedForeground }]}>
+      <Text
+        accessibilityLiveRegion="polite"
+        style={[styles.status, { color: reached ? colors.primary : colors.mutedForeground }]}
+      >
         {reached ? "Goal reached" : `${counter.target - counter.count} to go`}
       </Text>
 
       <View style={styles.buttons}>
-        <PillButton label="−1" icon={Minus} disabled={counter.count === 0} onPress={() => onChange(-1)} />
-        <PillButton label="+1" icon={Plus} primary onPress={() => onChange(1)} />
-        <PillButton label="Reset" icon={RotateCcw} disabled={counter.count === 0} onPress={onReset} />
+        <PillButton
+          label="−1"
+          accessibilityLabel={`Subtract 1 from ${counter.name}`}
+          icon={Minus}
+          disabled={counter.count === 0}
+          onPress={() => onChange(-1)}
+        />
+        <PillButton label="+1" accessibilityLabel={`Add 1 to ${counter.name}`} icon={Plus} primary onPress={() => onChange(1)} />
+        <PillButton
+          label="Reset"
+          accessibilityLabel={`Reset ${counter.name}`}
+          icon={RotateCcw}
+          disabled={counter.count === 0}
+          onPress={onReset}
+        />
       </View>
     </Panel>
   );
@@ -75,8 +91,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   deleteButton: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: radius.full,

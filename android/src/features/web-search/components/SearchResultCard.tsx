@@ -46,7 +46,9 @@ export function SearchResultCard({ result, rank }: SearchResultCardProps) {
         </Text>
       </View>
 
-      <Text style={[styles.title, { color: colors.primary }]}>{result.title || result.url}</Text>
+      <Text style={[styles.title, { color: colors.primary }]} numberOfLines={3}>
+        {result.title || result.url}
+      </Text>
 
       {result.snippet ? (
         <Text style={[styles.snippet, { color: colors.mutedForeground }]} numberOfLines={3}>

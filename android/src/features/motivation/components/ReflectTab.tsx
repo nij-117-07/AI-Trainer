@@ -108,7 +108,7 @@ export function ReflectResults({ state }: { state: ReflectTabState }) {
       <EmptyHint
         icon={NotebookText}
         title="Your reflection prompts"
-        hint="Describe your mood and a goal in the form below, then tap Generate prompts."
+        hint="Describe your mood and a goal in the form, then tap Generate prompts."
       />
     );
   }

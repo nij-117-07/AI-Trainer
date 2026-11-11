@@ -1,6 +1,8 @@
 // src/app/tools/rss/manager/edit.tsx
+import { ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SearchX } from "lucide-react-native";
+import { useThemeColors } from "@/theme";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
@@ -10,11 +12,18 @@ import { useStoredFeed } from "@/features/rss/hooks/useStoredFeed";
 import type { RssFeedConfig } from "@/features/rss/types";
 
 export default function RssFeedEditRoute() {
+  const colors = useThemeColors();
   const { feedId } = useLocalSearchParams<{ feedId: string }>();
   const feed = useStoredFeed(feedId);
 
   if (feed === undefined) {
-    return <ToolScreen title="Edit feed" usesAi={false}>{null}</ToolScreen>;
+    return (
+      <ToolScreen title="Edit feed" usesAi={false}>
+        <Section>
+          <ActivityIndicator color={colors.primary} accessibilityLabel="Loading feed" />
+        </Section>
+      </ToolScreen>
+    );
   }
 
   if (feed === null) {

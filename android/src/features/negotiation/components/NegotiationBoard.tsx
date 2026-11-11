@@ -69,10 +69,15 @@ export function NegotiationBoard({ session, busy, ending, onEnd, onKeepNegotiati
 
         {!session.complete ? (
           ending ? (
-            <ActionButton label="Keep negotiating" variant="outline" onPress={onKeepNegotiating} />
+            <ActionButton label="Keep negotiating" variant="outline" disabled={busy} onPress={onKeepNegotiating} />
           ) : (
-            <ActionButton label="End & evaluate" icon={Flag} variant="outline" onPress={onEnd} />
+            <ActionButton label="End & evaluate" icon={Flag} variant="outline" disabled={busy} onPress={onEnd} />
           )
+        ) : null}
+        {ending && !session.complete ? (
+          <Text style={[styles.body, { color: colors.mutedForeground }]}>
+            Describe how it ended in the message box, then tap Evaluate outcome.
+          </Text>
         ) : null}
       </Panel>
 
@@ -80,6 +85,12 @@ export function NegotiationBoard({ session, busy, ending, onEnd, onKeepNegotiati
 
       <Panel>
         <Transcript entries={session.log} />
+
+        {busy ? (
+          <Text accessibilityLiveRegion="polite" style={[styles.body, { color: colors.mutedForeground }]}>
+            {ending ? "Evaluating the negotiation…" : "The opponent is replying…"}
+          </Text>
+        ) : null}
 
         {session.complete ? (
           <View style={styles.closed}>

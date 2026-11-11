@@ -53,12 +53,14 @@ export function BiasInoculatorTab() {
       {result ? (
         <BiasResult result={result} />
       ) : (
-        <Text style={[styles.empty, { color: colors.mutedForeground }]}>
-          No scenario yet. Pick a field of interest and the inoculator will craft a stealthy bias scenario for you.
+        <Text accessibilityLiveRegion="polite" style={[styles.empty, { color: colors.mutedForeground }]}>
+          {pending
+            ? "Building a scenario. This can take a moment."
+            : "No scenario yet. Enter your field of interest, choose a bias, then generate one."}
         </Text>
       )}
 
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={bias.reset} />
+      <ActionButton label="Reset form and scenario" icon={RefreshCcw} variant="outline" onPress={bias.reset} />
     </Section>
   );
 }

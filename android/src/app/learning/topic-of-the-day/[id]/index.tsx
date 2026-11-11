@@ -4,7 +4,7 @@
  * switches to selection mode, where rows are picked and deleted together from the footer.
  */
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { CalendarDays, Layers, Trash2 } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
@@ -90,7 +90,12 @@ export default function BroadTopicRoute() {
       <Section>
         {selecting && topics.length > 0 ? (
           <View style={styles.selectBar}>
-            <Pressable onPress={toggleAll} accessibilityRole="button" accessibilityLabel={allSelected ? "Clear selection" : "Select all topics"}>
+            <Pressable
+              onPress={toggleAll}
+              accessibilityRole="button"
+              accessibilityLabel={allSelected ? "Clear selection" : "Select all topics"}
+              style={styles.selectAllButton}
+            >
               <Text style={[styles.selectAll, { color: colors.primary }]}>{allSelected ? "Clear selection" : "Select all"}</Text>
             </Pressable>
             <Text style={[styles.count, { color: colors.mutedForeground }]}>
@@ -99,11 +104,13 @@ export default function BroadTopicRoute() {
           </View>
         ) : null}
 
-        {loaded && topics.length === 0 ? (
+        {!loaded ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : topics.length === 0 ? (
           <EmptyHint
             icon={CalendarDays}
             title="No topics yet"
-            hint="Tap New topic below, choose a focus and level, then generate."
+            hint="Tap New topic, choose a focus and level, then generate."
           />
         ) : (
           <View style={styles.list}>
@@ -125,8 +132,9 @@ export default function BroadTopicRoute() {
 
 const styles = StyleSheet.create({
   headerAction: {
+    minHeight: 44,
+    justifyContent: "center",
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
   },
   headerActionText: {
     fontSize: 16,
@@ -136,6 +144,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  selectAllButton: {
+    minHeight: 44,
+    justifyContent: "center",
   },
   selectAll: {
     fontSize: 15,

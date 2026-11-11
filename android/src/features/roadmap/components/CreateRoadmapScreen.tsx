@@ -18,14 +18,22 @@ import { AddRow, IconButton } from "./ItemControls";
 
 export function RoadmapCreateBody({ state }: { state: RoadmapCreateState }) {
   const colors = useThemeColors();
-  const { topics, busy, removeTopic, addTopic } = state;
+  const { topics, busy, generating, removeTopic, addTopic } = state;
 
   if (topics.length === 0) {
+    if (generating) {
+      return (
+        <Panel>
+          <SectionTitle icon={MapPinned} title="Generating main points…" />
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>This takes a moment.</Text>
+        </Panel>
+      );
+    }
     return (
       <EmptyHint
         icon={MapPinned}
         title="Plan a subject step by step"
-        hint="Fill in the form below and tap Generate main points. You can edit the list before you create the roadmap."
+        hint="Fill in the form and tap Generate main points. You can edit the list before you create the roadmap."
       />
     );
   }
@@ -35,7 +43,9 @@ export function RoadmapCreateBody({ state }: { state: RoadmapCreateState }) {
       <Panel>
         <View style={styles.header}>
           <SectionTitle icon={MapPinned} title="Main points" />
-          <Text style={[styles.count, { color: colors.mutedForeground }]}>{topics.length} topics</Text>
+          <Text style={[styles.count, { color: colors.mutedForeground }]}>
+            {topics.length} main point{topics.length === 1 ? "" : "s"}
+          </Text>
         </View>
 
         <View style={styles.list}>
@@ -160,6 +170,10 @@ const styles = StyleSheet.create({
   },
   count: {
     fontSize: 12,
+  },
+  hint: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   list: {
     gap: spacing.sm,

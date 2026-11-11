@@ -16,7 +16,7 @@ type ViewMode = "list" | "step";
 
 const VIEW_MODES: { value: ViewMode; label: string }[] = [
   { value: "step", label: "One by one" },
-  { value: "list", label: "List" },
+  { value: "list", label: "All questions" },
 ];
 
 interface TheoreticalResultViewProps {

@@ -6,6 +6,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { MapPinned, Plus } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
@@ -65,7 +66,7 @@ export function RoadmapListScreen() {
   }
 
   return (
-    <ToolScreen title="Roadmap Planner">
+    <ToolScreen title="Roadmap Planner" wide>
       <Section>
         <Text style={[styles.lead, { color: colors.mutedForeground }]}>
           Break a subject into main points, then tick them off as you learn.
@@ -79,6 +80,8 @@ export function RoadmapListScreen() {
 
         <ErrorText message={error} />
 
+        {!loaded ? <Text style={[styles.lead, { color: colors.mutedForeground }]}>Loading your roadmaps…</Text> : null}
+
         {loaded && roadmaps.length === 0 ? (
           <EmptyHint
             icon={MapPinned}
@@ -87,14 +90,16 @@ export function RoadmapListScreen() {
           />
         ) : null}
 
-        {roadmaps.map((roadmap) => (
-          <RoadmapCard
-            key={roadmap.id}
-            roadmap={roadmap}
-            onOpen={() => openRoadmap(roadmap.id)}
-            onDelete={() => confirmDelete(roadmap)}
-          />
-        ))}
+        <CardGrid>
+          {roadmaps.map((roadmap) => (
+            <RoadmapCard
+              key={roadmap.id}
+              roadmap={roadmap}
+              onOpen={() => openRoadmap(roadmap.id)}
+              onDelete={() => confirmDelete(roadmap)}
+            />
+          ))}
+        </CardGrid>
       </Section>
     </ToolScreen>
   );

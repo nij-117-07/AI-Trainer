@@ -62,7 +62,7 @@ function CoachPanel({ feedback }: { feedback: CoachFeedback }) {
   return (
     <Panel>
       <SectionTitle icon={Award} title="Coach feedback" />
-      <View style={styles.scoreHeader}>
+      <View style={styles.scoreHeader} accessible accessibilityLabel={`Coach score ${feedback.score} out of 10`}>
         <Text style={[styles.bigScore, { color: colors.foreground }]}>{feedback.score}</Text>
         <Text style={[styles.body, { color: colors.mutedForeground }]}>/ 10</Text>
       </View>
@@ -153,9 +153,14 @@ function ScoreBar({ label, value, color }: { label: string; value: number; color
 
 function ScoreTrack({ percent, color }: { percent: number; color: string }) {
   const colors = useThemeColors();
+  const value = Math.max(0, Math.min(100, percent));
   return (
-    <View style={[styles.track, { backgroundColor: colors.muted }]}>
-      <View style={[styles.fill, { backgroundColor: color, width: `${Math.max(0, Math.min(100, percent))}%` }]} />
+    <View
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: value }}
+      style={[styles.track, { backgroundColor: colors.muted }]}
+    >
+      <View style={[styles.fill, { backgroundColor: color, width: `${value}%` }]} />
     </View>
   );
 }

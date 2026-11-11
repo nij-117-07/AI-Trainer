@@ -19,6 +19,7 @@ export function FeedFormFields({ form }: { form: FeedFormState }) {
     <>
       <TextField
         label="Name"
+        accessibilityLabel="Name"
         placeholder="e.g. Hacker News"
         value={draft.name}
         onChangeText={(text) => update("name", text)}
@@ -29,6 +30,7 @@ export function FeedFormFields({ form }: { form: FeedFormState }) {
 
       <TextField
         label="Feed URL"
+        accessibilityLabel="Feed URL"
         hint="The RSS or Atom address. It must start with https:// or http://."
         placeholder="e.g. https://news.ycombinator.com/rss"
         value={draft.url}
@@ -48,7 +50,7 @@ export function FeedFormFields({ form }: { form: FeedFormState }) {
         onPress={() => void form.test()}
       />
       {preview ? (
-        <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+        <Text accessibilityLiveRegion="polite" style={[styles.hint, { color: colors.mutedForeground }]}>
           {preview.title} · {preview.itemCount} items
         </Text>
       ) : null}
@@ -56,6 +58,7 @@ export function FeedFormFields({ form }: { form: FeedFormState }) {
 
       <TextField
         label="Category"
+        accessibilityLabel="Category"
         hint="Used to group channels in the viewer."
         placeholder="e.g. Tech"
         value={draft.category}

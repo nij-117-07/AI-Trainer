@@ -35,8 +35,7 @@ export function SessionCard({ session, onOpen, onDelete }: SessionCardProps) {
         <Pressable
           onPress={() => onDelete(session)}
           accessibilityRole="button"
-          accessibilityLabel="Delete session"
-          hitSlop={8}
+          accessibilityLabel={`Delete session ${summary.masterTopic || "Untitled session"}`}
           style={[styles.deleteButton, { borderColor: colors.border }]}
         >
           <Trash2 size={16} color={colors.destructive} />
@@ -73,8 +72,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   deleteButton: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     borderRadius: radius.full,
     borderWidth: 1,
     alignItems: "center",

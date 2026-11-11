@@ -49,7 +49,7 @@ function GenerateBody({ state }: { state: GenerateTasksState }) {
         <EmptyHint
           icon={Sparkles}
           title="No new tasks yet"
-          hint="Fill in the form below and tap Generate tasks. Then pick the ones you want to add."
+          hint="Fill in the form and tap Generate tasks. Then pick the ones you want to add."
         />
       </View>
     );
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   toggleAll: {
-    minHeight: 40,
+    minHeight: 44,
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
   },

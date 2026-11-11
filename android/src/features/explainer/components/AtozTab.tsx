@@ -11,6 +11,7 @@ import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { SelectField } from "@/components/tool/SelectField";
 import { useExplainerTool } from "../hooks/useExplainerTool";
+import { ResultLoading } from "./ResultLoading";
 import { LIMITS, parseTutorial, TUTORIAL_DEFAULTS, TUTORIAL_KEY } from "../lib/drafts";
 import { generateTutorial } from "../lib/generators";
 import { explanationStyleOptions, expertiseLevelOptions } from "../options";
@@ -22,14 +23,18 @@ export function useTutorial() {
 export type TutorialState = ReturnType<typeof useTutorial>;
 
 export function TutorialResults({ state }: { state: TutorialState }) {
-  const { result } = state;
+  const { result, pending } = state;
+
+  if (pending) {
+    return <ResultLoading title="Writing your tutorial" hint="Long tutorials can take a minute." />;
+  }
 
   if (!result) {
     return (
       <EmptyHint
         icon={BookOpenText}
         title="Write a full tutorial"
-        hint="Enter a topic in the form below, then tap Write tutorial."
+        hint="Enter a topic in the form, then tap Write tutorial."
       />
     );
   }

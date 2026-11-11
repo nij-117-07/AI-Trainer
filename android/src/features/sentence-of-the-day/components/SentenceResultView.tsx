@@ -1,11 +1,13 @@
 // src/features/sentence-of-the-day/components/SentenceResultView.tsx
 /**
- * Renders the featured sentence: the sentence and its natural translation, the literal
- * translation, grammar, cultural context, and substitution variations.
+ * Renders today's sentence: the sentence and its natural translation as the hero, then the literal
+ * translation, grammar, cultural context, and variations. Cards stack on a phone and fill columns
+ * on tablet and desktop.
  */
 import { StyleSheet, Text } from "react-native";
 import { BookOpen, Globe, Quote, Shuffle } from "lucide-react-native";
 import { useThemeColors } from "@/theme";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -18,7 +20,9 @@ export function SentenceResultView({ sentence }: { sentence: SentenceOfTheDay })
     <>
       <Panel>
         <SectionTitle icon={Quote} title="Sentence of the day" />
-        <Text style={[styles.sentence, { color: colors.foreground }]}>{sentence.targetSentence || "No sentence returned."}</Text>
+        <Text accessibilityRole="header" style={[styles.sentence, { color: colors.foreground }]}>
+          {sentence.targetSentence || "No sentence returned."}
+        </Text>
         {sentence.naturalTranslation !== "" && (
           <Text style={[styles.translation, { color: colors.mutedForeground }]}>{sentence.naturalTranslation}</Text>
         )}
@@ -26,45 +30,46 @@ export function SentenceResultView({ sentence }: { sentence: SentenceOfTheDay })
           <MarkdownText content={`**Literal translation:** ${sentence.literalTranslation}`} />
         )}
         <ListenButton text={sentence.targetSentence} label="Sentence" />
-      </Panel>
-
-      {sentence.grammaticalHighlight !== "" && (
-        <Panel>
-          <SectionTitle icon={BookOpen} title="Grammatical highlight" />
-          <MarkdownText content={sentence.grammaticalHighlight} />
-          <ListenButton text={sentence.grammaticalHighlight} label="Grammar" />
-        </Panel>
-      )}
-
-      {sentence.culturalContext !== "" && (
-        <Panel>
-          <SectionTitle icon={Globe} title="Cultural context" />
-          <MarkdownText content={sentence.culturalContext} />
-          <ListenButton text={sentence.culturalContext} label="Cultural context" />
-        </Panel>
-      )}
-
-      <Panel>
-        <SectionTitle icon={Shuffle} title="Try these variations" />
-        {sentence.substitutionOptions.length === 0 ? (
-          <Text style={[styles.note, { color: colors.mutedForeground }]}>No variations returned.</Text>
-        ) : (
-          <MarkdownText content={sentence.substitutionOptions.map((option) => `- ${option}`).join("\n")} />
+        {sentence.date !== "" && (
+          <Text style={[styles.note, { color: colors.mutedForeground }]}>Featured on {sentence.date}</Text>
         )}
       </Panel>
 
-      {sentence.date !== "" && (
-        <Text style={[styles.note, { color: colors.mutedForeground }]}>Featured on {sentence.date}</Text>
-      )}
+      <CardGrid>
+        {sentence.grammaticalHighlight !== "" && (
+          <Panel>
+            <SectionTitle icon={BookOpen} title="Grammatical highlight" />
+            <MarkdownText content={sentence.grammaticalHighlight} />
+            <ListenButton text={sentence.grammaticalHighlight} label="Grammar" />
+          </Panel>
+        )}
+
+        {sentence.culturalContext !== "" && (
+          <Panel>
+            <SectionTitle icon={Globe} title="Cultural context" />
+            <MarkdownText content={sentence.culturalContext} />
+            <ListenButton text={sentence.culturalContext} label="Cultural context" />
+          </Panel>
+        )}
+
+        <Panel>
+          <SectionTitle icon={Shuffle} title="Try these variations" />
+          {sentence.substitutionOptions.length === 0 ? (
+            <Text style={[styles.note, { color: colors.mutedForeground }]}>No variations returned.</Text>
+          ) : (
+            <MarkdownText content={sentence.substitutionOptions.map((option) => `- ${option}`).join("\n")} />
+          )}
+        </Panel>
+      </CardGrid>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   sentence: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
-    lineHeight: 28,
+    lineHeight: 30,
   },
   translation: {
     fontSize: 16,

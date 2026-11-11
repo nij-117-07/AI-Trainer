@@ -90,14 +90,14 @@ export function useConceptualBridge(): ConceptualBridgeState {
 }
 
 export function ConceptualBridgeResults({ bridge }: { bridge: ConceptualBridgeState }) {
-  const { form, result } = bridge;
+  const { form, result, pending } = bridge;
 
   if (!result) {
     return (
       <EmptyHint
         icon={Link2}
-        title="Build a bridge"
-        hint="Enter two unrelated concepts in the form below, then tap Build the bridge to see how they connect."
+        title={pending ? "Connecting concepts…" : "Build a bridge"}
+        hint={pending ? "This can take a moment." : "Enter two unrelated concepts in the form, then tap Build the bridge to see how they connect."}
       />
     );
   }
@@ -197,7 +197,12 @@ function FlexibilityScore({ score }: { score: number }) {
     <Panel>
       <SectionTitle icon={Brain} title="Cognitive flexibility" />
       <View style={styles.scoreRow}>
-        <View style={[styles.track, { backgroundColor: colors.muted }]}>
+        <View
+          accessibilityRole="progressbar"
+          accessibilityLabel="Cognitive flexibility"
+          accessibilityValue={{ min: 0, max: 5, now: score }}
+          style={[styles.track, { backgroundColor: colors.muted }]}
+        >
           <View style={[styles.fill, { backgroundColor: colors.primary, width: `${(score / 5) * 100}%` }]} />
         </View>
         <Text style={[styles.scoreText, { color: colors.foreground }]}>{score} / 5</Text>

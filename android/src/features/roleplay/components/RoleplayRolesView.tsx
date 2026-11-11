@@ -8,7 +8,8 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { BookOpenCheck, Pencil, Plus, RefreshCcw, Save, Trash2, UserCog } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText, Panel, TextField, pointerCursor } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRoleplayRoles } from "../hooks/useRoleplayRoles";
@@ -30,7 +31,7 @@ export function RoleplayRolesView() {
   );
 
   function confirmDelete(role: RoleRecord) {
-    Alert.alert("Delete this persona?", `Delete roleplay persona "${role.name}"?`, [
+    Alert.alert("Delete this persona?", `"${role.name}" will be removed. This cannot be undone.`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => void roles.remove(role.name) },
     ]);
@@ -61,7 +62,9 @@ export function RoleplayRolesView() {
           voice
         />
         <ErrorText message={roles.actionError} />
-        {roles.success ? <Text style={[styles.success, { color: colors.tone.emerald.fg }]}>{roles.success}</Text> : null}
+        <View accessibilityLiveRegion="polite">
+          {roles.success ? <Text style={[styles.success, { color: colors.tone.emerald.fg }]}>{roles.success}</Text> : null}
+        </View>
         <ActionButton
           label={roles.editing ? "Update persona" : "Create persona"}
           icon={Save}
@@ -75,46 +78,70 @@ export function RoleplayRolesView() {
         {roles.loadError ? (
           <>
             <ErrorText message={roles.loadError} />
-            <ActionButton label="Retry" icon={RefreshCcw} variant="outline" onPress={() => void reload()} />
+            <ActionButton label="Retry loading" icon={RefreshCcw} variant="outline" onPress={() => void reload()} />
           </>
         ) : roles.roles.length === 0 ? (
-          <Text style={[styles.empty, { color: colors.mutedForeground }]}>
-            {roles.loaded ? "No personas saved yet. Create one above." : "Loading personas…"}
+          <Text accessibilityLiveRegion="polite" style={[styles.empty, { color: colors.mutedForeground }]}>
+            {roles.loaded ? "No personas saved yet. Use the form to create your first one." : "Loading personas…"}
           </Text>
         ) : (
-          roles.roles.map((role) => (
-            <View key={role.name} style={[styles.row, { borderTopColor: colors.border }]}>
-              <View style={styles.nameWrap}>
-                <UserCog size={16} color={colors.mutedForeground} />
-                <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>
-                  {role.name}
-                </Text>
-              </View>
-              <View style={styles.actions}>
-                <Pressable
-                  onPress={() => roles.edit(role)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Edit ${role.name}`}
-                  style={[styles.smallButton, { borderColor: colors.border }]}
-                >
-                  <Pencil size={14} color={colors.foreground} />
-                  <Text style={[styles.smallText, { color: colors.foreground }]}>Edit</Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => confirmDelete(role)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Delete ${role.name}`}
-                  style={[styles.smallButton, { borderColor: colors.destructive }]}
-                >
-                  <Trash2 size={14} color={colors.destructive} />
-                  <Text style={[styles.smallText, { color: colors.destructive }]}>Delete</Text>
-                </Pressable>
-              </View>
-            </View>
-          ))
+          <CardGrid>
+            {roles.roles.map((role) => (
+              <RoleCard
+                key={role.name}
+                role={role}
+                onEdit={() => roles.edit(role)}
+                onDelete={() => confirmDelete(role)}
+              />
+            ))}
+          </CardGrid>
         )}
       </Panel>
     </Section>
+  );
+}
+
+function RoleCard({ role, onEdit, onDelete }: { role: RoleRecord; onEdit: () => void; onDelete: () => void }) {
+  const colors = useThemeColors();
+  return (
+    <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
+      <View style={styles.nameRow}>
+        <UserCog size={16} color={colors.mutedForeground} />
+        <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>
+          {role.name}
+        </Text>
+      </View>
+      <View style={styles.actions}>
+        <Pressable
+          onPress={onEdit}
+          accessibilityRole="button"
+          accessibilityLabel={`Edit ${role.name}`}
+          style={({ pressed }) => [
+            styles.smallButton,
+            pointerCursor,
+            { borderColor: colors.border },
+            pressed && { backgroundColor: colors.muted },
+          ]}
+        >
+          <Pencil size={14} color={colors.foreground} />
+          <Text style={[styles.smallText, { color: colors.foreground }]}>Edit</Text>
+        </Pressable>
+        <Pressable
+          onPress={onDelete}
+          accessibilityRole="button"
+          accessibilityLabel={`Delete ${role.name}`}
+          style={({ pressed }) => [
+            styles.smallButton,
+            pointerCursor,
+            { borderColor: colors.destructive },
+            pressed && { backgroundColor: colors.muted },
+          ]}
+        >
+          <Trash2 size={14} color={colors.destructive} />
+          <Text style={[styles.smallText, { color: colors.destructive }]}>Delete</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
@@ -126,16 +153,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  card: {
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
     gap: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
   },
-  nameWrap: {
-    flex: 1,
+  nameRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
@@ -151,16 +175,18 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   smallButton: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: spacing.xs,
+    minHeight: 44,
     borderWidth: 1,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
   },
   smallText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
   },
 });

@@ -33,6 +33,8 @@ export function ToggleChip({ label, selected = false, onPress }: ToggleChipProps
 
 const styles = StyleSheet.create({
   chip: {
+    minHeight: 44,
+    justifyContent: "center",
     borderWidth: 1,
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,

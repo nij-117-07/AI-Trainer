@@ -4,7 +4,7 @@ import { ToolScreen } from "@/components/tool/ToolScreen";
 
 export default function HabitTrackerRoute() {
   return (
-    <ToolScreen title="Habit Tracker">
+    <ToolScreen title="Habit Tracker" wide>
       <HabitTracker />
     </ToolScreen>
   );

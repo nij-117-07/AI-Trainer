@@ -19,7 +19,7 @@ export function LearningTaskListScreen() {
   const doneCount = state.tasks.filter((task) => task.done).length;
 
   return (
-    <ToolScreen title="Learning Tasks">
+    <ToolScreen title="Learning Tasks" wide>
       <Section>
         <Text style={[styles.lead, { color: colors.mutedForeground }]}>
           Keep a list of tasks toward your goal. Generate new ones, then tick them off as you finish.
@@ -41,6 +41,8 @@ export function LearningTaskListScreen() {
             </Text>
           ) : null}
         </View>
+
+        {!state.loaded ? <Text style={[styles.lead, { color: colors.mutedForeground }]}>Loading your tasks…</Text> : null}
 
         {state.loaded && state.tasks.length === 0 ? (
           <EmptyHint

@@ -44,7 +44,7 @@ export default function DebateRoute() {
             <EmptyHint
               icon={Swords}
               title="No debate yet"
-              hint="Tap New debate below, describe the two personas and a topic, then start."
+              hint="Tap New debate to describe two personas and a topic, then start."
             />
           )
         )}

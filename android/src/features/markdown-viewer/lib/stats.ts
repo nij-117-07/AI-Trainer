@@ -1,5 +1,5 @@
 // src/features/markdown-viewer/lib/stats.ts
-/** Word and line counts shown above the editor. */
+/** Word and line counts shown with the editor. */
 
 export function countWords(text: string): number {
   const trimmed = text.trim();

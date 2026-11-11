@@ -1,7 +1,7 @@
 // src/features/language-tester/components/RoleplayTranscript.tsx
 /**
  * Roleplay conversation. User lines sit on the right; character lines sit on the left with the
- * coach's critique, fluency score, and strategies below them.
+ * coach's critique, fluency score, and strategies inside the same bubble.
  */
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Target } from "lucide-react-native";
@@ -26,7 +26,7 @@ export function RoleplayTranscript({ turns, pending }: { turns: ChatTurn[]; pend
         <TurnBubble key={index} turn={turn} />
       ))}
       {pending && (
-        <View style={styles.pending}>
+        <View accessibilityLiveRegion="polite" style={styles.pending}>
           <ActivityIndicator color={colors.primary} />
           <Text style={[styles.pendingText, { color: colors.mutedForeground }]}>The character is replying…</Text>
         </View>
@@ -67,9 +67,12 @@ function FeedbackPanel({ feedback }: { feedback: RoleplayFeedback }) {
       <View style={styles.feedbackHeader}>
         <View style={styles.feedbackTitle}>
           <Target size={14} color={colors.mutedForeground} />
-          <Text style={[styles.feedbackLabel, { color: colors.foreground }]}>Coach feedback</Text>
+          <Text accessibilityRole="header" style={[styles.feedbackLabel, { color: colors.foreground }]}>
+            Coach feedback
+          </Text>
         </View>
         <View
+          accessibilityLiveRegion="polite"
           style={[
             styles.pill,
             { backgroundColor: feedback.isGoalAchieved ? colors.tone.emerald.bg : colors.muted },

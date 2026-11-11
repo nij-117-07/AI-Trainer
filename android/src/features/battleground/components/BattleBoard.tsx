@@ -47,6 +47,11 @@ export function BattleBoard({ session, pending }: { session: BattleSession; pend
           <HealthBar label="Your health" value={session.userHealth} />
           <HealthBar label="Opponent health" value={session.opponentHealth} />
         </View>
+        {pending && (
+          <Text accessibilityLiveRegion="polite" style={[styles.body, { color: colors.mutedForeground }]}>
+            Adjudicating your move…
+          </Text>
+        )}
       </Panel>
 
       {!session.isActive && (
@@ -110,7 +115,12 @@ export function BattleBoard({ session, pending }: { session: BattleSession; pend
           summary={`${Math.round(evaluation.score * 100)}% · You ${signed(evaluation.hpDeltaUser)} HP · Opponent ${signed(evaluation.hpDeltaOpponent)} HP`}
           defaultOpen
         >
-          <View style={[styles.track, { backgroundColor: colors.muted }]}>
+          <View
+            accessibilityRole="progressbar"
+            accessibilityLabel="Round score"
+            accessibilityValue={{ min: 0, max: 100, now: Math.round(Math.min(100, evaluation.score * 100)) }}
+            style={[styles.track, { backgroundColor: colors.muted }]}
+          >
             <View
               style={[
                 styles.fill,
@@ -166,7 +176,7 @@ export function BattleMoveFooter({ battle }: { battle: BattleSessionState }) {
       maxLength={2000}
       pending={battle.pending}
       error={battle.error}
-      submitLabel="Commit"
+      submitLabel="Commit move"
       onChangeText={setAnswer}
       onSubmit={() => void submit()}
     />
@@ -182,7 +192,12 @@ function HealthBar({ label, value }: { label: string; value: number }) {
         <Text style={[styles.strong, { color: colors.foreground }]}>{label}</Text>
         <Text style={[styles.body, { color: colors.mutedForeground }]}>{value} HP</Text>
       </View>
-      <View style={[styles.track, { backgroundColor: colors.muted }]}>
+      <View
+        accessibilityRole="progressbar"
+        accessibilityLabel={label}
+        accessibilityValue={{ min: 0, max: 100, now: width, text: `${value} HP` }}
+        style={[styles.track, { backgroundColor: colors.muted }]}
+      >
         <View style={[styles.fill, { backgroundColor: colors.primary, width: `${width}%` }]} />
       </View>
     </View>

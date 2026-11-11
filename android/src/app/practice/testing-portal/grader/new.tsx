@@ -12,7 +12,7 @@ export default function GraderNewRoute() {
   return (
     <ToolScreen
       title="New grade"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton label="Reset form" onPress={setup.reset} />}
       footer={<GraderFormFooter setup={setup} />}
     >
       <GraderFormFields setup={setup} />

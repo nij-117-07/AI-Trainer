@@ -1,8 +1,9 @@
 // src/features/chatbot/components/PersonaSwitcher.tsx
-/** Bottom sheet for choosing the persona to chat with. Switching starts a new chat. */
+/** Sheet for choosing the persona to chat with. Switching starts a new chat. Centered dialog on tablet and desktop. */
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Check, SlidersHorizontal } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Check, SlidersHorizontal, X } from "lucide-react-native";
+import { radius, spacing, useLayout, useThemeColors } from "@/theme";
+import { pointerCursor } from "@/components/tool/FormControls";
 import type { Persona } from "../types";
 import { PersonaAvatar } from "./PersonaAvatar";
 
@@ -17,13 +18,36 @@ interface PersonaSwitcherProps {
 
 export function PersonaSwitcher({ visible, onClose, personas, activeId, onSelect, onManage }: PersonaSwitcherProps) {
   const colors = useThemeColors();
+  const { size } = useLayout();
+  const dialog = size !== "phone";
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.root}>
-        <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close personas" />
-        <View style={[styles.sheet, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.title, { color: colors.foreground }]}>Choose a persona</Text>
+      <View style={[styles.root, dialog && styles.rootDialog]}>
+        <Pressable style={styles.backdrop} onPress={onClose} accessible={false} />
+        <View
+          style={[
+            styles.sheet,
+            dialog ? styles.dialog : styles.bottomSheet,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <View style={styles.header}>
+            <View style={styles.headerText}>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>
+                Choose a persona
+              </Text>
+              <Text style={[styles.hint, { color: colors.mutedForeground }]}>Switching starts a new chat.</Text>
+            </View>
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close personas"
+              style={({ pressed }) => [styles.closeButton, pointerCursor, pressed && { backgroundColor: colors.muted }]}
+            >
+              <X size={18} color={colors.foreground} />
+            </Pressable>
+          </View>
           <ScrollView contentContainerStyle={styles.list}>
             {personas.map((persona) => {
               const selected = persona.id === activeId;
@@ -36,6 +60,7 @@ export function PersonaSwitcher({ visible, onClose, personas, activeId, onSelect
                   accessibilityState={{ selected }}
                   style={({ pressed }) => [
                     styles.row,
+                    pointerCursor,
                     { borderColor: selected ? colors.primary : colors.border },
                     pressed && { backgroundColor: colors.muted },
                   ]}
@@ -58,7 +83,12 @@ export function PersonaSwitcher({ visible, onClose, personas, activeId, onSelect
             onPress={onManage}
             accessibilityRole="button"
             accessibilityLabel="Manage personas"
-            style={({ pressed }) => [styles.manage, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
+            style={({ pressed }) => [
+              styles.manage,
+              pointerCursor,
+              { borderColor: colors.border },
+              pressed && { backgroundColor: colors.muted },
+            ]}
           >
             <SlidersHorizontal size={16} color={colors.foreground} />
             <Text style={[styles.manageText, { color: colors.foreground }]}>Manage personas</Text>
@@ -74,21 +104,54 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
   },
+  rootDialog: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: spacing.xl,
+  },
   backdrop: {
     ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.4)",
   },
   sheet: {
-    borderTopLeftRadius: radius["2xl"],
-    borderTopRightRadius: radius["2xl"],
     borderWidth: 1,
     padding: spacing.xl,
     gap: spacing.lg,
     maxHeight: "75%",
   },
+  bottomSheet: {
+    borderTopLeftRadius: radius["2xl"],
+    borderTopRightRadius: radius["2xl"],
+  },
+  dialog: {
+    width: "100%",
+    maxWidth: 480,
+    borderRadius: radius["2xl"],
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  headerText: {
+    flex: 1,
+    gap: spacing.xs,
+  },
   title: {
     fontSize: 18,
     fontWeight: "700",
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    marginRight: -spacing.md,
+    borderRadius: radius.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  hint: {
+    fontSize: 13,
+    lineHeight: 18,
   },
   list: {
     gap: spacing.sm,
@@ -97,6 +160,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
+    minHeight: 44,
     borderWidth: 1,
     borderRadius: radius.xl,
     padding: spacing.md,

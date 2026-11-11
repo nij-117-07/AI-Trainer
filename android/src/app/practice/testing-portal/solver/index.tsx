@@ -5,6 +5,7 @@ import { ActionButton } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
+import { PortalLoading } from "@/features/testing-portal/components/PortalLoading";
 import { SolverResultView } from "@/features/testing-portal/components/SolverResultView";
 import { useSolverResult } from "@/features/testing-portal/hooks/useSolverResult";
 
@@ -26,14 +27,14 @@ export default function SolverRoute() {
       <Section>
         {solver.solution ? (
           <SolverResultView saved={solver.solution} />
+        ) : solver.loaded ? (
+          <EmptyHint
+            icon={Target}
+            title="No question yet"
+            hint="Tap Solve with AI, paste the question and its four options, then solve it."
+          />
         ) : (
-          solver.loaded && (
-            <EmptyHint
-              icon={Target}
-              title="No question yet"
-              hint="Tap Solve with AI below, paste the question and its four options, then solve it."
-            />
-          )
+          <PortalLoading />
         )}
       </Section>
     </ToolScreen>

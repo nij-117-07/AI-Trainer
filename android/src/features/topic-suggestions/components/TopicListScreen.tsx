@@ -1,6 +1,6 @@
 // src/features/topic-suggestions/components/TopicListScreen.tsx
 /** Topic Suggestions home: the saved topic list, with a Suggest topics button that opens the generator. */
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { ListChecks, Sparkles } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
@@ -41,6 +41,8 @@ export function TopicListScreen() {
             </Text>
           ) : null}
         </View>
+
+        {!state.loaded ? <ActivityIndicator color={colors.primary} /> : null}
 
         {state.loaded && state.topics.length === 0 ? (
           <EmptyHint

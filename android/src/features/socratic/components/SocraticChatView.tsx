@@ -31,7 +31,13 @@ export function SocraticChatView({ chat }: { chat: SocraticChatState }) {
     scroll?.current?.scrollToEnd({ animated: true });
   }, [chat.messages.length, chat.pending, scroll]);
 
-  if (!chat.settingsLoaded) return null;
+  if (!chat.settingsLoaded) {
+    return (
+      <Section>
+        <ThinkingRow label="Loading discussion…" />
+      </Section>
+    );
+  }
 
   return (
     <Section>
@@ -54,7 +60,7 @@ export function SocraticChatView({ chat }: { chat: SocraticChatState }) {
         <EmptyHint
           icon={MessagesSquare}
           title="No discussion yet"
-          hint="State a belief or opinion below. The challenger will test it from both sides and ask the question that matters most."
+          hint="State a belief or opinion in the message box. The challenger will test it from both sides and ask the question that matters most."
         />
       ) : (
         chat.messages.map((message, index) => (

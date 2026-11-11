@@ -62,7 +62,7 @@ export default function ClarityTrainerRoute() {
             <EmptyHint
               icon={MessageSquareText}
               title="No scenario yet"
-              hint="Tap New scenario below, choose a difficulty and category, then generate."
+              hint="Tap New scenario to choose a difficulty and category, then generate."
             />
           )
         )}

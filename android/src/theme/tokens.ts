@@ -29,4 +29,5 @@ export const breakpoints = {
 export const contentWidth = {
   form: 720,
   wide: 1100,
+  sidePanel: 380,
 } as const;

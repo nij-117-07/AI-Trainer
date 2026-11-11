@@ -89,8 +89,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   removeButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radius.full,
     borderWidth: 1,
     alignItems: "center",

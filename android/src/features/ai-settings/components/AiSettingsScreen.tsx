@@ -1,14 +1,15 @@
 // src/features/ai-settings/components/AiSettingsScreen.tsx
 /**
- * Settings page: appearance, then the AI connections. Each connection card shows its main fields
- * first. The optional separate base URL and key for voice and speech sit behind a toggle that
- * opens by itself when they already have values. Save is in the footer and is enabled only when
- * something changed.
+ * Settings page: the AI model connection first, then voice input and text to speech. Separate
+ * connections for those two sit behind an advanced disclosure that opens by itself when they already
+ * have values. Appearance comes last. Save is in the footer and is enabled only when something changed.
+ * Loading and save status are announced through live regions.
  */
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { ChevronDown, ChevronUp, Eye, EyeOff, MessageSquare, Mic, Save, Volume2 } from "lucide-react-native";
+import { Eye, EyeOff, MessageSquare, Mic, Network, Save, Volume2, type LucideIcon } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { ActionButton, ErrorText, Field, Panel, TextField } from "@/components/tool/FormControls";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { SelectField } from "@/components/tool/SelectField";
@@ -35,6 +36,11 @@ export function AiSettingsScreen() {
   }, [loaded, settings]);
 
   const dirty = loaded && JSON.stringify(form) !== JSON.stringify(settings);
+  const hasSeparateConnection =
+    settings.transcriptionBaseUrl !== "" ||
+    settings.transcriptionApiKey !== "" ||
+    settings.ttsBaseUrl !== "" ||
+    settings.ttsApiKey !== "";
 
   function update<K extends keyof AiSettings>(key: K, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -81,35 +87,45 @@ export function AiSettingsScreen() {
 
   const footer = loaded ? (
     <View style={styles.footer}>
-      <ErrorText message={error} />
-      {!error && saved && !dirty ? (
-        <Text style={[styles.saved, { color: colors.tone.emerald.fg }]} accessibilityLiveRegion="polite">
-          Settings saved.
-        </Text>
-      ) : null}
-      <ActionButton label="Save settings" icon={Save} loading={busy} disabled={!dirty} onPress={handleSave} />
+      <View accessibilityLiveRegion="polite" style={styles.status}>
+        <ErrorText message={error} />
+        {!error && saved && !dirty ? (
+          <Text style={[styles.saved, { color: colors.tone.emerald.fg }]}>Saved. Your AI settings are stored on this device.</Text>
+        ) : null}
+      </View>
+      {!dirty && !saved ? <Text style={[styles.note, { color: colors.mutedForeground }]}>Change a setting to enable saving.</Text> : null}
+      <ActionButton
+        label={busy ? "Saving AI settings…" : "Save AI settings"}
+        icon={Save}
+        loading={busy}
+        disabled={!dirty}
+        onPress={handleSave}
+      />
     </View>
   ) : undefined;
 
   return (
-    <ToolScreen title="Settings" usesAi={false} footer={footer}>
-      <AppearanceSettings />
-
+    <ToolScreen title="Settings" usesAi={false} footer={footer} wide>
       {!loaded ? (
-        <View style={styles.loading}>
+        <View accessibilityLiveRegion="polite" style={styles.loading}>
           <ActivityIndicator color={colors.primary} />
+          <Text style={[styles.note, { color: colors.mutedForeground }]}>Loading settings…</Text>
         </View>
       ) : (
         <>
           <Text style={[styles.intro, { color: colors.mutedForeground }]}>
-            These connections are used by every feature that calls an AI model. They are stored only on this device.
+            Used by every feature that calls an AI model. Stored only on this device.
           </Text>
 
           <Panel>
-            <SectionTitle icon={MessageSquare} title="Chat model" />
+            <SectionHeading
+              icon={MessageSquare}
+              title="AI model"
+              description="The chat model that writes replies and generated text."
+            />
             <TextField
               label="Model name"
-              hint="The model that writes replies and generated text."
+              hint="The exact name your provider lists for this model."
               placeholder="e.g. gpt-4o-mini"
               value={form.modelName}
               onChangeText={(text) => update("modelName", text)}
@@ -118,13 +134,13 @@ export function AiSettingsScreen() {
             />
             <SecretField
               label="API key"
-              hint="Sent as the Authorization header. Keep it private."
+              hint="Your provider's secret key. Keep it private."
               value={form.apiKey}
               onChangeText={(text) => update("apiKey", text)}
             />
             <TextField
               label="Base URL"
-              hint="Leave empty for the provider default."
+              hint="Optional. Leave empty to use your provider's default address."
               placeholder="e.g. https://openrouter.ai/api/v1"
               value={form.baseUrl}
               onChangeText={(text) => update("baseUrl", text)}
@@ -135,7 +151,7 @@ export function AiSettingsScreen() {
           </Panel>
 
           <Panel>
-            <SectionTitle icon={Mic} title="Voice input" />
+            <SectionHeading icon={Mic} title="Voice input" description="Turns your spoken answers into text." />
             <SelectField
               label="Voice model"
               options={VOICE_MODEL_OPTIONS}
@@ -143,12 +159,40 @@ export function AiSettingsScreen() {
               onChange={(value) => update("transcriptionModel", value)}
               customPlaceholder="Speech-to-text model name"
             />
-            <SeparateConnection
-              hint="Optional. Empty uses the chat base URL and key."
-              startOpen={form.transcriptionBaseUrl !== "" || form.transcriptionApiKey !== ""}
-            >
+          </Panel>
+
+          <Panel>
+            <SectionHeading icon={Volume2} title="Text to speech" description="Reads generated text aloud." />
+            <SelectField
+              label="Speech model"
+              options={TTS_MODEL_OPTIONS}
+              value={form.ttsModel}
+              onChange={(value) => update("ttsModel", value)}
+              customPlaceholder="Text-to-speech model name"
+            />
+            <SelectField
+              label="Speech voice"
+              options={TTS_VOICE_OPTIONS}
+              value={form.ttsVoice}
+              onChange={(value) => update("ttsVoice", value)}
+              customPlaceholder="Voice name, for example Zephyr"
+            />
+          </Panel>
+
+          <Disclosure
+            title="Advanced connections"
+            icon={Network}
+            summary="Optional. Use a different server or key for voice input or speech. Empty fields use the chat settings."
+            defaultOpen={hasSeparateConnection}
+          >
+            <View style={styles.group}>
+              <Text accessibilityRole="header" style={[styles.subheading, { color: colors.foreground }]}>
+                Voice input
+              </Text>
               <TextField
                 label="Voice base URL"
+                accessibilityLabel="Voice base URL, optional"
+                hint="Leave empty to use the chat base URL."
                 placeholder="Same as the chat base URL"
                 value={form.transcriptionBaseUrl}
                 onChangeText={(text) => update("transcriptionBaseUrl", text)}
@@ -158,35 +202,21 @@ export function AiSettingsScreen() {
               />
               <SecretField
                 label="Voice API key"
+                hint="Leave empty to use the chat API key."
                 placeholder="Same as the chat API key"
                 value={form.transcriptionApiKey}
                 onChangeText={(text) => update("transcriptionApiKey", text)}
               />
-            </SeparateConnection>
-          </Panel>
+            </View>
 
-          <Panel>
-            <SectionTitle icon={Volume2} title="Text to speech" />
-            <SelectField
-              label="Speech model"
-              options={TTS_MODEL_OPTIONS}
-              value={form.ttsModel}
-              onChange={(value) => update("ttsModel", value)}
-              customPlaceholder="Text-to-speech model name"
-            />
-            <SelectField
-              label="Voice"
-              options={TTS_VOICE_OPTIONS}
-              value={form.ttsVoice}
-              onChange={(value) => update("ttsVoice", value)}
-              customPlaceholder="Voice name, for example Zephyr"
-            />
-            <SeparateConnection
-              hint="Optional. Empty uses the chat base URL and key."
-              startOpen={form.ttsBaseUrl !== "" || form.ttsApiKey !== ""}
-            >
+            <View style={styles.group}>
+              <Text accessibilityRole="header" style={[styles.subheading, { color: colors.foreground }]}>
+                Text to speech
+              </Text>
               <TextField
                 label="Speech base URL"
+                accessibilityLabel="Speech base URL, optional"
+                hint="Leave empty to use the chat base URL."
                 placeholder="Same as the chat base URL"
                 value={form.ttsBaseUrl}
                 onChangeText={(text) => update("ttsBaseUrl", text)}
@@ -196,12 +226,15 @@ export function AiSettingsScreen() {
               />
               <SecretField
                 label="Speech API key"
+                hint="Leave empty to use the chat API key."
                 placeholder="Same as the chat API key"
                 value={form.ttsApiKey}
                 onChangeText={(text) => update("ttsApiKey", text)}
               />
-            </SeparateConnection>
-          </Panel>
+            </View>
+          </Disclosure>
+
+          <AppearanceSettings />
         </>
       )}
     </ToolScreen>
@@ -212,27 +245,20 @@ function trimUrl(value: string): string {
   return value.trim().replace(/\/+$/, "");
 }
 
-function SeparateConnection({ hint, startOpen, children }: { hint: string; startOpen: boolean; children: ReactNode }) {
+function SectionHeading({
+  icon,
+  title,
+  description,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}) {
   const colors = useThemeColors();
-  const [open, setOpen] = useState(startOpen);
-  const Chevron = open ? ChevronUp : ChevronDown;
-
   return (
-    <View style={[styles.separate, { borderTopColor: colors.border }]}>
-      <Pressable
-        onPress={() => setOpen((value) => !value)}
-        accessibilityRole="button"
-        accessibilityLabel="Separate connection"
-        accessibilityState={{ expanded: open }}
-        style={({ pressed }) => [styles.separateToggle, pressed && { backgroundColor: colors.muted }]}
-      >
-        <View style={styles.separateText}>
-          <Text style={[styles.separateTitle, { color: colors.foreground }]}>Separate connection</Text>
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>{hint}</Text>
-        </View>
-        <Chevron size={18} color={colors.mutedForeground} />
-      </Pressable>
-      {open ? <View style={styles.separateFields}>{children}</View> : null}
+    <View style={styles.heading}>
+      <SectionTitle icon={icon} title={title} />
+      <Text style={[styles.description, { color: colors.mutedForeground }]}>{description}</Text>
     </View>
   );
 }
@@ -260,6 +286,8 @@ function SecretField({
           onChangeText={onChangeText}
           placeholder={placeholder}
           placeholderTextColor={colors.mutedForeground}
+          accessibilityLabel={label}
+          accessibilityHint={hint}
           autoCapitalize="none"
           autoCorrect={false}
           secureTextEntry={!visible}
@@ -287,17 +315,35 @@ const styles = StyleSheet.create({
     paddingVertical: spacing["2xl"],
     alignItems: "center",
     justifyContent: "center",
+    gap: spacing.sm,
+  },
+  heading: {
+    gap: spacing.xs,
+  },
+  description: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  subheading: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  group: {
+    gap: spacing.lg,
   },
   footer: {
     gap: spacing.sm,
   },
+  status: {
+    gap: spacing.xs,
+  },
   saved: {
     fontSize: 14,
-    textAlign: "center",
+    lineHeight: 20,
   },
-  hint: {
-    fontSize: 13,
-    lineHeight: 18,
+  note: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   input: {
     borderWidth: 1,
@@ -321,27 +367,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  separate: {
-    borderTopWidth: 1,
-    paddingTop: spacing.md,
-  },
-  separateToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  separateText: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  separateTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  separateFields: {
-    gap: spacing.lg,
-    marginTop: spacing.lg,
   },
 });

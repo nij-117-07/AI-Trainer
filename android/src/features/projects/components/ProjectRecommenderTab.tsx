@@ -20,14 +20,14 @@ import { isProjectDifficulty, isProjectSize, MAX_RECOMMENDATIONS, TOPIC_MAX } fr
 
 export function ProjectResults({ recommender }: { recommender: ProjectRecommenderState }) {
   const colors = useThemeColors();
-  const { result } = recommender;
+  const { result, pending } = recommender;
 
   if (!result) {
     return (
       <EmptyHint
         icon={Hammer}
-        title="Find a project to build"
-        hint="Name a topic in the form below, then tap Recommend projects."
+        title={pending ? "Finding projects…" : "Find a project to build"}
+        hint={pending ? "This can take a moment." : "Name a topic in the form, then tap Recommend projects."}
       />
     );
   }

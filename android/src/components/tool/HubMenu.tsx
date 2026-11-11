@@ -7,7 +7,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { radius, spacing, useLayout, useThemeColors, type LayoutSize, type Tone } from "@/theme";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { TextField } from "@/components/tool/FormControls";
+import { TextField, pointerCursor } from "@/components/tool/FormControls";
 import type { LucideIcon } from "lucide-react-native";
 
 export interface HubItem {
@@ -63,6 +63,7 @@ export function HubMenu({ title, items }: HubMenuProps) {
               accessibilityLabel={`Open ${item.title}`}
               style={({ pressed }) => [
                 styles.box,
+                pointerCursor,
                 { width: BOX_WIDTH[size], backgroundColor: tone.bg, borderColor: tone.border },
                 pressed && { opacity: 0.85 },
               ]}

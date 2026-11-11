@@ -15,18 +15,25 @@ interface DisclosureProps {
   icon?: LucideIcon;
   summary?: string;
   defaultOpen?: boolean;
+  /** Set to control the open state from the parent, for example to open it when a field has an error. */
+  open?: boolean;
+  onToggle?: (open: boolean) => void;
   children: ReactNode;
 }
 
-export function Disclosure({ title, icon: Icon, summary, defaultOpen = false, children }: DisclosureProps) {
+export function Disclosure({ title, icon: Icon, summary, defaultOpen = false, open: controlled, onToggle, children }: DisclosureProps) {
   const colors = useThemeColors();
-  const [open, setOpen] = useState(defaultOpen);
+  const [uncontrolled, setUncontrolled] = useState(defaultOpen);
+  const open = controlled ?? uncontrolled;
   const Chevron = open ? ChevronUp : ChevronDown;
 
   return (
     <Panel>
       <Pressable
-        onPress={() => setOpen((value) => !value)}
+        onPress={() => {
+          setUncontrolled(!open);
+          onToggle?.(!open);
+        }}
         accessibilityRole="button"
         accessibilityLabel={title}
         accessibilityState={{ expanded: open }}

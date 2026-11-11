@@ -57,7 +57,7 @@ export default function ExecutiveEqRoute() {
             <EmptyHint
               icon={Briefcase}
               title="No simulation yet"
-              hint="Tap New simulation below, describe your role and goal, then enter the boardroom."
+              hint="Tap New simulation to describe your role and goal, then enter the boardroom."
             />
           )
         )}

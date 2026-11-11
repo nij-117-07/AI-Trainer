@@ -60,7 +60,12 @@ export function FeedCard({ feed, busy, onEdit, onDelete, onToggle }: FeedCardPro
             ) : null}
           </View>
           <TagList items={feed.category ? [feed.category] : []} />
-          <Pressable onPress={() => openExternal(feed.url)} accessibilityRole="link" accessibilityLabel={`Open ${feed.name} feed`}>
+          <Pressable
+            onPress={() => openExternal(feed.url)}
+            accessibilityRole="link"
+            accessibilityLabel={`Open ${feed.name} feed`}
+            hitSlop={{ top: 8, bottom: 8 }}
+          >
             <Text style={[styles.url, { color: colors.primary }]} numberOfLines={1}>
               {feed.url}
             </Text>
@@ -71,7 +76,7 @@ export function FeedCard({ feed, busy, onEdit, onDelete, onToggle }: FeedCardPro
           value={feed.enabled}
           onValueChange={onToggle}
           disabled={busy}
-          accessibilityLabel={`Toggle ${feed.name}`}
+          accessibilityLabel={`Enable ${feed.name}`}
           trackColor={{ false: colors.border, true: colors.primary }}
         />
       </View>
@@ -82,6 +87,7 @@ export function FeedCard({ feed, busy, onEdit, onDelete, onToggle }: FeedCardPro
           disabled={disabled}
           accessibilityRole="button"
           accessibilityLabel={`Fetch ${feed.name}`}
+          accessibilityState={{ busy: fetching, disabled }}
           style={({ pressed }) => [
             styles.fetch,
             { borderColor: colors.border },
@@ -103,7 +109,11 @@ export function FeedCard({ feed, busy, onEdit, onDelete, onToggle }: FeedCardPro
       </View>
 
       <ErrorText message={statusError} />
-      {status ? <Text style={[styles.status, { color: colors.mutedForeground }]}>{status}</Text> : null}
+      {status ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
+          {status}
+        </Text>
+      ) : null}
     </Panel>
   );
 }
@@ -128,6 +138,7 @@ function IconAction({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.iconAction,
         { borderColor: colors.border },
@@ -187,6 +198,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
+    minHeight: 44,
     borderWidth: 1,
     borderRadius: radius.full,
     paddingHorizontal: spacing.lg,
@@ -201,8 +213,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   iconAction: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radius.full,
     borderWidth: 1,
     alignItems: "center",

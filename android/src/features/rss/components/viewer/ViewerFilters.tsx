@@ -40,6 +40,7 @@ export function ViewerFilters({ feeds, filters, categories, onChange }: ViewerFi
       />
       <TextField
         label="Search"
+        accessibilityLabel="Search articles"
         placeholder="Search articles…"
         value={filters.search}
         onChangeText={(text) => onChange("search", text)}

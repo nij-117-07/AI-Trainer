@@ -24,13 +24,26 @@ export function FeedItemCard({ item }: { item: RssFeedItem }) {
       ) : null}
 
       <View style={styles.meta}>
-        <Text style={[styles.source, { color: colors.foreground }]}>{item.feedName || "Feed"}</Text>
-        {item.author ? <Text style={[styles.metaText, { color: colors.mutedForeground }]}>· {item.author}</Text> : null}
+        <Text style={[styles.source, { color: colors.foreground }]} numberOfLines={1}>
+          {item.feedName || "Feed"}
+        </Text>
+        {item.author ? (
+          <Text style={[styles.metaText, { color: colors.mutedForeground }]} numberOfLines={1}>
+            · {item.author}
+          </Text>
+        ) : null}
         {when ? <Text style={[styles.metaText, { color: colors.mutedForeground }]}>{when}</Text> : null}
       </View>
 
-      <Pressable onPress={() => openExternal(item.link)} disabled={!canOpen} accessibilityRole="link">
-        <Text style={[styles.title, { color: colors.foreground }]}>{item.title}</Text>
+      <Pressable
+        onPress={() => openExternal(item.link)}
+        disabled={!canOpen}
+        accessibilityRole="link"
+        accessibilityState={{ disabled: !canOpen }}
+      >
+        <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={3}>
+          {item.title}
+        </Text>
       </Pressable>
 
       {snippet ? (
@@ -47,6 +60,7 @@ export function FeedItemCard({ item }: { item: RssFeedItem }) {
           accessibilityRole="link"
           accessibilityLabel={`Read more: ${item.title}`}
           style={styles.readMore}
+          hitSlop={{ top: 8, bottom: 8 }}
         >
           <ExternalLink size={14} color={colors.mutedForeground} />
           <Text style={[styles.metaText, { color: colors.mutedForeground }]}>Read more</Text>
@@ -94,5 +108,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
+    minHeight: 44,
   },
 });

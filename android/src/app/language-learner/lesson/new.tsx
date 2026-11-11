@@ -12,8 +12,9 @@ export default function LessonNewRoute() {
   return (
     <ToolScreen
       title="New lesson"
-      headerRight={<ResetButton onPress={lesson.reset} />}
+      headerRight={<ResetButton label="Reset form" onPress={lesson.reset} />}
       footer={<LessonFormFooter lesson={lesson} />}
+      footerSide={false}
     >
       <ActiveLanguageNotice />
       <LessonFormFields lesson={lesson} />

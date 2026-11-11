@@ -44,13 +44,16 @@ export function GuessGameRoundView({ session, game, onNewGame }: GuessGameRoundV
         <View style={styles.meta}>
           <Badge label={capitalize(session.category)} />
           <Badge label={capitalize(session.difficulty)} />
-          <Text style={[styles.counter, { color: colors.foreground }]}>
+          <Text
+            accessibilityLiveRegion="polite"
+            style={[styles.counter, { color: colors.foreground }]}
+          >
             Guesses left: {guessesLeft(session)} / {session.maxGuesses}
           </Text>
         </View>
         {session.solved ? (
           <ResultCallout icon={Trophy} title="Solved!" tone="emerald">
-            <Text style={[styles.body, { color: colors.foreground }]}>
+            <Text accessibilityLiveRegion="polite" style={[styles.body, { color: colors.foreground }]}>
               The answer was {session.mysteryItem}. {session.funFact}
             </Text>
           </ResultCallout>
@@ -102,6 +105,8 @@ export function GuessGameRoundView({ session, game, onNewGame }: GuessGameRoundV
             return (
               <View
                 key={`${index}-${attempt.guess}`}
+                accessible
+                accessibilityLabel={`Guess ${index + 1}: ${attempt.guess}. ${correct ? "Correct" : "Not quite"}`}
                 style={[styles.row, { borderColor: colors.border, backgroundColor: colors.background }]}
               >
                 <Text style={[styles.rowNumber, { color: colors.mutedForeground }]}>{index + 1}</Text>

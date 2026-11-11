@@ -12,6 +12,7 @@ import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { SelectField } from "@/components/tool/SelectField";
 import { useExplainerTool } from "../hooks/useExplainerTool";
+import { ResultLoading } from "./ResultLoading";
 import { LIMITS, parseQuickExplain, QUICK_EXPLAIN_DEFAULTS, QUICK_EXPLAIN_KEY } from "../lib/drafts";
 import { explainTopic } from "../lib/generators";
 import { expertiseLevelOptions } from "../options";
@@ -23,14 +24,18 @@ export function useQuickExplain() {
 export type QuickExplainState = ReturnType<typeof useQuickExplain>;
 
 export function ExplainResults({ state }: { state: QuickExplainState }) {
-  const { result } = state;
+  const { result, pending } = state;
+
+  if (pending) {
+    return <ResultLoading title="Explaining your topic" hint="This can take a moment." />;
+  }
 
   if (!result) {
     return (
       <EmptyHint
         icon={Lightbulb}
         title="Explain any topic"
-        hint="Enter a topic in the form below, then tap Explain it."
+        hint="Enter a topic in the form, then tap Explain it."
       />
     );
   }

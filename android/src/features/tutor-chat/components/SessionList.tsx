@@ -44,7 +44,7 @@ export function SessionList({ sessions, onOpen, onDelete }: SessionListProps) {
   return (
     <Section>
       <Text style={[styles.intro, { color: colors.mutedForeground }]}>
-        Pick a saved session to carry on, or start a new one from the form below.
+        Pick a saved session to carry on, or start a new one in the form.
       </Text>
 
       <SectionTitle icon={MessagesSquare} title="Saved sessions" />
@@ -54,7 +54,7 @@ export function SessionList({ sessions, onOpen, onDelete }: SessionListProps) {
         <EmptyHint
           icon={MessagesSquare}
           title="No sessions yet"
-          hint="Enter a master topic in the form below and tap Start chatting."
+          hint="Enter a master topic in the form and tap Start chatting."
         />
       ) : (
         sessions.map((session) => (

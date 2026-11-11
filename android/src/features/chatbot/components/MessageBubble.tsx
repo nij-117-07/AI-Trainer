@@ -6,6 +6,7 @@ import { setStringAsync } from "expo-clipboard";
 import { Check, Copy, RotateCw, Square, Volume2 } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { pointerCursor } from "@/components/tool/FormControls";
 import type { ChatMessage, Persona } from "../types";
 import { PersonaAvatar } from "./PersonaAvatar";
 
@@ -57,11 +58,17 @@ export function MessageBubble({ message, persona, isLast, canRegenerate, onRegen
   return (
     <View style={styles.assistantRow}>
       <PersonaAvatar emoji={persona.avatar} size={30} />
-      <View style={styles.assistantBody}>
+      <View style={styles.assistantBody} accessibilityLiveRegion={streaming ? "none" : "polite"}>
         <Text style={[styles.name, { color: colors.mutedForeground }]}>{persona.name}</Text>
 
-        {hasText ? <MarkdownText content={message.content} /> : streaming ? <ActivityIndicator color={colors.mutedForeground} /> : null}
-        {streaming && hasText ? <ActivityIndicator size="small" color={colors.mutedForeground} /> : null}
+        {hasText ? (
+          <MarkdownText content={message.content} />
+        ) : streaming ? (
+          <ActivityIndicator color={colors.mutedForeground} accessibilityLabel="Writing reply" />
+        ) : null}
+        {streaming && hasText ? (
+          <ActivityIndicator size="small" color={colors.mutedForeground} accessibilityLabel="Writing reply" />
+        ) : null}
 
         {message.status === "error" && message.error ? (
           <Text accessibilityRole="alert" style={[styles.error, { color: colors.destructive }]}>
@@ -99,7 +106,7 @@ export function MessageBubble({ message, persona, isLast, canRegenerate, onRegen
               </ActionIcon>
             ) : null}
             {isLast && canRegenerate ? (
-              <ActionIcon label="Regenerate reply" onPress={onRegenerate}>
+              <ActionIcon label={message.status === "error" ? "Try again" : "Regenerate reply"} onPress={onRegenerate}>
                 <RotateCw size={16} color={colors.mutedForeground} />
               </ActionIcon>
             ) : null}
@@ -116,8 +123,7 @@ function ActionIcon({ label, onPress, children }: { label: string; onPress: () =
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      hitSlop={8}
-      style={({ pressed }) => [styles.actionIcon, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.actionIcon, pointerCursor, pressed && styles.pressed]}
     >
       {children}
     </Pressable>
@@ -157,12 +163,12 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: "row",
-    gap: spacing.md,
-    marginTop: spacing.xs,
+    gap: spacing.xs,
+    marginLeft: -spacing.sm,
   },
   actionIcon: {
-    width: 28,
-    height: 28,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
   },

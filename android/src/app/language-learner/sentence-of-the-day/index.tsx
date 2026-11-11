@@ -15,6 +15,8 @@ export default function SentenceOfTheDayRoute() {
   return (
     <ToolScreen
       title="Sentence of the Day"
+      wide
+      footerSide={false}
       footer={
         <ActionButton
           label="New sentence"
@@ -30,7 +32,7 @@ export default function SentenceOfTheDayRoute() {
           <EmptyHint
             icon={Quote}
             title="No sentence yet"
-            hint="Tap New sentence below, choose a context and complexity level, then generate."
+            hint="Tap New sentence, choose a context and complexity level, then generate."
           />
         )}
       </Section>

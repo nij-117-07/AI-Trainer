@@ -27,6 +27,7 @@ export default function MarkdownViewerRoute() {
     <ToolScreen
       title="Markdown Viewer"
       headerRight={<ResetButton onPress={confirmReset} />}
+      footerSide={false}
       footer={<MarkdownViewerFooter content={draft.content} />}
     >
       {draft.loaded && <MarkdownViewerBody draft={draft} mode={mode} onModeChange={setMode} />}

@@ -32,7 +32,7 @@ export default function NegotiationRoute() {
             maxLength={game.ending ? OUTCOME_MAX : MESSAGE_MAX}
             pending={game.busy}
             error={game.error}
-            submitLabel={game.ending ? "Evaluate" : "Send"}
+            submitLabel={game.ending ? "Evaluate outcome" : "Send reply"}
             onChangeText={game.ending ? game.setOutcome : game.setMessage}
             onSubmit={() => void (game.ending ? game.finish() : game.send())}
           />
@@ -69,7 +69,7 @@ export default function NegotiationRoute() {
             <EmptyHint
               icon={Handshake}
               title="No negotiation yet"
-              hint="Tap New negotiation below, pick a domain and difficulty, then face the opponent."
+              hint="Tap New negotiation to pick a domain and difficulty, then face the opponent."
             />
           )
         )}

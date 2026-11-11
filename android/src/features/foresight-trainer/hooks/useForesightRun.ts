@@ -69,7 +69,7 @@ export function useForesightRun() {
     const current = session;
     if (!current || current.scenarioComplete || decide.pending) return;
     if (!choice) {
-      setChoiceError("Choose an option above before you commit.");
+      setChoiceError("Choose an option before you commit.");
       return;
     }
     activeRequest.current?.abort();

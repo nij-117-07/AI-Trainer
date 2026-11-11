@@ -5,7 +5,7 @@ import { LanguageTesterLinks } from "@/features/language-tester/components/Langu
 
 export default function LanguageTesterRoute() {
   return (
-    <ToolScreen title="Language Tester">
+    <ToolScreen title="Language Tester" wide>
       <LanguageTesterLinks />
       <AssessmentTab />
     </ToolScreen>

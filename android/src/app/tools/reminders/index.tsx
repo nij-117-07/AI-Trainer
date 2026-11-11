@@ -14,6 +14,8 @@ export default function RemindersRoute() {
     <ToolScreen
       title="Reminders"
       usesAi={false}
+      wide
+      footerSide={false}
       footer={
         store.loaded ? <ActionButton label="New reminder" icon={Plus} onPress={() => router.push("/tools/reminders/new")} /> : null
       }

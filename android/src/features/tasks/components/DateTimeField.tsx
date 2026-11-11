@@ -1,7 +1,7 @@
 // src/features/tasks/components/DateTimeField.tsx
 /**
  * Field that opens the native date or date-and-time picker. On Android the date dialog opens first and
- * the time dialog follows. On iOS the spinner opens inline below the field.
+ * the time dialog follows. On iOS the spinner opens inline in the form.
  */
 import { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
@@ -91,7 +91,7 @@ export function DateTimeField({ label, hint, mode, value, placeholder, onChange 
               onPress={() => onChange(null)}
               accessibilityRole="button"
               accessibilityLabel={`Clear ${label.toLowerCase()}`}
-              hitSlop={10}
+              hitSlop={13}
             >
               <X size={18} color={colors.mutedForeground} />
             </Pressable>

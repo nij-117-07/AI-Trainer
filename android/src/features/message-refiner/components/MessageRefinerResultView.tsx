@@ -82,7 +82,7 @@ export function MessageRefinerResultView({ saved, onChange }: MessageRefinerResu
       <Panel>
         <TextField
           label="Change it with AI"
-          hint="The AI rewrites the message above. Your tone, audience, and goal are kept."
+          hint="The AI rewrites the refined message. Your tone, audience, and goal are kept."
           placeholder="e.g. make it shorter, sound less formal, add a deadline"
           value={instruction}
           onChangeText={setInstruction}

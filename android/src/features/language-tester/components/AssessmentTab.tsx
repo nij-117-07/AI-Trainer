@@ -18,7 +18,7 @@ import { useRunSignal } from "../hooks/useRunSignal";
 import { usePersistedTool } from "../hooks/usePersistedValue";
 import type { AssessmentFormValues, AssessmentResult } from "../types";
 import { AssessmentQuiz } from "./AssessmentQuiz";
-import { EmptyNote } from "./QuizParts";
+import { EmptyNote, FormWidth } from "./QuizParts";
 
 const DEFAULTS: AssessmentFormValues = {
   targetLanguage: "Spanish",
@@ -61,77 +61,82 @@ export function AssessmentTab() {
 
   return (
     <Section>
-      <Panel>
-        <ActiveLanguageNotice />
-        <SelectField
-          label="Level"
-          options={CEFR_LEVEL_OPTIONS}
-          value={form.level}
-          onChange={(value) => update("level", value)}
-          allowCustom={false}
-        />
-        <CountSlider
-          label="Number of questions"
-          max={10}
-          value={form.numQuestions}
-          onChange={(value) => update("numQuestions", value)}
-        />
-        <TextField
-          label="Scenario"
-          placeholder="e.g. Booking a hotel room"
-          value={form.scenario}
-          onChangeText={(text) => update("scenario", text)}
-          editable={!request.pending}
-          maxLength={500}
-          voice
-        />
-        <TextField
-          label="User details"
-          placeholder="e.g. A business traveler"
-          hint="Persona info used to personalize the questions."
-          value={form.userDetails}
-          onChangeText={(text) => update("userDetails", text)}
-          editable={!request.pending}
-          maxLength={500}
-          voice
-        />
-        <TextField
-          label="Custom instructions (optional)"
-          placeholder="e.g. only use past tense"
-          hint="Specific focus for the questions."
-          value={form.customInstructions}
-          onChangeText={(text) => update("customInstructions", text)}
-          editable={!request.pending}
-          maxLength={1000}
-          multiline
-          voice
-        />
-        <TextField
-          label="Seed (variety)"
-          placeholder="Leave blank to auto-generate"
-          hint="Change this to get a different test for the same inputs."
-          value={form.seed}
-          onChangeText={(text) => update("seed", text)}
-          editable={!request.pending}
-          maxLength={200}
-        />
-        <ActionButton
-          label={request.pending ? "Writing your questions…" : "Generate assessment"}
-          icon={Sparkles}
-          loading={request.pending}
-          onPress={handleGenerate}
-        />
-      </Panel>
-
-      <ErrorText message={request.error} />
+      <FormWidth>
+        <Panel>
+          <ActiveLanguageNotice />
+          <SelectField
+            label="Level"
+            options={CEFR_LEVEL_OPTIONS}
+            value={form.level}
+            onChange={(value) => update("level", value)}
+            allowCustom={false}
+          />
+          <CountSlider
+            label="Number of questions"
+            max={10}
+            value={form.numQuestions}
+            onChange={(value) => update("numQuestions", value)}
+          />
+          <TextField
+            label="Scenario"
+            placeholder="e.g. Booking a hotel room"
+            value={form.scenario}
+            onChangeText={(text) => update("scenario", text)}
+            editable={!request.pending}
+            maxLength={500}
+            voice
+          />
+          <TextField
+            label="User details"
+            placeholder="e.g. A business traveler"
+            hint="Persona info used to personalize the questions."
+            value={form.userDetails}
+            onChangeText={(text) => update("userDetails", text)}
+            editable={!request.pending}
+            maxLength={500}
+            voice
+          />
+          <TextField
+            label="Custom instructions (optional)"
+            placeholder="e.g. only use past tense"
+            hint="Specific focus for the questions."
+            value={form.customInstructions}
+            onChangeText={(text) => update("customInstructions", text)}
+            editable={!request.pending}
+            maxLength={1000}
+            multiline
+            voice
+          />
+          <TextField
+            label="Seed (variety)"
+            placeholder="Leave blank to auto-generate"
+            hint="Change this to get a different test for the same inputs."
+            value={form.seed}
+            onChangeText={(text) => update("seed", text)}
+            editable={!request.pending}
+            maxLength={200}
+          />
+          <ActionButton
+            label={request.pending ? "Writing your questions…" : "Generate assessment"}
+            icon={Sparkles}
+            loading={request.pending}
+            onPress={handleGenerate}
+          />
+        </Panel>
+        <ErrorText message={request.error} />
+      </FormWidth>
 
       {result ? (
         <AssessmentQuiz key={runKey} result={result} />
       ) : (
-        <EmptyNote message="Pick a language and level to generate a personalized quiz." />
+        <FormWidth>
+          <EmptyNote message="Pick a language and level to generate a personalized quiz." />
+        </FormWidth>
       )}
 
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />
+      <FormWidth>
+        <ActionButton label="Reset form and results" icon={RefreshCcw} variant="outline" onPress={handleReset} />
+      </FormWidth>
     </Section>
   );
 }

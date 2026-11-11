@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 40,
+    minHeight: 44,
     borderWidth: 1,
     borderRadius: radius.lg,
     paddingHorizontal: spacing.md,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
-    minHeight: 40,
+    minHeight: 44,
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
   },

@@ -28,7 +28,7 @@ const VIEW_ICONS: Record<TaskView, LucideIcon> = {
 };
 
 const EMPTY_TEXT: Record<TaskView, string> = {
-  inbox: "Your inbox is clear. Type a task below to add one.",
+  inbox: "Your inbox is clear. Add a task to get started.",
   today: "Nothing due today. Enjoy the free time.",
   upcoming: "No upcoming tasks. Give a task a date to see it here.",
   completed: "Completed tasks will show up here.",
@@ -69,7 +69,7 @@ export function TasksTool({ store, today, onOpen, onManage }: TasksToolProps) {
 
   return (
     <Section>
-      <View style={[styles.segments, { backgroundColor: colors.muted }]}>
+      <View accessibilityRole="tablist" style={[styles.segments, { backgroundColor: colors.muted }]}>
         {VIEWS.map((item) => {
           const selected = item === view;
           const color = selected ? colors.foreground : colors.mutedForeground;
@@ -102,7 +102,7 @@ export function TasksTool({ store, today, onOpen, onManage }: TasksToolProps) {
         <Panel>
           {store.projects.length > 0 ? (
             <View style={styles.group}>
-              <Text style={[styles.heading, { color: colors.foreground }]}>Project</Text>
+              <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>Project</Text>
               <ChoiceChips
                 options={[{ value: "all", label: "All" }, ...store.projects.map((p) => ({ value: p.id, label: p.name }))]}
                 value={activeProject ?? "all"}
@@ -113,7 +113,7 @@ export function TasksTool({ store, today, onOpen, onManage }: TasksToolProps) {
 
           {store.labels.length > 0 ? (
             <View style={styles.group}>
-              <Text style={[styles.heading, { color: colors.foreground }]}>Label</Text>
+              <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>Label</Text>
               <ChoiceChips
                 options={[{ value: "any", label: "Any" }, ...store.labels.map((l) => ({ value: l.id, label: `#${l.name}` }))]}
                 value={activeLabel ?? "any"}
@@ -155,7 +155,9 @@ function EmptyState({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
       <View style={[styles.emptyIcon, { backgroundColor: colors.muted }]}>
         <Icon size={22} color={colors.mutedForeground} />
       </View>
-      <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>{text}</Text>
+      <Text accessibilityLiveRegion="polite" style={[styles.emptyText, { color: colors.mutedForeground }]}>
+        {text}
+      </Text>
     </View>
   );
 }
@@ -169,7 +171,9 @@ const styles = StyleSheet.create({
   },
   segment: {
     flex: 1,
+    minHeight: 44,
     alignItems: "center",
+    justifyContent: "center",
     paddingVertical: spacing.sm,
     borderWidth: 1,
     borderColor: "transparent",

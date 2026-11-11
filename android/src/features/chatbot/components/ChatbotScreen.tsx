@@ -5,7 +5,8 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleShee
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ArrowLeft, ChevronDown, Menu, SquarePen } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { contentWidth, radius, spacing, useLayout, useThemeColors } from "@/theme";
+import { pointerCursor } from "@/components/tool/FormControls";
 import { useChatbot } from "../hooks/useChatbot";
 import { useReplySpeech } from "../hooks/useReplySpeech";
 import { useVoiceInput } from "../hooks/useVoiceInput";
@@ -21,11 +22,13 @@ import { PersonaSwitcher } from "./PersonaSwitcher";
 export function ChatbotScreen() {
   const colors = useThemeColors();
   const router = useRouter();
+  const { size } = useLayout();
   const chat = useChatbot();
   const speech = useReplySpeech();
   const voice = useVoiceInput((text) => chat.setDraft((prev) => appendTranscript(prev, text)));
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const docked = size === "desktop";
 
   useEffect(() => {
     if (!chat.settings.autoSpeak || !chat.lastReplyId) return;
@@ -42,7 +45,8 @@ export function ChatbotScreen() {
     return (
       <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
         <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+          <ActivityIndicator color={colors.primary} accessibilityLabel="Loading chat" />
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>Loading chat…</Text>
         </View>
       </SafeAreaView>
     );
@@ -54,7 +58,12 @@ export function ChatbotScreen() {
       <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
         <View style={styles.center}>
           <Text style={[styles.hint, { color: colors.mutedForeground }]}>No persona is available yet.</Text>
-          <Pressable onPress={() => router.push("/admin/chatbot")} accessibilityRole="button">
+          <Pressable
+            onPress={() => router.push("/admin/chatbot")}
+            accessibilityRole="button"
+            accessibilityLabel="Create a persona in Chatbot Admin"
+            style={({ pressed }) => [styles.linkButton, pointerCursor, pressed && { opacity: 0.7 }]}
+          >
             <Text style={[styles.link, { color: colors.primary }]}>Create one in Chatbot Admin</Text>
           </Pressable>
         </View>
@@ -74,102 +83,118 @@ export function ChatbotScreen() {
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <IconButton label="Go back" onPress={back}>
-          <ArrowLeft size={18} color={colors.foreground} />
-        </IconButton>
-        <IconButton label="Open chats" onPress={() => setDrawerOpen(true)}>
-          <Menu size={18} color={colors.foreground} />
-        </IconButton>
-        <Pressable
-          onPress={() => setSwitcherOpen(true)}
-          accessibilityRole="button"
-          accessibilityLabel={`Persona ${persona.name}. Change persona`}
-          style={({ pressed }) => [styles.personaChip, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
-        >
-          <PersonaAvatar emoji={persona.avatar} size={24} />
-          <Text numberOfLines={1} style={[styles.personaName, { color: colors.foreground }]}>
-            {persona.name}
-          </Text>
-          <ChevronDown size={16} color={colors.mutedForeground} />
-        </Pressable>
-        <IconButton label="New chat" onPress={startNewChat}>
-          <SquarePen size={18} color={colors.foreground} />
-        </IconButton>
-      </View>
-
-      <KeyboardAvoidingView style={styles.body} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        {chat.messages.length === 0 ? (
-          <EmptyChat persona={persona} onPick={chat.setDraft} />
-        ) : (
-          <MessageList
-            messages={chat.messages}
-            persona={persona}
-            sending={chat.sending}
-            onRegenerate={chat.regenerate}
-            speech={{
-              ready: speech.ready,
-              activeId: speech.activeId,
-              loadingId: speech.loadingId,
-              onSpeak: (id, text) => void speech.speak(id, text),
-              onStop: speech.stop,
-            }}
-          />
-        )}
-
-        {voice.recording ? (
-          <Text style={[styles.status, { color: colors.destructive }]}>
-            Recording {formatElapsed(voice.elapsedMs)}. Tap the red button to finish.
-          </Text>
-        ) : voice.transcribing ? (
-          <Text style={[styles.status, { color: colors.mutedForeground }]}>Transcribing your voice…</Text>
-        ) : null}
-
-        {speech.error || voice.error || chat.error ? (
-          <Text accessibilityRole="alert" style={[styles.error, { color: colors.destructive }]}>
-            {voice.error ?? speech.error ?? chat.error}
-          </Text>
-        ) : null}
-
-        <View style={styles.composerWrap}>
-          <Composer
-            value={chat.draft}
-            onChangeText={chat.setDraft}
-            onSend={send}
-            onStop={chat.stop}
-            sending={chat.sending}
-            placeholder={`Message ${persona.name}`}
-            voice={{
-              ready: voice.ready,
-              recording: voice.recording,
-              transcribing: voice.transcribing,
-              onToggle: () => void voice.toggle(),
-            }}
-          />
+      <View style={[styles.frame, docked && styles.frameDesktop]}>
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <IconButton label="Go back" onPress={back}>
+            <ArrowLeft size={18} color={colors.foreground} />
+          </IconButton>
+          {docked ? null : (
+            <IconButton label="Open chats" onPress={() => setDrawerOpen(true)}>
+              <Menu size={18} color={colors.foreground} />
+            </IconButton>
+          )}
+          <Pressable
+            onPress={() => setSwitcherOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`Change persona. Current persona: ${persona.name}`}
+            style={({ pressed }) => [
+              styles.personaChip,
+              pointerCursor,
+              { borderColor: colors.border },
+              pressed && { backgroundColor: colors.muted },
+            ]}
+          >
+            <PersonaAvatar emoji={persona.avatar} size={24} />
+            <Text numberOfLines={1} style={[styles.personaName, { color: colors.foreground }]}>
+              {persona.name}
+            </Text>
+            <ChevronDown size={16} color={colors.mutedForeground} />
+          </Pressable>
+          <IconButton label="New chat" onPress={startNewChat}>
+            <SquarePen size={18} color={colors.foreground} />
+          </IconButton>
         </View>
-      </KeyboardAvoidingView>
 
-      <ChatDrawer
-        visible={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        threads={chat.personaThreads}
-        activeThreadId={chat.activeThreadId}
-        personaName={persona.name}
-        onNewChat={() => {
-          startNewChat();
-          setDrawerOpen(false);
-        }}
-        onOpen={(id) => {
-          speech.stop();
-          void chat.openThread(id);
-          setDrawerOpen(false);
-        }}
-        onDelete={(id) =>
-          confirmAction("Delete this chat?", "It will be removed from this device.", () => {
-            void chat.deleteThread(id);
-          })
-        }
-      />
+        <View style={styles.split}>
+          <ChatDrawer
+            docked={docked}
+            visible={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            threads={chat.personaThreads}
+            activeThreadId={chat.activeThreadId}
+            personaName={persona.name}
+            onNewChat={() => {
+              startNewChat();
+              setDrawerOpen(false);
+            }}
+            onOpen={(id) => {
+              speech.stop();
+              void chat.openThread(id);
+              setDrawerOpen(false);
+            }}
+            onDelete={(id) =>
+              confirmAction("Delete this chat?", "It will be removed from this device.", () => {
+                void chat.deleteThread(id);
+              })
+            }
+          />
+
+          <KeyboardAvoidingView style={styles.main} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+            <View style={styles.column}>
+              {chat.messages.length === 0 ? (
+                <EmptyChat persona={persona} onPick={chat.setDraft} />
+              ) : (
+                <MessageList
+                  messages={chat.messages}
+                  persona={persona}
+                  sending={chat.sending}
+                  onRegenerate={chat.regenerate}
+                  speech={{
+                    ready: speech.ready,
+                    activeId: speech.activeId,
+                    loadingId: speech.loadingId,
+                    onSpeak: (id, text) => void speech.speak(id, text),
+                    onStop: speech.stop,
+                  }}
+                />
+              )}
+
+              {voice.recording ? (
+                <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.destructive }]}>
+                  Recording {formatElapsed(voice.elapsedMs)}. Tap the mic to stop.
+                </Text>
+              ) : voice.transcribing ? (
+                <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
+                  Transcribing your voice…
+                </Text>
+              ) : null}
+
+              {speech.error || voice.error || chat.error ? (
+                <Text accessibilityRole="alert" style={[styles.error, { color: colors.destructive }]}>
+                  {voice.error ?? speech.error ?? chat.error}
+                </Text>
+              ) : null}
+
+              <View style={styles.composerWrap}>
+                <Composer
+                  value={chat.draft}
+                  onChangeText={chat.setDraft}
+                  onSend={send}
+                  onStop={chat.stop}
+                  sending={chat.sending}
+                  placeholder={`Message ${persona.name}`}
+                  voice={{
+                    ready: voice.ready,
+                    recording: voice.recording,
+                    transcribing: voice.transcribing,
+                    onToggle: () => void voice.toggle(),
+                  }}
+                />
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </View>
 
       <PersonaSwitcher
         visible={switcherOpen}
@@ -197,7 +222,12 @@ function IconButton({ label, onPress, children }: { label: string; onPress: () =
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [styles.iconButton, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
+      style={({ pressed }) => [
+        styles.iconButton,
+        pointerCursor,
+        { borderColor: colors.border },
+        pressed && { backgroundColor: colors.muted },
+      ]}
     >
       {children}
     </Pressable>
@@ -208,11 +238,20 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
+  frame: {
+    flex: 1,
+  },
+  frameDesktop: {
+    width: "100%",
+    maxWidth: contentWidth.wide,
+    alignSelf: "center",
+  },
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.md,
+    padding: spacing.lg,
   },
   header: {
     flexDirection: "row",
@@ -223,8 +262,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   iconButton: {
-    height: 40,
-    minWidth: 40,
+    height: 44,
+    minWidth: 44,
     paddingHorizontal: spacing.sm,
     borderRadius: radius.full,
     borderWidth: 1,
@@ -237,7 +276,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.sm,
-    height: 40,
+    height: 44,
     borderWidth: 1,
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
@@ -247,12 +286,23 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
   },
-  body: {
+  split: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  main: {
     flex: 1,
   },
+  column: {
+    flex: 1,
+    width: "100%",
+    maxWidth: contentWidth.form,
+    alignSelf: "center",
+  },
   composerWrap: {
-    padding: spacing.md,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
   },
   status: {
     fontSize: 13,
@@ -267,6 +317,11 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 15,
+  },
+  linkButton: {
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: spacing.md,
   },
   link: {
     fontSize: 15,

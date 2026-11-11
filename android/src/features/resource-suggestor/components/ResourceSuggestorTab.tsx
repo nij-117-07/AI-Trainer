@@ -26,14 +26,14 @@ import type { ResourceItem } from "../types";
 
 export function ResourceSuggestorResults({ suggestor }: { suggestor: ResourceSuggestorState }) {
   const colors = useThemeColors();
-  const { result } = suggestor;
+  const { result, pending } = suggestor;
 
   if (!result) {
     return (
       <EmptyHint
         icon={BookMarked}
-        title="Find your resources"
-        hint="Describe what you know and what you want to learn in the form below, then tap Suggest resources."
+        title={pending ? "Finding resources…" : "Find your resources"}
+        hint={pending ? "This can take a moment." : "Describe what you know and what you want to learn in the form, then tap Suggest resources."}
       />
     );
   }

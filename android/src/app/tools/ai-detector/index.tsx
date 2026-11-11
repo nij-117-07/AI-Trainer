@@ -2,7 +2,7 @@
 /** AI Detector route: scores a text for AI likelihood and lists the patterns behind the score. */
 import { ResetButton } from "@/components/tool/ResetButton";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { AiDetectorFooter, AiDetectorResults } from "@/features/ai-detector/components/AiDetectorTool";
+import { AiDetectorFooter, AiDetectorForm, AiDetectorResults } from "@/features/ai-detector/components/AiDetectorTool";
 import { useAiDetector } from "@/features/ai-detector/hooks/useAiDetector";
 
 export default function AiDetectorRoute() {
@@ -12,9 +12,15 @@ export default function AiDetectorRoute() {
     <ToolScreen
       title="AI Detector"
       headerRight={<ResetButton onPress={detector.reset} />}
+      footerSide={false}
       footer={<AiDetectorFooter detector={detector} />}
     >
-      {detector.loaded && <AiDetectorResults detector={detector} />}
+      {detector.loaded && (
+        <>
+          <AiDetectorForm detector={detector} />
+          <AiDetectorResults detector={detector} />
+        </>
+      )}
     </ToolScreen>
   );
 }

@@ -8,6 +8,8 @@ import { StyleSheet, Text, View } from "react-native";
 import { Lightbulb, Megaphone, Pencil } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
+import { CopyButton } from "@/components/tool/CopyButton";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
@@ -27,13 +29,13 @@ export function SocialPostsResult({ result, onEdit }: { result: SocialPostResult
     );
   }
 
-  function renderBranch(parentId: string | null, depth: number): ReactNode {
-    return branchOf(parentId).map((post) => (
+  function renderThread(post: SocialPost, depth: number): ReactNode {
+    return (
       <View key={post.id} style={{ marginLeft: Math.min(depth, MAX_INDENT_DEPTH) * spacing.lg, gap: spacing.lg }}>
         <PostCard post={post} onEdit={onEdit} />
-        {renderBranch(post.id, depth + 1)}
+        {branchOf(post.id).map((revision) => renderThread(revision, depth + 1))}
       </View>
-    ));
+    );
   }
 
   return (
@@ -49,7 +51,7 @@ export function SocialPostsResult({ result, onEdit }: { result: SocialPostResult
       {result.posts.length === 0 ? (
         <Text style={[styles.empty, { color: colors.mutedForeground }]}>No posts were returned.</Text>
       ) : (
-        renderBranch(null, 0)
+        <CardGrid>{branchOf(null).map((post) => renderThread(post, 0))}</CardGrid>
       )}
     </>
   );
@@ -59,15 +61,20 @@ function PostCard({ post, onEdit }: { post: SocialPost; onEdit: (post: SocialPos
   const colors = useThemeColors();
   return (
     <Panel>
-      <Text style={[styles.title, { color: colors.foreground }]}>{post.label}</Text>
+      <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>
+        {post.label}
+      </Text>
       <MarkdownText content={post.content} />
-      <ListenButton text={post.content} label="Post" />
+      <View style={styles.actions}>
+        <CopyButton text={post.content} label="Copy post" />
+        <ListenButton text={post.content} label="Post" />
+      </View>
       {post.designerNotes !== "" && (
         <ResultCallout icon={Lightbulb} title="Designer notes" tone="emerald">
           <MarkdownText content={post.designerNotes} />
         </ResultCallout>
       )}
-      <ActionButton label="Edit" icon={Pencil} variant="outline" onPress={() => onEdit(post)} />
+      <ActionButton label="Revise post" icon={Pencil} variant="outline" onPress={() => onEdit(post)} />
     </Panel>
   );
 }
@@ -77,6 +84,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: spacing.xs,
+  },
+  actions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "flex-start",
+    gap: spacing.sm,
   },
   empty: {
     fontSize: 14,

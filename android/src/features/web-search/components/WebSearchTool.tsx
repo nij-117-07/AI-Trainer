@@ -1,11 +1,12 @@
 // src/features/web-search/components/WebSearchTool.tsx
-/** Web Search tool: result cards with a Load more pager, then the search form that opens on tap. */
+/** Web Search tool: the search form that opens on tap, then result cards with a Load more pager. */
 import { useEffect, type ReactNode } from "react";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import { Globe, ListPlus, SearchX } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
-import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText, Panel } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { SettingsToggle } from "@/components/tool/SettingsToggle";
@@ -49,21 +50,45 @@ export function WebSearchTool() {
 
   return (
     <Section>
+      <SettingsToggle
+        title="Search form"
+        summary={form.query.trim() || "Query and filters"}
+        expanded={panel.expanded}
+        onToggle={panel.toggle}
+      />
+      <ErrorText message={panel.expanded ? null : error} />
+
+      {panel.expanded ? (
+        <SearchForm
+          form={form}
+          setForm={setForm}
+          searxngUrl={searxngUrl}
+          onSearxngUrlChange={setSearxngUrl}
+          pending={isPending}
+          error={error}
+          onSubmit={handleSearch}
+        />
+      ) : null}
+
       {isPending && results.length === 0 ? (
         <StatePanel>
-          <ActivityIndicator color={colors.primary} />
-          <Text style={[styles.body, { color: colors.mutedForeground }]}>Searching…</Text>
+          <ActivityIndicator color={colors.primary} accessibilityLabel="Searching" />
+          <Text accessibilityLiveRegion="polite" style={[styles.body, { color: colors.mutedForeground }]}>
+            Searching…
+          </Text>
         </StatePanel>
       ) : results.length > 0 && meta ? (
         <Section>
-          <Text style={[styles.summary, { color: colors.mutedForeground }]}>
+          <Text accessibilityLiveRegion="polite" style={[styles.summary, { color: colors.mutedForeground }]}>
             {results.length} result{results.length === 1 ? "" : "s"} for “{meta.values.query}”
             {meta.page > 1 ? ` · pages 1–${meta.page}` : ""}
             {hasAdvancedFilters(meta.values) ? " · filtered" : ""}
           </Text>
-          {results.map((item, index) => (
-            <SearchResultCard key={`${item.url}-${index}`} result={item} rank={index + 1} />
-          ))}
+          <CardGrid>
+            {results.map((item, index) => (
+              <SearchResultCard key={`${item.url}-${index}`} result={item} rank={index + 1} />
+            ))}
+          </CardGrid>
           {meta.hasMore && (
             <ActionButton
               label={isPending ? "Loading more…" : "Load more results"}
@@ -77,7 +102,7 @@ export function WebSearchTool() {
       ) : meta ? (
         <StatePanel>
           <SectionTitle icon={SearchX} title="No results found" />
-          <Text style={[styles.body, { color: colors.mutedForeground }]}>
+          <Text accessibilityLiveRegion="polite" style={[styles.body, { color: colors.mutedForeground }]}>
             Nothing matched that query with the current filters. Try different words or widen the filters.
           </Text>
         </StatePanel>
@@ -85,29 +110,10 @@ export function WebSearchTool() {
         <StatePanel>
           <SectionTitle icon={Globe} title="Search the web" />
           <Text style={[styles.body, { color: colors.mutedForeground }]}>
-            Open the search form below to find pages, posts, and docs. Results link straight to their sources.
+            Open the search form to find pages, posts, and docs. Results link straight to their sources.
           </Text>
         </StatePanel>
       )}
-
-      <SettingsToggle
-        title="Search form"
-        summary={form.query.trim() || "Query and filters"}
-        expanded={panel.expanded}
-        onToggle={panel.toggle}
-      />
-
-      {panel.expanded ? (
-        <SearchForm
-          form={form}
-          setForm={setForm}
-          searxngUrl={searxngUrl}
-          onSearxngUrlChange={setSearxngUrl}
-          pending={isPending}
-          error={error}
-          onSubmit={handleSearch}
-        />
-      ) : null}
     </Section>
   );
 }

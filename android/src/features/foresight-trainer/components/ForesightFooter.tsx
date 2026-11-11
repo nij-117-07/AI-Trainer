@@ -15,9 +15,9 @@ export function ForesightFooter({ run }: { run: ForesightRunState }) {
   const colors = useThemeColors();
   const session = run.session;
 
-  let chosen = "Choose an option above, then explain your reasoning.";
+  let chosen = "Choose an option, then explain your reasoning.";
   if (run.selected === CUSTOM_CHOICE) {
-    chosen = run.choice ? `Your option: ${run.choice}` : "Your option: write it in the body above.";
+    chosen = run.choice ? `Your option: ${run.choice}` : "Your option: describe it in Write your own option.";
   } else if (run.selected && session) {
     const index = session.options.findIndex((option) => option.id === run.selected);
     const option = session.options[index];

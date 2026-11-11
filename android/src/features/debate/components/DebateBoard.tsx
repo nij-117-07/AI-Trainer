@@ -56,6 +56,11 @@ export function DebateBoard({ game, session }: { game: DebateSessionState; sessi
             </Text>
           </View>
           <Text style={[styles.topic, { color: colors.foreground }]}>{session.topic}</Text>
+          {busy && (
+            <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
+              {game.judging ? "Judging the debate…" : "AI is working…"}
+            </Text>
+          )}
           {active && (
             <ActionButton
               label={game.judging ? "Judging…" : "End & judge"}
@@ -180,6 +185,10 @@ const styles = StyleSheet.create({
   },
   count: {
     fontSize: 13,
+  },
+  status: {
+    fontSize: 13,
+    lineHeight: 18,
   },
   topic: {
     fontSize: 15,

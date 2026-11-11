@@ -85,6 +85,7 @@ export function TutorChatScreen() {
       title="Tutor Chat"
       headerRight={listView ? <ResetButton onPress={() => setCreateForm(EMPTY)} /> : undefined}
       footer={footer}
+      footerSide={false}
     >
       {body}
     </ToolScreen>

@@ -37,16 +37,19 @@ export function TaskRow({ task, today, projectName, labelNames, onOpen, onToggle
         accessibilityRole="checkbox"
         accessibilityLabel={task.completed ? `Reopen ${task.title}` : `Complete ${task.title}`}
         accessibilityState={{ checked: task.completed }}
-        hitSlop={8}
-        style={[
-          styles.checkbox,
-          {
-            borderColor: urgent ? colors.destructive : colors.mutedForeground,
-            backgroundColor: task.completed ? colors.primary : "transparent",
-          },
-        ]}
+        style={styles.checkboxHit}
       >
-        {task.completed ? <Check size={14} color={colors.primaryForeground} /> : null}
+        <View
+          style={[
+            styles.checkbox,
+            {
+              borderColor: urgent ? colors.destructive : colors.mutedForeground,
+              backgroundColor: task.completed ? colors.primary : "transparent",
+            },
+          ]}
+        >
+          {task.completed ? <Check size={14} color={colors.primaryForeground} /> : null}
+        </View>
       </Pressable>
 
       <Pressable
@@ -76,7 +79,10 @@ export function TaskRow({ task, today, projectName, labelNames, onOpen, onToggle
       </Pressable>
 
       {flagged ? (
-        <Text style={[styles.priority, { color: urgent ? colors.destructive : colors.mutedForeground }]}>
+        <Text
+          accessibilityLabel={`Priority ${task.priority}`}
+          style={[styles.priority, { color: urgent ? colors.destructive : colors.mutedForeground }]}
+        >
           P{task.priority}
         </Text>
       ) : null}
@@ -92,10 +98,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
   },
+  checkboxHit: {
+    width: 44,
+    height: 44,
+    marginHorizontal: -11,
+    marginTop: -10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   checkbox: {
     width: 22,
     height: 22,
-    marginTop: 1,
     borderWidth: 2,
     borderRadius: radius.full,
     alignItems: "center",

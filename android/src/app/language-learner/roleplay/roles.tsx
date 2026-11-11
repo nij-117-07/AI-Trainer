@@ -4,7 +4,7 @@ import { ToolScreen } from "@/components/tool/ToolScreen";
 
 export default function RoleplayRolesRoute() {
   return (
-    <ToolScreen title="Roleplay Roles">
+    <ToolScreen title="Saved Personas">
       <RoleplayRolesView />
     </ToolScreen>
   );

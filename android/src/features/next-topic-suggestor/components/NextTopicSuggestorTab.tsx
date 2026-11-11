@@ -13,14 +13,15 @@ import { isTopicLevel, LIMITS, topicLevelOptions } from "../options";
 import type { TopicRecommendation } from "../types";
 
 export function NextTopicResults({ suggestor }: { suggestor: NextTopicSuggestorState }) {
-  const { result } = suggestor;
+  const colors = useThemeColors();
+  const { result, pending } = suggestor;
 
   if (!result) {
     return (
       <EmptyHint
         icon={Route}
-        title="Your next topics"
-        hint="Describe your broader topic and what you already know in the form below, then tap Suggest topics."
+        title={pending ? "Finding next topics…" : "Your next topics"}
+        hint={pending ? "This can take a moment." : "Describe your broader topic and what you already know in the form, then tap Suggest topics."}
       />
     );
   }
@@ -29,7 +30,7 @@ export function NextTopicResults({ suggestor }: { suggestor: NextTopicSuggestorS
     <Section>
       <SectionTitle icon={Route} title="Recommended next topics" />
       {result.recommendations.length === 0 ? (
-        <Text style={styles.empty}>No topic recommendations returned. Try again.</Text>
+        <Text style={[styles.empty, { color: colors.mutedForeground }]}>No topic recommendations returned. Try again.</Text>
       ) : (
         result.recommendations.map((item, index) => (
           <RecommendationCard key={`${item.topicName}-${index}`} item={item} index={index} />

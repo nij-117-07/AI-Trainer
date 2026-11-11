@@ -1,7 +1,7 @@
 // src/features/markdown-viewer/components/MarkdownViewerTool.tsx
 /**
  * Markdown Viewer. The body switches between Write (the editor) and Preview (the rendered text).
- * The footer shares the Markdown. The draft is kept on the device between visits.
+ * The footer holds Share. The draft is kept on the device between visits.
  */
 import { useState } from "react";
 import { Share, StyleSheet, Text, View } from "react-native";

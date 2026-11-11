@@ -35,7 +35,7 @@ export function SkillTreeCard({ tree, onOpen, onDelete }: SkillTreeCardProps) {
         <Pressable
           onPress={onDelete}
           accessibilityRole="button"
-          accessibilityLabel="Delete skill tree"
+          accessibilityLabel={`Delete ${tree.topic}`}
           hitSlop={8}
           style={({ pressed }) => [styles.deleteButton, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
         >

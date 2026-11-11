@@ -5,9 +5,9 @@
  * shown as chips at the top.
  */
 import { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Bot, Eye } from "lucide-react-native";
-import { spacing, useThemeColors, type Tone } from "@/theme";
+import { radius, spacing, useThemeColors, type Tone } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -46,7 +46,12 @@ export function SimulationBoard({ session, busy }: SimulationBoardProps) {
             {session.grades.map((grade, index) => {
               const tone = colors.tone[GRADE_TONES[grade.strategicGrade] ?? "amber"];
               return (
-                <View key={index} style={[styles.grade, { backgroundColor: tone.bg, borderColor: tone.border }]}>
+                <View
+                  key={index}
+                  accessible
+                  accessibilityLabel={`Reply ${index + 1} grade ${grade.strategicGrade}`}
+                  style={[styles.grade, { backgroundColor: tone.bg, borderColor: tone.border }]}
+                >
                   <Text style={[styles.gradeText, { color: tone.fg }]}>{grade.strategicGrade}</Text>
                 </View>
               );
@@ -56,7 +61,9 @@ export function SimulationBoard({ session, busy }: SimulationBoardProps) {
       </Panel>
 
       <Panel>
-        <Text style={[styles.heading, { color: colors.foreground }]}>The scene</Text>
+        <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>
+          The scene
+        </Text>
         {scenario.settingDescription !== "" && <MarkdownText content={scenario.settingDescription} />}
         <ListenButton text={scenario.settingDescription} label="Scene" />
         {scenario.initialStakes !== "" && (
@@ -80,13 +87,17 @@ export function SimulationBoard({ session, busy }: SimulationBoardProps) {
           )}
           {session.lastBriefing.eqCoachMessage !== "" && (
             <View style={[styles.coach, { borderColor: colors.primary }]}>
-              <Text style={[styles.heading, { color: colors.primary }]}>EQ coaching</Text>
+              <Text accessibilityRole="header" style={[styles.heading, { color: colors.primary }]}>
+                EQ coaching
+              </Text>
               <Text style={[styles.body, { color: colors.foreground }]}>{session.lastBriefing.eqCoachMessage}</Text>
             </View>
           )}
           {session.lastBriefing.suggestedStrategies.length > 0 && (
             <View style={styles.strategies}>
-              <Text style={[styles.heading, { color: colors.foreground }]}>Suggested strategies</Text>
+              <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>
+                Suggested strategies
+              </Text>
               <TagList items={session.lastBriefing.suggestedStrategies} />
             </View>
           )}
@@ -107,6 +118,15 @@ export function SimulationBoard({ session, busy }: SimulationBoardProps) {
               {entry.role !== "user" && <ListenButton text={entry.content} label="Reply" />}
             </View>
           ))
+        )}
+        {busy && (
+          <View
+            accessibilityLiveRegion="polite"
+            style={[styles.status, { backgroundColor: colors.muted, borderColor: colors.border }]}
+          >
+            <ActivityIndicator color={colors.primary} />
+            <Text style={[styles.body, { color: colors.mutedForeground }]}>Waiting for the reply…</Text>
+          </View>
         )}
       </Panel>
     </>
@@ -172,6 +192,14 @@ const styles = StyleSheet.create({
   },
   entry: {
     gap: spacing.xs,
+  },
+  status: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    padding: spacing.md,
   },
   speaker: {
     fontSize: 12,

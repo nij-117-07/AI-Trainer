@@ -42,14 +42,14 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
 
       {revealed &&
         (isCorrect ? (
-          <View style={styles.feedback}>
+          <View accessibilityLiveRegion="polite" style={styles.feedback}>
             <CircleCheck size={16} color={colors.foreground} />
             <Text style={[styles.feedbackText, { color: colors.foreground }]}>
               Correct: {question.correctAnswer}
             </Text>
           </View>
         ) : (
-          <View style={styles.feedback}>
+          <View accessibilityLiveRegion="polite" style={styles.feedback}>
             <CircleX size={16} color={colors.destructive} />
             <Text style={[styles.feedbackText, { color: colors.destructive }]}>
               Wrong. Correct answer: {question.correctAnswer}
@@ -69,6 +69,7 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
               onPress={() => onSelect(key)}
               accessibilityRole="button"
               accessibilityLabel={`Option ${key}: ${question.options[key]}`}
+              accessibilityState={{ selected: selected === key, disabled: revealed }}
               style={({ pressed }) => [
                 styles.option,
                 { borderColor, backgroundColor: isCorrectOption ? colors.muted : colors.background },
@@ -144,6 +145,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
+    minHeight: 44,
     borderWidth: 1,
     borderRadius: radius.lg,
     paddingHorizontal: spacing.md,

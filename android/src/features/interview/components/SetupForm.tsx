@@ -124,7 +124,7 @@ export function SetupFormFields({ setup }: { setup: InterviewSetupState }) {
       />
       <TextField
         label="Duration (minutes)"
-        hint="From 5 to 480"
+        hint="Between 5 and 480"
         value={form.durationMinutes}
         onChangeText={(text) => onChange("durationMinutes", text.replace(/[^0-9]/g, ""))}
         editable={!busy}
@@ -160,7 +160,11 @@ export function SetupFormFooter({ setup }: { setup: InterviewSetupState }) {
 
 function GroupTitle({ text }: { text: string }) {
   const colors = useThemeColors();
-  return <Text style={[styles.groupTitle, { color: colors.mutedForeground }]}>{text.toUpperCase()}</Text>;
+  return (
+    <Text accessibilityRole="header" style={[styles.groupTitle, { color: colors.mutedForeground }]}>
+      {text.toUpperCase()}
+    </Text>
+  );
 }
 
 const styles = StyleSheet.create({

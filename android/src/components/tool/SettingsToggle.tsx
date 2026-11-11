@@ -17,7 +17,9 @@ export function SettingsToggle({ title, summary, expanded, onToggle }: SettingsT
     <Pressable
       onPress={onToggle}
       accessibilityRole="button"
-      accessibilityLabel={`${expanded ? "Hide" : "Show"} ${title.toLowerCase()}`}
+      accessibilityLabel={title}
+      accessibilityState={{ expanded }}
+      accessibilityHint={expanded ? "Collapses the settings" : `Shows ${summary}`}
       style={({ pressed }) => [
         styles.toggle,
         { borderColor: colors.border, backgroundColor: colors.card },

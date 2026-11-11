@@ -13,6 +13,7 @@ import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
 import { useExplainerTool } from "../hooks/useExplainerTool";
+import { ResultLoading } from "./ResultLoading";
 import { FEYNMAN_AGE, FEYNMAN_DEFAULTS, FEYNMAN_KEY, LIMITS, parseFeynman } from "../lib/drafts";
 import { simplifyTopic } from "../lib/generators";
 
@@ -23,14 +24,18 @@ export function useFeynman() {
 export type FeynmanState = ReturnType<typeof useFeynman>;
 
 export function FeynmanResults({ state }: { state: FeynmanState }) {
-  const { result } = state;
+  const { result, pending } = state;
+
+  if (pending) {
+    return <ResultLoading title="Simplifying your topic" hint="This can take a moment." />;
+  }
 
   if (!result) {
     return (
       <EmptyHint
         icon={Puzzle}
         title="Make it simple"
-        hint="Enter a complex topic and pick an age in the form below, then tap Simplify it."
+        hint="Enter a complex topic and pick an age in the form, then tap Simplify it."
       />
     );
   }

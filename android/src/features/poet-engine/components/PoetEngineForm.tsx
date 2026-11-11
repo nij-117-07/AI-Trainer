@@ -1,7 +1,8 @@
 // src/features/poet-engine/components/PoetEngineForm.tsx
 /**
- * Poet Engine form, shown on its own page. The fields fill the page body; the button is pinned in
- * the footer. A successful explanation is saved and onGenerated returns to the Poet Engine page.
+ * Poet Engine form, shown on its own page. On a phone the fields fill the page body and the button is
+ * pinned in the footer; on tablet and desktop the form sits in the side panel. A successful
+ * explanation is saved and onGenerated returns to the Poet Engine page.
  */
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
@@ -143,8 +144,20 @@ export function PoetEngineFormFooter({ poet }: { poet: PoetEngineFormState }) {
   );
 }
 
+export function PoetEngineFormSidePanel({ poet }: { poet: PoetEngineFormState }) {
+  return (
+    <View style={styles.sidePanel}>
+      <PoetEngineFormFields poet={poet} />
+      <PoetEngineFormFooter poet={poet} />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   footer: {
     gap: spacing.md,
+  },
+  sidePanel: {
+    gap: spacing.lg,
   },
 });

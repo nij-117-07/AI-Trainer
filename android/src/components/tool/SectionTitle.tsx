@@ -14,7 +14,9 @@ export function SectionTitle({ icon: Icon, title }: SectionTitleProps) {
   return (
     <View style={styles.row}>
       <Icon size={16} color={colors.primary} />
-      <Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>
+      <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>
+        {title}
+      </Text>
     </View>
   );
 }

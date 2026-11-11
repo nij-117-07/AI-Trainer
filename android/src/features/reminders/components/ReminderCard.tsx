@@ -1,8 +1,9 @@
 /** One reminder: its name, schedule, next time, an On/Off switch, and delete (which asks first). */
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Bell, Trash2 } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { confirmAction } from "@/features/chatbot/lib/confirm";
 import { describeNext, describeReminder } from "../lib/labels";
 import type { Reminder } from "../types";
 
@@ -17,24 +18,19 @@ export function ReminderCard({ reminder, now, onToggle, onDelete }: ReminderCard
   const colors = useThemeColors();
 
   function confirmDelete() {
-    Alert.alert(`Delete ${reminder.name}?`, "Its upcoming reminders will be cancelled.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: onDelete },
-    ]);
+    confirmAction(`Delete ${reminder.name}?`, "Its upcoming reminders will be cancelled.", onDelete);
   }
 
   return (
     <Panel>
       <View style={styles.header}>
         <Bell size={18} color={reminder.enabled ? colors.primary : colors.mutedForeground} />
-        <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={1}>
-          {reminder.name}
-        </Text>
+        <Text style={[styles.title, { color: colors.foreground }]}>{reminder.name}</Text>
         <Pressable
           onPress={onToggle}
           accessibilityRole="switch"
           accessibilityState={{ checked: reminder.enabled }}
-          accessibilityLabel={`${reminder.enabled ? "Pause" : "Resume"} ${reminder.name}`}
+          accessibilityLabel={`Reminder ${reminder.name}`}
           style={[
             styles.pill,
             reminder.enabled
@@ -46,12 +42,17 @@ export function ReminderCard({ reminder, now, onToggle, onDelete }: ReminderCard
             {reminder.enabled ? "On" : "Off"}
           </Text>
         </Pressable>
-        <Pressable onPress={confirmDelete} accessibilityRole="button" accessibilityLabel={`Delete ${reminder.name}`} hitSlop={8} style={styles.deleteButton}>
+        <Pressable onPress={confirmDelete} accessibilityRole="button" accessibilityLabel={`Delete ${reminder.name}`} style={styles.deleteButton}>
           <Trash2 size={18} color={colors.destructive} />
         </Pressable>
       </View>
       <Text style={[styles.muted, { color: colors.mutedForeground }]}>{describeReminder(reminder)}</Text>
-      <Text style={[styles.status, { color: reminder.enabled ? colors.foreground : colors.mutedForeground }]}>{describeNext(reminder, now)}</Text>
+      <Text
+        accessibilityLiveRegion="polite"
+        style={[styles.status, { color: reminder.enabled ? colors.foreground : colors.mutedForeground }]}
+      >
+        {describeNext(reminder, now)}
+      </Text>
     </Panel>
   );
 }
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   pill: {
-    minHeight: 36,
+    minHeight: 44,
     justifyContent: "center",
     borderWidth: 1,
     borderRadius: radius.full,
@@ -79,8 +80,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   deleteButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: radius.full,

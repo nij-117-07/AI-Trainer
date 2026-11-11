@@ -125,10 +125,13 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   day: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderRadius: radius.full,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
   },
   dayText: {
     fontSize: 13,

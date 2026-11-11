@@ -23,7 +23,7 @@ export function AnswerStage({ question, pending, onEditQuestion, onRegenerate }:
   return (
     <StagePanel
       label="Interview question"
-      hint="Type your answer in the box below. Take your time."
+      hint="Type your answer in the answer box, then tap Submit. Take your time."
       isPending={drafting}
       pendingLabel={pending === "question" ? "Crafting the question…" : "Reviewing your answer…"}
       actions={

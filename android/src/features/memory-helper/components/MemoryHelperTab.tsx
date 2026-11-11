@@ -24,7 +24,7 @@ export function MemoryHelperResults({ state }: { state: MemoryHelperState }) {
       <EmptyHint
         icon={Brain}
         title="Turn facts into memory aids"
-        hint="Paste what you need to remember in the form below, then tap Create mnemonics."
+        hint="Paste what you need to remember in the form, then tap Create mnemonics."
       />
     );
   }

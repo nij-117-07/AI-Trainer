@@ -60,7 +60,7 @@ export function ChallengeResult({ result }: { result: ChallengeResultData }) {
           voice
         />
         <ActionButton
-          label={revealed ? "Hide reference" : "Reveal reference"}
+          label={revealed ? "Hide reference answer" : "Reveal reference answer"}
           icon={revealed ? EyeOff : Eye}
           variant="outline"
           onPress={() => setRevealed((current) => !current)}

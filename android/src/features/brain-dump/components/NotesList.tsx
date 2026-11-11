@@ -4,6 +4,7 @@ import { StyleSheet, Text } from "react-native";
 import { NotebookPen } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { ChoiceChips, TextField } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import type { NotesStore } from "../hooks/useNotes";
@@ -48,15 +49,17 @@ export function NotesList({ store, onOpen }: NotesListProps) {
       ) : null}
 
       {store.notes.length === 0 ? (
-        <EmptyHint icon={NotebookPen} title="No notes yet" hint="Tap New note below and get something out of your head." />
+        <EmptyHint icon={NotebookPen} title="No notes yet" hint="Tap New note to get something out of your head." />
       ) : visible.length === 0 ? (
-        <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+        <Text accessibilityLiveRegion="polite" style={[styles.hint, { color: colors.mutedForeground }]}>
           {searching ? "No notes match this search." : "No notes to show."}
         </Text>
       ) : (
-        visible.map((note) => (
-          <NoteRow key={note.id} note={note} onOpen={() => onOpen(note.id)} onTogglePin={() => void store.togglePin(note.id)} />
-        ))
+        <CardGrid>
+          {visible.map((note) => (
+            <NoteRow key={note.id} note={note} onOpen={() => onOpen(note.id)} onTogglePin={() => void store.togglePin(note.id)} />
+          ))}
+        </CardGrid>
       )}
     </Section>
   );

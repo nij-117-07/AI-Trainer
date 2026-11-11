@@ -12,6 +12,7 @@ export default function RoleplayChatRoute() {
       title="Roleplay Chat"
       headerRight={<ResetButton label="Reset chat" onPress={chat.newConversation} />}
       footer={chat.loaded ? <RoleplayChatFooter chat={chat} /> : undefined}
+      footerSide={false}
     >
       <RoleplayChatBody chat={chat} />
     </ToolScreen>

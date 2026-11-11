@@ -6,6 +6,7 @@ import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { GraderResultView } from "@/features/testing-portal/components/GraderResultView";
+import { PortalLoading } from "@/features/testing-portal/components/PortalLoading";
 import { useGraderResult } from "@/features/testing-portal/hooks/useGraderResult";
 
 export default function GraderRoute() {
@@ -26,14 +27,14 @@ export default function GraderRoute() {
       <Section>
         {grader.grade ? (
           <GraderResultView saved={grader.grade} />
+        ) : grader.loaded ? (
+          <EmptyHint
+            icon={ShieldCheck}
+            title="No grade yet"
+            hint="Tap Grade my answer, describe the task and objective, then grade your answer."
+          />
         ) : (
-          grader.loaded && (
-            <EmptyHint
-              icon={ShieldCheck}
-              title="No grade yet"
-              hint="Tap Grade my answer below, describe the task and objective, then grade your answer."
-            />
-          )
+          <PortalLoading />
         )}
       </Section>
     </ToolScreen>

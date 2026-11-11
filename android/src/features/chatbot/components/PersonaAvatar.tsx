@@ -11,7 +11,11 @@ interface PersonaAvatarProps {
 export function PersonaAvatar({ emoji, size = 36 }: PersonaAvatarProps) {
   const colors = useThemeColors();
   return (
-    <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: colors.muted }]}>
+    <View
+      importantForAccessibility="no"
+      accessibilityElementsHidden
+      style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: colors.muted }]}
+    >
       <Text style={{ fontSize: size * 0.5 }}>{emoji}</Text>
     </View>
   );

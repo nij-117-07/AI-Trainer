@@ -17,6 +17,8 @@ export default function IdiomsRoute() {
   return (
     <ToolScreen
       title="Idioms"
+      wide
+      footerSide={false}
       footer={
         <ActionButton
           label="New idiom"
@@ -32,7 +34,7 @@ export default function IdiomsRoute() {
           <EmptyHint
             icon={Sparkles}
             title="No idiom yet"
-            hint="Tap New idiom below, choose your level and a theme, then generate."
+            hint="Tap New idiom to choose your level and a theme, then generate."
           />
         )}
       </Section>

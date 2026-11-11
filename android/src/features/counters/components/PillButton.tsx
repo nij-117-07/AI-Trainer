@@ -6,13 +6,21 @@ import { radius, spacing, useThemeColors } from "@/theme";
 
 interface PillButtonProps {
   label: string;
+  accessibilityLabel?: string;
   icon: LucideIcon;
   onPress: () => void;
   primary?: boolean;
   disabled?: boolean;
 }
 
-export function PillButton({ label, icon: Icon, onPress, primary = false, disabled = false }: PillButtonProps) {
+export function PillButton({
+  label,
+  accessibilityLabel = label,
+  icon: Icon,
+  onPress,
+  primary = false,
+  disabled = false,
+}: PillButtonProps) {
   const colors = useThemeColors();
   const foreground = primary ? colors.primaryForeground : colors.foreground;
   return (
@@ -20,7 +28,7 @@ export function PillButton({ label, icon: Icon, onPress, primary = false, disabl
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.pill,

@@ -40,7 +40,11 @@ export function EvaluationCard({ evaluation }: { evaluation: JokeEvaluation }) {
           {evaluation.isRecommended ? "Stage-ready" : "Keep polishing"}
         </Text>
       </View>
-      <Text style={[styles.overall, { color: colors.foreground }]}>
+      <Text
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={`Overall score ${evaluation.overallScore.toFixed(1)} out of 10`}
+        style={[styles.overall, { color: colors.foreground }]}
+      >
         {evaluation.overallScore.toFixed(1)}
         <Text style={[styles.overallMax, { color: colors.mutedForeground }]}> /10</Text>
       </Text>
@@ -90,7 +94,7 @@ export function ImprovedJokeCard({ rewrite, source }: { rewrite: RewrittenJoke; 
   const colors = useThemeColors();
   return (
     <View style={styles.stack}>
-      <Text style={[styles.meta, { color: colors.mutedForeground }]} numberOfLines={3}>
+      <Text style={[styles.meta, { color: colors.mutedForeground }]}>
         Your joke: <Text style={{ fontStyle: "italic" }}>{source}</Text>
       </Text>
       <View style={[styles.highlight, { backgroundColor: colors.muted, borderColor: colors.border }]}>

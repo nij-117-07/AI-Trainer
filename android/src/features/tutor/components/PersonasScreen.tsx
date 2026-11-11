@@ -126,7 +126,11 @@ export function PersonasScreen() {
             />
           </ScrollView>
           <ErrorText message={error} />
-          {success ? <Text style={[styles.success, { color: colors.tone.emerald.fg }]}>{success}</Text> : null}
+          {success ? (
+            <Text accessibilityLiveRegion="polite" style={[styles.success, { color: colors.tone.emerald.fg }]}>
+              {success}
+            </Text>
+          ) : null}
           <ActionButton
             label={busy ? "Saving…" : editing ? "Update persona" : "Save persona"}
             icon={Save}

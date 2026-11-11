@@ -30,7 +30,7 @@ export default function IngredientsRoute() {
           <EmptyHint
             icon={ShieldCheck}
             title="No check yet"
-            hint="Tap New check below, add a photo of the ingredients list, then analyze it."
+            hint="Tap New check, add a photo of the ingredients list, then analyze it."
           />
         )}
       </Section>

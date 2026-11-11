@@ -56,6 +56,8 @@ export function PuzzleRoundView({ round }: PuzzleRoundViewProps) {
             return (
               <View
                 key={`${index}-${attempt.answer}`}
+                accessible
+                accessibilityLabel={`Attempt ${index + 1}: ${attempt.answer}. ${correct ? "Correct" : `${pct}% accurate`}`}
                 style={[styles.attempt, { borderColor: colors.border, backgroundColor: colors.background }]}
               >
                 <Text style={[styles.attemptNumber, { color: colors.mutedForeground }]}>{index + 1}</Text>
@@ -78,7 +80,13 @@ export function PuzzleRoundView({ round }: PuzzleRoundViewProps) {
             ) : (
               <CircleX size={16} color={colors.destructive} />
             )}
-            <Text style={[styles.verdictText, { color: colors.foreground }]}>{solved ? "Correct!" : "Not quite"}</Text>
+            <Text
+              accessibilityLiveRegion="polite"
+              accessibilityRole="alert"
+              style={[styles.verdictText, { color: colors.foreground }]}
+            >
+              {solved ? "Correct!" : "Not quite. Try again."}
+            </Text>
             <Text style={[styles.accuracy, { color: colors.mutedForeground }]}>Accuracy: {accuracyPct}%</Text>
           </View>
 
@@ -114,7 +122,7 @@ export function PuzzleRoundView({ round }: PuzzleRoundViewProps) {
 
       {solved ? (
         <ResultCallout icon={Trophy} title="Solved" tone="emerald">
-          <Text style={[styles.solvedText, { color: colors.foreground }]}>
+          <Text accessibilityLiveRegion="polite" style={[styles.solvedText, { color: colors.foreground }]}>
             Solved in {attempts.length} {attempts.length === 1 ? "attempt" : "attempts"} — nice work!
           </Text>
         </ResultCallout>

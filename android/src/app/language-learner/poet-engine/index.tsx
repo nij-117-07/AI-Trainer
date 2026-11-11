@@ -15,6 +15,8 @@ export default function PoetEngineRoute() {
   return (
     <ToolScreen
       title="Poet Engine"
+      wide
+      footerSide={false}
       footer={
         <ActionButton
           label="New explanation"
@@ -30,7 +32,7 @@ export default function PoetEngineRoute() {
           <EmptyHint
             icon={Feather}
             title="No explanation yet"
-            hint="Tap New explanation below, choose a concept and poetic style, then generate."
+            hint="Tap New explanation, choose a concept and poetic style, then generate."
           />
         )}
       </Section>

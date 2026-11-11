@@ -17,6 +17,7 @@ export default function RoleplayPersonaRoute() {
       title="Persona"
       headerRight={<ResetButton label="Reset persona" onPress={persona.reset} />}
       footer={<ActionButton label="Use this persona" icon={Check} onPress={() => router.back()} />}
+      footerSide={false}
     >
       <ActiveLanguageNotice />
       <RoleplayPersonaFields persona={persona} />

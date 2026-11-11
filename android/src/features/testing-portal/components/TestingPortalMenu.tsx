@@ -2,10 +2,11 @@
 /**
  * Testing Portal landing page: one small box per tool. Tapping a box opens that tool.
  */
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { BookOpen, Brain, Gauge, ListChecks, Target, type LucideIcon } from "lucide-react-native";
-import { breakpoints, radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 
 interface PortalTool {
@@ -63,12 +64,10 @@ const TOOLS: PortalTool[] = [
 export function TestingPortalMenu() {
   const colors = useThemeColors();
   const router = useRouter();
-  const { width } = useWindowDimensions();
-  const boxWidth = width >= breakpoints.tablet ? "48.5%" : "100%";
 
   return (
     <ToolScreen title="Testing Portal" wide>
-      <View style={styles.grid}>
+      <CardGrid>
         {TOOLS.map((tool) => {
           const Icon = tool.icon;
           const tone = colors.tone[tool.tone];
@@ -78,9 +77,10 @@ export function TestingPortalMenu() {
               onPress={() => router.push(tool.route as never)}
               accessibilityRole="button"
               accessibilityLabel={`Open ${tool.title}`}
+              accessibilityHint={tool.description}
               style={({ pressed }) => [
                 styles.box,
-                { width: boxWidth, backgroundColor: tone.bg, borderColor: tone.border },
+                { backgroundColor: tone.bg, borderColor: tone.border },
                 pressed && { opacity: 0.85 },
               ]}
             >
@@ -92,18 +92,12 @@ export function TestingPortalMenu() {
             </Pressable>
           );
         })}
-      </View>
+      </CardGrid>
     </ToolScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: spacing.lg,
-  },
   box: {
     borderWidth: 1,
     borderRadius: radius["2xl"],

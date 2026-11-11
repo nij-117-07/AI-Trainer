@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { BookOpen, Landmark, Lightbulb, MessagesSquare, PencilLine } from "lucide-react-native";
 import type { LucideIcon } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { Panel } from "@/components/tool/FormControls";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -35,34 +36,36 @@ export function IdiomLessonView({ lesson, nativeLanguage }: IdiomLessonViewProps
         </View>
       </Panel>
 
-      {(lesson.figurativeMeaning !== "" || lesson.equivalentInNativeLanguage !== "") && (
-        <LessonPanel icon={BookOpen} title="What it means">
-          {lesson.figurativeMeaning !== "" && <MarkdownText content={lesson.figurativeMeaning} />}
-          {lesson.equivalentInNativeLanguage !== "" && (
-            <MarkdownText content={`**${equivalentLabel}:** ${lesson.equivalentInNativeLanguage}`} />
-          )}
-        </LessonPanel>
-      )}
-      {lesson.culturalContext !== "" && (
-        <LessonPanel icon={Landmark} title="Cultural context">
-          <MarkdownText content={lesson.culturalContext} />
-        </LessonPanel>
-      )}
-      {lesson.dialogueScenario !== "" && (
-        <LessonPanel icon={MessagesSquare} title="In a real conversation">
-          <MarkdownText content={lesson.dialogueScenario} />
-        </LessonPanel>
-      )}
-      {lesson.practicePrompt !== "" && (
-        <LessonPanel icon={PencilLine} title="Try it yourself">
-          <MarkdownText content={lesson.practicePrompt} />
-        </LessonPanel>
-      )}
-      {lesson.rationale !== "" && (
-        <LessonPanel icon={Lightbulb} title="Why this idiom">
-          <MarkdownText content={lesson.rationale} />
-        </LessonPanel>
-      )}
+      <CardGrid>
+        {(lesson.figurativeMeaning !== "" || lesson.equivalentInNativeLanguage !== "") && (
+          <LessonPanel icon={BookOpen} title="What it means">
+            {lesson.figurativeMeaning !== "" && <MarkdownText content={lesson.figurativeMeaning} />}
+            {lesson.equivalentInNativeLanguage !== "" && (
+              <MarkdownText content={`**${equivalentLabel}:** ${lesson.equivalentInNativeLanguage}`} />
+            )}
+          </LessonPanel>
+        )}
+        {lesson.culturalContext !== "" && (
+          <LessonPanel icon={Landmark} title="Cultural context">
+            <MarkdownText content={lesson.culturalContext} />
+          </LessonPanel>
+        )}
+        {lesson.dialogueScenario !== "" && (
+          <LessonPanel icon={MessagesSquare} title="In a real conversation">
+            <MarkdownText content={lesson.dialogueScenario} />
+          </LessonPanel>
+        )}
+        {lesson.practicePrompt !== "" && (
+          <LessonPanel icon={PencilLine} title="Try it yourself">
+            <MarkdownText content={lesson.practicePrompt} />
+          </LessonPanel>
+        )}
+        {lesson.rationale !== "" && (
+          <LessonPanel icon={Lightbulb} title="Why this idiom">
+            <MarkdownText content={lesson.rationale} />
+          </LessonPanel>
+        )}
+      </CardGrid>
     </>
   );
 }

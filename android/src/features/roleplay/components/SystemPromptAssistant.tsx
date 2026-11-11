@@ -16,7 +16,7 @@ export function SystemPromptAssistant({ assistant }: { assistant: SystemPromptAs
       <TextField
         label="Describe the character"
         placeholder="e.g. A grumpy Parisian waiter who hates rushed orders"
-        hint="The AI writes the system prompt from this. You can edit it afterwards."
+        hint="The AI writes the prompt from this and replaces the current one. You can edit it afterwards."
         value={idea}
         onChangeText={setIdea}
         editable={!pending}

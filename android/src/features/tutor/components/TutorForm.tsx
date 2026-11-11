@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   link: {
-    minHeight: 40,
+    minHeight: 44,
     justifyContent: "center",
     alignSelf: "flex-end",
     paddingHorizontal: spacing.sm,

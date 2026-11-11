@@ -1,23 +1,18 @@
 // src/features/ai-detector/components/BulletList.tsx
-/** Titled bullet list for flagged patterns, suggested changes, and the changes a rewrite made. */
+/** Bullet list of flagged patterns or suggested changes. The enclosing disclosure gives it a title. */
 import { StyleSheet, Text, View } from "react-native";
-import type { LucideIcon } from "lucide-react-native";
 import { radius, spacing, useThemeColors, type Tone } from "@/theme";
-import { SectionTitle } from "@/components/tool/SectionTitle";
 
 interface BulletListProps {
-  icon: LucideIcon;
-  title: string;
   tone: Tone;
   items: string[];
 }
 
-export function BulletList({ icon, title, tone, items }: BulletListProps) {
+export function BulletList({ tone, items }: BulletListProps) {
   const colors = useThemeColors();
   if (items.length === 0) return null;
   return (
     <View style={styles.wrap}>
-      <SectionTitle icon={icon} title={title} />
       {items.map((item, index) => (
         <View key={`${index}-${item}`} style={[styles.item, { backgroundColor: colors.muted }]}>
           <Text style={[styles.dot, { color: colors.tone[tone].fg }]}>•</Text>

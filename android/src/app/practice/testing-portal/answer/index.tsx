@@ -6,6 +6,7 @@ import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { AnswerResultView } from "@/features/testing-portal/components/AnswerResultView";
+import { PortalLoading } from "@/features/testing-portal/components/PortalLoading";
 import { useAnswerResult } from "@/features/testing-portal/hooks/useAnswerResult";
 
 export default function AnswerRoute() {
@@ -26,14 +27,14 @@ export default function AnswerRoute() {
       <Section>
         {expert.answer ? (
           <AnswerResultView answer={expert.answer} />
+        ) : expert.loaded ? (
+          <EmptyHint
+            icon={BookOpen}
+            title="No answer yet"
+            hint="Tap Generate answer, add your question and context, then generate."
+          />
         ) : (
-          expert.loaded && (
-            <EmptyHint
-              icon={BookOpen}
-              title="No answer yet"
-              hint="Tap Generate answer below, write your question and context, then generate."
-            />
-          )
+          <PortalLoading />
         )}
       </Section>
     </ToolScreen>

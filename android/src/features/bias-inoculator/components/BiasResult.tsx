@@ -21,7 +21,7 @@ export function BiasResult({ result }: { result: BiasScenario }) {
     <View style={styles.stack}>
       <ResultCallout icon={ShieldExclamationPoint} title={`Training against: ${label}`} tone="amber">
         <Text style={[styles.hint, { color: colors.foreground }]}>
-          Read the setup and commit to your gut answer before opening the analysis.
+          Commit to your gut answer before reading the trap and the analysis.
         </Text>
       </ResultCallout>
       <BiasSection icon={ShieldExclamationPoint} title="Scenario Setup" content={result.scenarioSetup} />

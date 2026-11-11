@@ -35,7 +35,11 @@ export function ObservationResult({ result }: { result: ObservationTrainResult }
     <>
       <Panel>
         <View style={styles.scoreRow}>
-          <Text style={[styles.score, { color: colors.foreground }]}>
+          <Text
+            accessibilityLiveRegion="polite"
+            accessibilityLabel={`Score ${evaluation.score} out of 10, ${evaluation.rating}`}
+            style={[styles.score, { color: colors.foreground }]}
+          >
             {evaluation.score}
             <Text style={[styles.outOf, { color: colors.mutedForeground }]}> / 10</Text>
           </Text>
@@ -43,7 +47,12 @@ export function ObservationResult({ result }: { result: ObservationTrainResult }
             <Text style={[styles.badgeText, { color: palette.fg }]}>{evaluation.rating}</Text>
           </View>
         </View>
-        <View style={[styles.bar, { backgroundColor: colors.muted }]}>
+        <View
+          accessibilityRole="progressbar"
+          accessibilityLabel="Score"
+          accessibilityValue={{ min: 0, max: 10, now: evaluation.score }}
+          style={[styles.bar, { backgroundColor: colors.muted }]}
+        >
           <View style={[styles.barFill, { width: `${evaluation.score * 10}%`, backgroundColor: palette.fg }]} />
         </View>
 

@@ -30,7 +30,7 @@ export function ObservationFormFields({ training }: { training: ObservationFormS
         onChange={training.pickImage}
         disabled={pending}
         label="Image to observe"
-        hint="Found above, or upload your own: PNG, JPG, or WEBP."
+        hint="Use a found photo, or upload your own: PNG, JPG, or WEBP."
       />
       <TextField
         label="Training scenario"
@@ -69,6 +69,7 @@ export function ObservationFormFields({ training }: { training: ObservationFormS
       <View style={styles.switchRow}>
         <Text style={[styles.switchLabel, { color: colors.foreground }]}>Reveal details I missed</Text>
         <Switch
+          accessibilityLabel="Reveal details I missed"
           value={form.revealHidden}
           onValueChange={(value) => update("revealHidden", value)}
           disabled={pending}

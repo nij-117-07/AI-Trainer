@@ -1,6 +1,6 @@
 // src/components/tool/MarkdownText.tsx
 /** Renders model output that may contain Markdown. Styles follow the active theme. */
-import { StyleSheet, Text, View, type TextStyle } from "react-native";
+import { ScrollView, StyleSheet, Text, View, type TextStyle } from "react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { parseInline, parseMarkdown, type MarkdownBlock } from "@/lib/markdown";
 
@@ -63,9 +63,11 @@ function BlockView({ block, selectable }: { block: MarkdownBlock; selectable: bo
     case "code":
       return (
         <View style={[styles.code, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-          <Text selectable={selectable} style={[styles.codeText, { color: colors.foreground }]}>
-            {block.text}
-          </Text>
+          <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator>
+            <Text selectable={selectable} style={[styles.codeText, { color: colors.foreground }]}>
+              {block.text}
+            </Text>
+          </ScrollView>
         </View>
       );
   }

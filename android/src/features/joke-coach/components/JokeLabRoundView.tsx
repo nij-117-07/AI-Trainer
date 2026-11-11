@@ -67,7 +67,7 @@ export function JokeLabRoundView({ round, game, onNewScenario }: JokeLabRoundVie
             <EvaluationCard evaluation={latest.evaluation} />
           </>
         ) : (
-          <EmptyNote message="Write your joke below, then submit it to get it scored." />
+          <EmptyNote message="Type your joke in the box, then submit it to get it scored." />
         )}
       </Panel>
 

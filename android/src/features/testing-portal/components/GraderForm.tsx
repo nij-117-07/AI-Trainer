@@ -60,7 +60,7 @@ export function GraderFormFields({ setup }: { setup: GraderSetupState }) {
       />
       <TextField
         label="Your answer (optional)"
-        placeholder="Type or paste your written answer, or attach an image below."
+        placeholder="Type or paste your written answer, or attach an image in the form."
         value={form.userAnswerText}
         onChangeText={(text) => update("userAnswerText", text)}
         editable={!pending}

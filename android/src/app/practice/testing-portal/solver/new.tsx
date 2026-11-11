@@ -12,7 +12,7 @@ export default function SolverNewRoute() {
   return (
     <ToolScreen
       title="New question"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton label="Reset form" onPress={setup.reset} />}
       footer={<SolverFormFooter setup={setup} />}
     >
       <SolverFormFields setup={setup} />

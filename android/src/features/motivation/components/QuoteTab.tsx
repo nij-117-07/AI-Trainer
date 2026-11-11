@@ -57,7 +57,7 @@ export function QuoteForm({ state }: { state: QuoteTabState }) {
       <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
         <TextField
           label="Seed topic (optional)"
-          placeholder="e.g. Resilience, or leave empty"
+          placeholder="e.g. Resilience"
           value={form.seedTopic}
           onChangeText={(text) => update("seedTopic", text)}
           editable={!pending}
@@ -74,7 +74,7 @@ export function QuoteForm({ state }: { state: QuoteTabState }) {
         />
         <TextField
           label="How you're feeling (optional)"
-          placeholder="e.g. I feel overwhelmed. Or leave empty."
+          placeholder="e.g. I feel overwhelmed"
           value={form.userFeeling}
           onChangeText={(text) => update("userFeeling", text)}
           editable={!pending}
@@ -104,7 +104,7 @@ export function QuoteResults({ state }: { state: QuoteTabState }) {
       <EmptyHint
         icon={Quote}
         title="Your daily quote"
-        hint="Choose a style and tell us how you feel in the form below, then tap Generate quote."
+        hint="Choose a style and tell us how you feel in the form, then tap Generate quote."
       />
     );
   }

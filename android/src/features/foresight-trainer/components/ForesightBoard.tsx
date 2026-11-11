@@ -3,7 +3,7 @@
  * Scenario page body: the scene, the transcript, and the current decision's options with a custom
  * option. The reasoning box and the commit button are in the footer (ForesightFooter).
  */
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { Award, Flag, Timer } from "lucide-react-native";
 import { spacing, useThemeColors, radius } from "@/theme";
 import { Panel, TextField } from "@/components/tool/FormControls";
@@ -71,7 +71,9 @@ export function ForesightBoard({ session, run }: ForesightBoardProps) {
             </ResultCallout>
           )}
 
-          <Text style={[styles.heading, { color: colors.foreground }]}>{session.currentScene.decisionPoint}</Text>
+          <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>
+            {session.currentScene.decisionPoint}
+          </Text>
           <ListenButton text={session.currentScene.decisionPoint} label="Decision" />
 
           <View style={styles.options}>
@@ -91,7 +93,8 @@ export function ForesightBoard({ session, run }: ForesightBoardProps) {
             onPress={() => run.choose(CUSTOM_CHOICE)}
             disabled={run.pending}
             accessibilityRole="button"
-            accessibilityState={{ selected: customSelected }}
+            accessibilityLabel="Write your own option instead"
+            accessibilityState={{ selected: customSelected, disabled: run.pending }}
             style={[
               styles.custom,
               { borderColor: customSelected ? colors.primary : colors.border, backgroundColor: colors.card },
@@ -114,13 +117,22 @@ export function ForesightBoard({ session, run }: ForesightBoardProps) {
 
           <Text style={[styles.meta, { color: colors.mutedForeground }]}>
             {run.choice === ""
-              ? "Choose an option. Then explain your reasoning and tap Commit at the bottom."
-              : "Explain your reasoning and tap Commit at the bottom to send your choice."}
+              ? "Choose an option. Then explain your reasoning and tap Commit."
+              : "Explain your reasoning and tap Commit to send your choice."}
           </Text>
           {remaining > 0 && session.decisionHistory.length > 0 && (
             <Text style={[styles.meta, { color: colors.mutedForeground }]}>
               {remaining} scene{remaining === 1 ? "" : "s"} remaining
             </Text>
+          )}
+          {run.pending && (
+            <View
+              accessibilityLiveRegion="polite"
+              style={[styles.status, { backgroundColor: colors.muted, borderColor: colors.border }]}
+            >
+              <ActivityIndicator color={colors.primary} />
+              <Text style={[styles.body, { color: colors.mutedForeground }]}>Working on the next scene…</Text>
+            </View>
           )}
         </Panel>
       )}
@@ -146,7 +158,8 @@ function OptionCard({ letter, option, selected, disabled, onPress }: OptionCardP
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
-      accessibilityState={{ selected }}
+      accessibilityLabel={`${letter}. ${option.title || "Untitled option"}`}
+      accessibilityState={{ selected, disabled }}
       style={[
         styles.option,
         { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.muted : colors.card },
@@ -205,8 +218,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   custom: {
+    minHeight: 44,
+    justifyContent: "center",
     borderWidth: 1,
     borderStyle: "dashed",
+    borderRadius: radius.lg,
+    padding: spacing.md,
+  },
+  status: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    borderWidth: 1,
     borderRadius: radius.lg,
     padding: spacing.md,
   },

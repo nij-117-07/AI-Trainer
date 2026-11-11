@@ -1,6 +1,9 @@
 /** Counter & Countdown body: the tab switch and the list of counters or countdowns. The add form lives in the footer. */
 import { useEffect } from "react";
+import { StyleSheet, Text } from "react-native";
 import { Plus, Timer } from "lucide-react-native";
+import { spacing, useThemeColors } from "@/theme";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ChoiceChips } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
@@ -23,11 +26,15 @@ interface CounterAndCountdownToolProps {
 }
 
 export function CounterAndCountdownTool({ store, tab, onTabChange }: CounterAndCountdownToolProps) {
+  const colors = useThemeColors();
+
   useEffect(() => {
     setupCountdownNotifications();
   }, []);
 
-  if (!store.loaded) return null;
+  if (!store.loaded) {
+    return <Text style={[styles.hint, { color: colors.mutedForeground }]}>Loading…</Text>;
+  }
 
   return (
     <Section>
@@ -39,10 +46,16 @@ export function CounterAndCountdownTool({ store, tab, onTabChange }: CounterAndC
 
 function CounterList({ store }: { store: CounterStore }) {
   if (store.counters.length === 0) {
-    return <EmptyHint icon={Plus} title="No counters yet" hint={'Use the form below. For example, "Drink water" with a target of 8.'} />;
+    return (
+      <EmptyHint
+        icon={Plus}
+        title="No counters yet"
+        hint={'Fill in the form and tap Add counter. For example, "Drink water" with a target of 8.'}
+      />
+    );
   }
   return (
-    <>
+    <CardGrid>
       {store.counters.map((counter) => (
         <CounterCard
           key={counter.id}
@@ -52,16 +65,22 @@ function CounterList({ store }: { store: CounterStore }) {
           onDelete={() => store.removeCounter(counter.id)}
         />
       ))}
-    </>
+    </CardGrid>
   );
 }
 
 function CountdownList({ store }: { store: CounterStore }) {
   if (store.countdowns.length === 0) {
-    return <EmptyHint icon={Timer} title="No countdowns yet" hint={'Use the form below. For example, "Read" for 25 minutes.'} />;
+    return (
+      <EmptyHint
+        icon={Timer}
+        title="No countdowns yet"
+        hint={'Fill in the form and tap Add countdown. For example, "Read" for 25 minutes.'}
+      />
+    );
   }
   return (
-    <>
+    <CardGrid>
       {store.countdowns.map((countdown) => (
         <CountdownCard
           key={countdown.id}
@@ -74,6 +93,14 @@ function CountdownList({ store }: { store: CounterStore }) {
           }}
         />
       ))}
-    </>
+    </CardGrid>
   );
 }
+
+const styles = StyleSheet.create({
+  hint: {
+    fontSize: 14,
+    lineHeight: 20,
+    paddingHorizontal: spacing.xs,
+  },
+});

@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react
 import { Send } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { appendTranscript } from "@/features/chatbot/lib/voice-text";
+import { pointerCursor } from "@/components/tool/FormControls";
 import { VoiceInputRow } from "@/components/tool/VoiceInputRow";
 import { MESSAGE_MAX } from "../options";
 
@@ -41,6 +42,7 @@ export function RoleplayComposer({ value, onChangeText, onSend, pending }: Rolep
           accessibilityState={{ disabled: !canSend, busy: pending }}
           style={({ pressed }) => [
             styles.send,
+            pointerCursor,
             { backgroundColor: colors.primary },
             !canSend && styles.disabled,
             pressed && canSend && styles.pressed,

@@ -7,6 +7,7 @@ import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ResetButton } from "@/components/tool/ResetButton";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
+import { PortalLoading } from "@/features/testing-portal/components/PortalLoading";
 import { TheoreticalResultView } from "@/features/testing-portal/components/TheoreticalResultView";
 import { useTheoreticalResult } from "@/features/testing-portal/hooks/useTheoreticalResult";
 
@@ -43,14 +44,14 @@ export default function TheoreticalRoute() {
             contextSetting={theoretical.result.contextSetting}
             difficultyLevel={theoretical.result.difficultyLevel}
           />
+        ) : theoretical.loaded ? (
+          <EmptyHint
+            icon={BookOpen}
+            title="No questions yet"
+            hint="Tap Generate questions, choose a topic and context, then generate."
+          />
         ) : (
-          theoretical.loaded && (
-            <EmptyHint
-              icon={BookOpen}
-              title="No questions yet"
-              hint="Tap Generate questions below, choose a topic and context, then generate."
-            />
-          )
+          <PortalLoading />
         )}
       </Section>
     </ToolScreen>

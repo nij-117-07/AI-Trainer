@@ -56,6 +56,8 @@ export function RiddleRoundView({ round, showSolution, onToggleSolution }: Riddl
             return (
               <View
                 key={`${index}-${attempt.answer}`}
+                accessible
+                accessibilityLabel={`Attempt ${index + 1}: ${attempt.answer}. ${correct ? "Correct" : "Not quite"}`}
                 style={[styles.attempt, { borderColor: colors.border, backgroundColor: colors.background }]}
               >
                 <Text style={[styles.attemptNumber, { color: colors.mutedForeground }]}>{index + 1}</Text>
@@ -74,8 +76,12 @@ export function RiddleRoundView({ round, showSolution, onToggleSolution }: Riddl
 
       {latest && (
         <Panel>
-          <Text style={[styles.verdict, { color: colors.foreground }]}>
-            {latest.evaluation.isCorrect ? "Correct!" : "Not quite"}
+          <Text
+            accessibilityLiveRegion="polite"
+            accessibilityRole="alert"
+            style={[styles.verdict, { color: colors.foreground }]}
+          >
+            {latest.evaluation.isCorrect ? "Correct!" : "Not quite. Try again."}
           </Text>
           <ResultCallout icon={MessageSquare} title="Feedback" tone="sky">
             <MarkdownText content={latest.evaluation.feedback} />
@@ -102,7 +108,7 @@ export function RiddleRoundView({ round, showSolution, onToggleSolution }: Riddl
 
       {solved ? (
         <ResultCallout icon={Trophy} title="Solved" tone="emerald">
-          <Text style={[styles.body, { color: colors.foreground }]}>
+          <Text accessibilityLiveRegion="polite" style={[styles.body, { color: colors.foreground }]}>
             Solved in {attempts.length} {attempts.length === 1 ? "attempt" : "attempts"} — nice work!
           </Text>
         </ResultCallout>

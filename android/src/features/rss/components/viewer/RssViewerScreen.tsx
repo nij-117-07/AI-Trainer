@@ -6,6 +6,7 @@ import { Newspaper, RefreshCw } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { ActionButton, ErrorText } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ResetButton } from "@/components/tool/ResetButton";
 import { Section } from "@/components/tool/Section";
@@ -35,6 +36,8 @@ export function RssViewerScreen() {
     <ToolScreen
       title="RSS Viewer"
       usesAi={false}
+      wide
+      footerSide={false}
       headerRight={<ResetButton onPress={viewer.resetFilters} />}
       footer={
         viewer.hasFeeds ? (
@@ -53,13 +56,15 @@ export function RssViewerScreen() {
           feedsError ? (
             <ErrorText message={feedsError} />
           ) : (
-            <Text style={[styles.note, { color: colors.mutedForeground }]}>Loading feeds…</Text>
+            <Text accessibilityLiveRegion="polite" style={[styles.note, { color: colors.mutedForeground }]}>
+              Loading feeds…
+            </Text>
           )
         ) : !viewer.hasFeeds ? (
           <EmptyHint
             icon={Newspaper}
             title="No feeds yet"
-            hint="Open the Manager above to add a provider. Then come back here to read its articles."
+            hint="Open the Manager tab to add a feed. Then come back here to read its articles."
           />
         ) : (
           <>
@@ -71,7 +76,9 @@ export function RssViewerScreen() {
             <ErrorText message={viewer.error} />
 
             {viewer.loading ? (
-              <Text style={[styles.note, { color: colors.mutedForeground }]}>Loading articles…</Text>
+              <Text accessibilityLiveRegion="polite" style={[styles.note, { color: colors.mutedForeground }]}>
+                Loading articles…
+              </Text>
             ) : total === 0 ? (
               <EmptyHint
                 icon={Newspaper}
@@ -86,12 +93,14 @@ export function RssViewerScreen() {
               />
             ) : (
               <>
-                <Text style={[styles.note, { color: colors.mutedForeground }]}>
+                <Text accessibilityLiveRegion="polite" style={[styles.note, { color: colors.mutedForeground }]}>
                   {total} {total === 1 ? "article" : "articles"}
                 </Text>
-                {viewer.items.slice(0, shown).map((item) => (
-                  <FeedItemCard key={`${item.feedId}-${item.guid}`} item={item} />
-                ))}
+                <CardGrid>
+                  {viewer.items.slice(0, shown).map((item) => (
+                    <FeedItemCard key={`${item.feedId}-${item.guid}`} item={item} />
+                  ))}
+                </CardGrid>
                 {total > shown ? (
                   <ActionButton
                     label={`Show more (${total - shown} left)`}

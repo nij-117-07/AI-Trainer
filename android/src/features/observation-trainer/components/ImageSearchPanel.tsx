@@ -24,7 +24,7 @@ export function ImageSearchPanel({ requirements, onRequirementsChange, search, d
   if (Platform.OS === "web") {
     return (
       <Text style={[styles.note, { color: colors.mutedForeground }]}>
-        Image search runs in the Android app. On web, upload your own image below.
+        Image search runs in the Android app. On web, upload your own image instead.
       </Text>
     );
   }
@@ -56,6 +56,12 @@ export function ImageSearchPanel({ requirements, onRequirementsChange, search, d
       ) : null}
       <ErrorText message={search.error} />
 
+      {search.query && !search.pending && !search.error && search.candidates.length === 0 ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.note, { color: colors.mutedForeground }]}>
+          No photos matched. Try different words in the description.
+        </Text>
+      ) : null}
+
       {search.candidates.length > 0 ? (
         <View style={styles.stack}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip}>
@@ -79,6 +85,7 @@ export function ImageSearchPanel({ requirements, onRequirementsChange, search, d
           {chosen ? (
             <Text
               onPress={chosen.pageUrl ? () => void Linking.openURL(chosen.pageUrl) : undefined}
+              accessibilityRole={chosen.pageUrl ? "link" : "text"}
               style={[styles.note, { color: colors.mutedForeground }]}
               numberOfLines={2}
             >

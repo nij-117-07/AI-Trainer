@@ -15,14 +15,14 @@ import type { NextAction } from "../types";
 
 export function WhatToDoNowResults({ state }: { state: WhatToDoNowState }) {
   const colors = useThemeColors();
-  const { result } = state;
+  const { result, pending } = state;
 
   if (!result) {
     return (
       <EmptyHint
         icon={Compass}
-        title="Decide your next step"
-        hint="Describe your goals and how you are doing in the form below, then tap What should I do now?"
+        title={pending ? "Thinking…" : "Decide your next step"}
+        hint={pending ? "This can take a moment." : "Describe your goals and how you are doing in the form, then tap What should I do now?"}
       />
     );
   }

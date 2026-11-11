@@ -3,7 +3,7 @@
 export const SAMPLE_MARKDOWN = [
   "# Markdown Viewer",
   "",
-  "Edit **Markdown** above and see the rendered result below.",
+  "Edit **Markdown** in Write and see the rendered result in Preview.",
   "",
   "## Features",
   "",

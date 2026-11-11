@@ -1,11 +1,13 @@
 // src/features/chatbot/components/ChatbotSettingsCard.tsx
 /** Chat-wide settings: the default persona, streaming, history length, and spoken replies. */
-import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { useEffect, useState, type ReactNode } from "react";
+import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import { SlidersHorizontal } from "lucide-react-native";
+import { Disclosure } from "@/components/tool/Disclosure";
+import { ActionButton, ChoiceChips, Field, Panel, TextField, pointerCursor } from "@/components/tool/FormControls";
+import { spacing, useThemeColors } from "@/theme";
 import { HISTORY_LIMIT_RANGE, validateHistoryLimit } from "../lib/settings-model";
 import type { ChatbotSettings, Persona } from "../types";
-import { PersonaAvatar } from "./PersonaAvatar";
 
 interface ChatbotSettingsCardProps {
   settings: ChatbotSettings;
@@ -21,6 +23,7 @@ export function ChatbotSettingsCard({ settings, personas, speechReady, onSave }:
   const [autoSpeak, setAutoSpeak] = useState(settings.autoSpeak);
   const [historyText, setHistoryText] = useState(String(settings.historyLimit));
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setDefaultId(settings.defaultPersonaId);
@@ -36,87 +39,59 @@ export function ChatbotSettingsCard({ settings, personas, speechReady, onSave }:
       setMessage({ tone: "error", text: problem });
       return;
     }
+    setMessage(null);
+    setSaving(true);
     try {
       await onSave({ defaultPersonaId: defaultId, streamReplies: stream, historyLimit, autoSpeak });
       setMessage({ tone: "ok", text: "Chat settings saved." });
     } catch {
-      setMessage({ tone: "error", text: "Chat settings could not be saved." });
+      setMessage({ tone: "error", text: "Chat settings could not be saved. Try again." });
+    } finally {
+      setSaving(false);
     }
   }
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <Text style={[styles.title, { color: colors.foreground }]}>Chat settings</Text>
+    <Panel>
+      <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>
+        Chat settings
+      </Text>
 
-      <View style={styles.field}>
-        <Text style={[styles.label, { color: colors.foreground }]}>Default persona</Text>
-        <Text style={[styles.hint, { color: colors.mutedForeground }]}>Opens first on the chatbot page.</Text>
-        <View style={styles.chips}>
-          {personas.map((persona) => {
-            const selected = persona.id === defaultId;
-            return (
-              <Pressable
-                key={persona.id}
-                onPress={() => setDefaultId(persona.id)}
-                accessibilityRole="button"
-                accessibilityLabel={`Default persona ${persona.name}`}
-                accessibilityState={{ selected }}
-                style={[
-                  styles.chip,
-                  { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.muted : colors.background },
-                ]}
-              >
-                <PersonaAvatar emoji={persona.avatar} size={22} />
-                <Text style={[styles.chipText, { color: colors.foreground }]}>{persona.name}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
-      <View style={styles.switchRow}>
-        <View style={styles.switchText}>
-          <Text style={[styles.label, { color: colors.foreground }]}>Stream replies</Text>
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>Show the reply as it is written. Turn off to wait for the full reply.</Text>
-        </View>
-        <Switch
-          value={stream}
-          onValueChange={setStream}
-          trackColor={{ false: colors.border, true: colors.primary }}
-          accessibilityLabel="Stream replies"
+      <Field label="Default persona" hint="Opens first on the chatbot page.">
+        <ChoiceChips
+          options={personas.map((persona) => ({ value: persona.id, label: `${persona.avatar} ${persona.name}` }))}
+          value={defaultId}
+          onChange={setDefaultId}
         />
-      </View>
+      </Field>
 
-      <View style={styles.switchRow}>
-        <View style={styles.switchText}>
-          <Text style={[styles.label, { color: colors.foreground }]}>Speak replies automatically</Text>
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-            {speechReady
-              ? "Each reply is read aloud when it finishes. You can also tap Listen on any reply."
-              : "Needs the speech model and voice in AI settings. Tap Listen on a reply works the same way once they are set."}
-          </Text>
-        </View>
-        <Switch
-          value={autoSpeak}
-          onValueChange={setAutoSpeak}
-          trackColor={{ false: colors.border, true: colors.primary }}
-          accessibilityLabel="Speak replies automatically"
-        />
-      </View>
+      <SwitchRow
+        label="Stream replies"
+        hint="Show the reply as it is written. Turn off to wait for the full reply."
+        value={stream}
+        onChange={setStream}
+      />
 
-      <View style={styles.field}>
-        <Text style={[styles.label, { color: colors.foreground }]}>History length</Text>
-        <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-          Most recent messages sent with each reply, from {HISTORY_LIMIT_RANGE.min} to {HISTORY_LIMIT_RANGE.max}. Longer history uses more tokens.
-        </Text>
-        <TextInput
+      <SwitchRow
+        label="Speak replies automatically"
+        hint={
+          speechReady
+            ? "Each reply is read aloud when it finishes. You can also tap Listen on any reply."
+            : "Needs a speech model and voice in AI settings. Tap Listen on a reply once they are set."
+        }
+        value={autoSpeak}
+        onChange={setAutoSpeak}
+      />
+
+      <Disclosure title="Advanced settings" icon={SlidersHorizontal} summary={`Last ${historyText || "–"} messages sent with each reply`}>
+        <TextField
+          label="History length"
+          hint={`Most recent messages sent with each reply, from ${HISTORY_LIMIT_RANGE.min} to ${HISTORY_LIMIT_RANGE.max}. Longer history uses more tokens.`}
           value={historyText}
           onChangeText={(value) => setHistoryText(value.replace(/[^0-9]/g, ""))}
           keyboardType="number-pad"
-          accessibilityLabel="History length"
-          style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
         />
-      </View>
+      </Disclosure>
 
       {message ? (
         <Text
@@ -127,31 +102,47 @@ export function ChatbotSettingsCard({ settings, personas, speechReady, onSave }:
         </Text>
       ) : null}
 
-      <Pressable
-        onPress={() => void save()}
-        accessibilityRole="button"
-        accessibilityLabel="Save chat settings"
-        style={({ pressed }) => [styles.save, { backgroundColor: colors.primary }, pressed && { opacity: 0.85 }]}
-      >
-        <Text style={[styles.saveText, { color: colors.primaryForeground }]}>Save chat settings</Text>
-      </Pressable>
-    </View>
+      <ActionButton label="Save chat settings" loading={saving} onPress={() => void save()} />
+    </Panel>
+  );
+}
+
+function SwitchRow({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+}): ReactNode {
+  const colors = useThemeColors();
+  return (
+    <Pressable
+      onPress={() => onChange(!value)}
+      accessibilityRole="switch"
+      accessibilityLabel={label}
+      accessibilityHint={hint}
+      accessibilityState={{ checked: value }}
+      style={({ pressed }) => [styles.switchRow, pointerCursor, pressed && { opacity: 0.85 }]}
+    >
+      <View style={styles.switchText}>
+        <Text style={[styles.label, { color: colors.foreground }]}>{label}</Text>
+        <Text style={[styles.hint, { color: colors.mutedForeground }]}>{hint}</Text>
+      </View>
+      <View style={styles.switchControl} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        <Switch value={value} onValueChange={onChange} trackColor={{ false: colors.border, true: colors.primary }} />
+      </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderRadius: radius["2xl"],
-    padding: spacing.xl,
-    gap: spacing.xl,
-  },
   title: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
-  },
-  field: {
-    gap: spacing.sm,
   },
   label: {
     fontSize: 15,
@@ -161,53 +152,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
   },
-  chips: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderRadius: radius.full,
-    paddingLeft: spacing.xs,
-    paddingRight: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
   switchRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
+    minHeight: 44,
   },
   switchText: {
     flex: 1,
     gap: spacing.xs,
   },
-  input: {
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    fontSize: 16,
+  switchControl: {
+    pointerEvents: "none",
   },
   message: {
     fontSize: 14,
-    textAlign: "center",
-  },
-  save: {
-    height: 48,
-    borderRadius: radius.full,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  saveText: {
-    fontSize: 15,
-    fontWeight: "600",
+    lineHeight: 20,
   },
 });

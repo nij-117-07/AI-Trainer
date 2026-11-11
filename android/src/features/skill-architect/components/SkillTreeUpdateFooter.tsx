@@ -22,7 +22,7 @@ export function SkillTreeUpdateFooter({ state }: { state: SkillTreeState }) {
       />
       <ErrorText message={state.error} />
       <ActionButton
-        label={state.pending ? "Working out what's next…" : "What's next?"}
+        label={state.pending ? "Working out next steps…" : "Get next steps"}
         icon={Sparkles}
         loading={state.pending}
         onPress={state.submitUpdate}

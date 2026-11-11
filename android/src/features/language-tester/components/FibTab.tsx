@@ -18,7 +18,7 @@ import { useRunSignal } from "../hooks/useRunSignal";
 import { usePersistedTool } from "../hooks/usePersistedValue";
 import type { FibFormValues, FibResult } from "../types";
 import { FibQuiz } from "./FibQuiz";
-import { EmptyNote } from "./QuizParts";
+import { EmptyNote, FormWidth } from "./QuizParts";
 
 const DEFAULTS: FibFormValues = {
   targetLanguage: "German",
@@ -59,66 +59,71 @@ export function FibTab() {
 
   return (
     <Section>
-      <Panel>
-        <ActiveLanguageNotice />
-        <SelectField
-          label="Level"
-          options={CEFR_LEVEL_OPTIONS}
-          value={form.level}
-          onChange={(value) => update("level", value)}
-          allowCustom={false}
-        />
-        <CountSlider
-          label="Number of sentences"
-          max={10}
-          value={form.numQuestions}
-          onChange={(value) => update("numQuestions", value)}
-        />
-        <TextField
-          label="Scenario"
-          placeholder="e.g. At the pharmacy"
-          value={form.scenario}
-          onChangeText={(text) => update("scenario", text)}
-          editable={!request.pending}
-          maxLength={500}
-          voice
-        />
-        <TextField
-          label="User details"
-          placeholder="e.g. A nurse"
-          hint="Your background, used to make sentences relatable."
-          value={form.userDetails}
-          onChangeText={(text) => update("userDetails", text)}
-          editable={!request.pending}
-          maxLength={500}
-          voice
-        />
-        <TextField
-          label="Seed (variety)"
-          placeholder="Leave blank to auto-generate"
-          hint="Change this to get different sentences for the same inputs."
-          value={form.seed}
-          onChangeText={(text) => update("seed", text)}
-          editable={!request.pending}
-          maxLength={200}
-        />
-        <ActionButton
-          label={request.pending ? "Writing sentences…" : "Generate sentences"}
-          icon={Sparkles}
-          loading={request.pending}
-          onPress={handleGenerate}
-        />
-      </Panel>
-
-      <ErrorText message={request.error} />
+      <FormWidth>
+        <Panel>
+          <ActiveLanguageNotice />
+          <SelectField
+            label="Level"
+            options={CEFR_LEVEL_OPTIONS}
+            value={form.level}
+            onChange={(value) => update("level", value)}
+            allowCustom={false}
+          />
+          <CountSlider
+            label="Number of sentences"
+            max={10}
+            value={form.numQuestions}
+            onChange={(value) => update("numQuestions", value)}
+          />
+          <TextField
+            label="Scenario"
+            placeholder="e.g. At the pharmacy"
+            value={form.scenario}
+            onChangeText={(text) => update("scenario", text)}
+            editable={!request.pending}
+            maxLength={500}
+            voice
+          />
+          <TextField
+            label="User details"
+            placeholder="e.g. A nurse"
+            hint="Your background, used to make sentences relatable."
+            value={form.userDetails}
+            onChangeText={(text) => update("userDetails", text)}
+            editable={!request.pending}
+            maxLength={500}
+            voice
+          />
+          <TextField
+            label="Seed (variety)"
+            placeholder="Leave blank to auto-generate"
+            hint="Change this to get different sentences for the same inputs."
+            value={form.seed}
+            onChangeText={(text) => update("seed", text)}
+            editable={!request.pending}
+            maxLength={200}
+          />
+          <ActionButton
+            label={request.pending ? "Writing sentences…" : "Generate sentences"}
+            icon={Sparkles}
+            loading={request.pending}
+            onPress={handleGenerate}
+          />
+        </Panel>
+        <ErrorText message={request.error} />
+      </FormWidth>
 
       {result ? (
         <FibQuiz key={runKey} result={result} />
       ) : (
-        <EmptyNote message="Pick a language and scenario to generate fill-in-the-blank practice." />
+        <FormWidth>
+          <EmptyNote message="Pick a language and scenario to generate fill-in-the-blank practice." />
+        </FormWidth>
       )}
 
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />
+      <FormWidth>
+        <ActionButton label="Reset form and results" icon={RefreshCcw} variant="outline" onPress={handleReset} />
+      </FormWidth>
     </Section>
   );
 }

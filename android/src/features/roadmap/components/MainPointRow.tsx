@@ -224,7 +224,7 @@ export function MainPointRow({
                     voice
                   />
                   <ActionButton
-                    label="Generate"
+                    label="Generate subpoints"
                     icon={Sparkles}
                     onPress={() => generateSubtopics(instructionDraft.trim() || undefined)}
                   />

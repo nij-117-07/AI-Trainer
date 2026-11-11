@@ -108,7 +108,7 @@ export function IngredientsFormFooter({ ingredients }: { ingredients: Ingredient
     <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Reading label…" : "Analyze Ingredients"}
+        label={pending ? "Reading label…" : "Analyze ingredients"}
         icon={Sparkles}
         loading={pending}
         onPress={submit}

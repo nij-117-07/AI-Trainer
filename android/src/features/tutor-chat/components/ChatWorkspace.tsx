@@ -79,7 +79,7 @@ export function ChatWorkspace({ chat }: ChatWorkspaceProps) {
           onPress={() => setSettingsOpen((open) => !open)}
           accessibilityRole="button"
           accessibilityState={{ expanded: settingsOpen }}
-          accessibilityLabel="Session settings"
+          accessibilityLabel={`Session settings, ${settings.masterTopic || "Untitled session"}`}
           style={styles.settingsHead}
         >
           <View style={styles.settingsText}>
@@ -115,7 +115,9 @@ export function ChatWorkspace({ chat }: ChatWorkspaceProps) {
               multiline
               voice
             />
-            <Text style={[styles.status, { color: colors.mutedForeground }]}>{STATUS_TEXT[chat.settingsStatus]}</Text>
+            <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
+              {STATUS_TEXT[chat.settingsStatus]}
+            </Text>
             <ErrorText message={chat.settingsError} />
             <ActionButton label="Delete session" icon={Trash2} variant="outline" disabled={pending} onPress={confirmDelete} />
           </>
@@ -126,7 +128,7 @@ export function ChatWorkspace({ chat }: ChatWorkspaceProps) {
         <EmptyHint
           icon={MessagesSquare}
           title="Start the conversation"
-          hint="Ask a question in the box below. The tutor replies with an explanation and the key concepts."
+          hint="Ask a question in the message box. The tutor replies with an explanation and the key concepts."
         />
       ) : null}
 

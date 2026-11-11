@@ -144,7 +144,7 @@ export function RoleplayTab() {
       <Panel>
         <SectionTitle icon={Bot} title="Conversation" />
         <ActionButton
-          label="New roleplay"
+          label="Start new roleplay"
           icon={Eraser}
           variant="outline"
           onPress={handleNewConversation}
@@ -165,6 +165,7 @@ export function RoleplayTab() {
           label={request.pending ? "Waiting for reply…" : "Send line"}
           icon={Send}
           loading={request.pending}
+          disabled={draft.trim() === ""}
           onPress={handleSend}
         />
       </Panel>

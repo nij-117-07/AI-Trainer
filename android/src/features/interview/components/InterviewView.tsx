@@ -36,7 +36,7 @@ export function InterviewView({ screen }: { screen: InterviewScreen }) {
           <EmptyHint
             icon={Briefcase}
             title="No interview yet"
-            hint="Tap New interview below, fill in the candidate and the role, then start."
+            hint="Tap New interview to add a candidate and a role, then start."
           />
         ) : null}
       </Section>

@@ -62,7 +62,7 @@ export default function JokeLabRoute() {
             <EmptyHint
               icon={Laugh}
               title="No scenario yet"
-              hint="Tap New scenario below, choose a language and an optional theme, then generate."
+              hint="Tap New scenario, choose a language and an optional theme, then generate."
             />
           )
         )}

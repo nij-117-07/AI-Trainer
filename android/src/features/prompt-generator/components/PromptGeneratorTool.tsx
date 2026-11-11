@@ -1,10 +1,11 @@
 // src/features/prompt-generator/components/PromptGeneratorTool.tsx
 /** Prompt Generator form: scenario, optional context and style notes, and an optional seed to replicate a persona. */
-import { Bot, RefreshCcw, Sparkles } from "lucide-react-native";
+import { Bot, RefreshCcw, SlidersHorizontal, Sparkles } from "lucide-react-native";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
+import { Disclosure } from "@/components/tool/Disclosure";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
-import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { usePersistedDraft } from "../hooks/usePersistedDraft";
 import { PROMPT_GENERATOR_STORAGE_KEY } from "../lib/persistence";
@@ -51,17 +52,25 @@ export function PromptGeneratorTool() {
     if (next) setResult(next);
   }
 
+  const optionalCount = [form.context, form.userInstructions, form.referenceSamples, form.pastPrompt, form.seed].filter(
+    (value) => value.trim() !== "",
+  ).length;
+
   return (
     <Section>
-      <Panel>
-        <TextField
-          label="Scenario"
-          placeholder="e.g. Financial Advisor"
-          value={form.scenario}
-          onChangeText={(text) => update("scenario", text)}
-          editable={!request.pending}
-          maxLength={SCENARIO_MAX}
-        />
+      <TextField
+        label="Scenario"
+        placeholder="e.g. Financial Advisor"
+        value={form.scenario}
+        onChangeText={(text) => update("scenario", text)}
+        editable={!request.pending}
+        maxLength={SCENARIO_MAX}
+      />
+      <Disclosure
+        title="Optional details"
+        icon={SlidersHorizontal}
+        summary={optionalCount > 0 ? `${optionalCount} added` : "Add context, style notes, examples, or a seed"}
+      >
         <TextField
           label="Context (optional)"
           placeholder="Target audience or environment constraints…"
@@ -73,7 +82,7 @@ export function PromptGeneratorTool() {
           voice
         />
         <TextField
-          label="User Instructions (optional)"
+          label="User instructions (optional)"
           placeholder="Dos and don'ts, stylistic preferences, personality traits…"
           value={form.userInstructions}
           onChangeText={(text) => update("userInstructions", text)}
@@ -83,7 +92,7 @@ export function PromptGeneratorTool() {
           voice
         />
         <TextField
-          label="Reference Samples (optional)"
+          label="Reference samples (optional)"
           placeholder="One example per line of prompts or writing styles to emulate…"
           value={form.referenceSamples}
           onChangeText={(text) => update("referenceSamples", text)}
@@ -93,7 +102,7 @@ export function PromptGeneratorTool() {
           voice
         />
         <TextField
-          label="Past Prompt (optional)"
+          label="Past prompt (optional)"
           placeholder="A previous persona version to improve upon…"
           value={form.pastPrompt}
           onChangeText={(text) => update("pastPrompt", text)}
@@ -111,23 +120,23 @@ export function PromptGeneratorTool() {
           editable={!request.pending}
           maxLength={SEED_MAX}
         />
-        <ActionButton
-          label={request.pending ? "Crafting persona…" : "Generate Persona"}
-          icon={Sparkles}
-          loading={request.pending}
-          onPress={handleGenerate}
-        />
-      </Panel>
+      </Disclosure>
 
+      <ActionButton
+        label={request.pending ? "Crafting persona…" : "Generate persona"}
+        icon={Sparkles}
+        loading={request.pending}
+        onPress={handleGenerate}
+      />
       <ErrorText message={request.error} />
 
       {result ? (
         <PromptGeneratorResultView result={result} />
       ) : (
-        <SectionTitle icon={Bot} title="No persona yet" />
+        <EmptyHint icon={Bot} title="No persona yet" hint="Enter a scenario, then tap Generate persona." />
       )}
 
-      <ActionButton label="Reset" icon={RefreshCcw} variant="outline" onPress={handleReset} />
+      <ActionButton label="Reset all" icon={RefreshCcw} variant="outline" onPress={handleReset} />
     </Section>
   );
 }

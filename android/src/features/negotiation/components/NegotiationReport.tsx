@@ -45,7 +45,12 @@ export function NegotiationReport({ report, outcome }: { report: SessionReport; 
                 <Text style={[styles.caption, { color: colors.mutedForeground }]}>{CATEGORY_LABELS[key]}</Text>
                 <Text style={[styles.categoryValue, { color: colors.foreground }]}>{value}/10</Text>
               </View>
-              <View style={[styles.track, { backgroundColor: colors.muted }]}>
+              <View
+                accessibilityRole="progressbar"
+                accessibilityLabel={CATEGORY_LABELS[key]}
+                accessibilityValue={{ min: 0, max: 10, now: value, text: `${value} out of 10` }}
+                style={[styles.track, { backgroundColor: colors.muted }]}
+              >
                 <View style={[styles.fill, { backgroundColor: colors.primary, width: `${(value / 10) * 100}%` }]} />
               </View>
             </View>

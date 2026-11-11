@@ -1,14 +1,15 @@
 // src/features/vision-converter/components/VisionConverterScreen.tsx
 /**
  * Vision Converter: choose an image, add an optional instruction, and get structured Markdown.
- * The form sits in the footer; the last Markdown is kept on the device and shown above it.
+ * The form is at the top of the page and the convert button stays in the footer. The last Markdown
+ * is kept on the device and shown after the form.
  */
 import { useEffect, useRef, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { ImagePlus, Sparkles } from "lucide-react-native";
 import { spacing } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { useRequest } from "@/hooks/useRequest";
@@ -68,6 +69,25 @@ export function useVisionConverter(): VisionConverterState {
   };
 }
 
+export function VisionConverterForm({ vision }: { vision: VisionConverterState }) {
+  const { image, setImage, instruction, setInstruction, pending } = vision;
+
+  return (
+    <Panel>
+      <ImageDropField value={image} onChange={setImage} disabled={pending} />
+      <TextField
+        label="Instruction (optional)"
+        placeholder="e.g. Extract all tables and headings."
+        value={instruction}
+        onChangeText={setInstruction}
+        editable={!pending}
+        maxLength={INSTRUCTION_MAX}
+        voice
+      />
+    </Panel>
+  );
+}
+
 export function VisionConverterResults({ vision }: { vision: VisionConverterState }) {
   return (
     <Section>
@@ -77,7 +97,7 @@ export function VisionConverterResults({ vision }: { vision: VisionConverterStat
         <EmptyHint
           icon={ImagePlus}
           title="No Markdown yet"
-          hint="Choose an image below, add an optional instruction, then tap Convert to Markdown."
+          hint="Choose an image in the form, add an optional instruction, then tap Convert to Markdown."
         />
       )}
     </Section>
@@ -85,22 +105,10 @@ export function VisionConverterResults({ vision }: { vision: VisionConverterStat
 }
 
 export function VisionConverterFooter({ vision }: { vision: VisionConverterState }) {
-  const { image, setImage, instruction, setInstruction, pending, error, submit } = vision;
+  const { pending, error, submit } = vision;
 
   return (
     <View style={styles.footer}>
-      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
-        <ImageDropField value={image} onChange={setImage} disabled={pending} />
-        <TextField
-          label="Instruction (optional)"
-          placeholder="e.g. Extract all tables and headings."
-          value={instruction}
-          onChangeText={setInstruction}
-          editable={!pending}
-          maxLength={INSTRUCTION_MAX}
-          voice
-        />
-      </ScrollView>
       <ErrorText message={error} />
       <ActionButton
         label={pending ? "Converting image…" : "Convert to Markdown"}
@@ -114,12 +122,6 @@ export function VisionConverterFooter({ vision }: { vision: VisionConverterState
 
 const styles = StyleSheet.create({
   footer: {
-    gap: spacing.md,
-  },
-  fields: {
-    maxHeight: 380,
-  },
-  fieldsContent: {
     gap: spacing.md,
   },
 });

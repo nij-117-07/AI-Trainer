@@ -1,10 +1,10 @@
-// src/features/rewriter/components/RewriterTool.tsx
 /**
  * Rewriter: rewrites text for a tone, audience, and goal, with the rationale and the changes made.
- * The form sits in the footer; the last rewrite is kept on the device and shown above it.
+ * The form is the side panel on tablet and desktop and the first part of the page on phones. The
+ * last rewrite is kept on the device and shown in the results.
  */
 import { useEffect, useRef } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Lightbulb, ListChecks, PenLine, Sparkles } from "lucide-react-native";
 import { spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
@@ -14,6 +14,7 @@ import {
   Panel,
   TextField,
 } from "@/components/tool/FormControls";
+import { CopyButton } from "@/components/tool/CopyButton";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
@@ -102,7 +103,12 @@ export function RewriterResults({ rewriter }: { rewriter: RewriterState }) {
             <MarkdownText
               content={result.rewrittenText ? quote(result.rewrittenText) : "_No rewrite was returned._"}
             />
-            <ListenButton text={result.rewrittenText} label="Rewrite" />
+            <View style={styles.actions}>
+              <ListenButton text={result.rewrittenText} label="Rewrite" />
+              {result.rewrittenText !== "" && (
+                <CopyButton text={result.rewrittenText} label="Copy rewrite" />
+              )}
+            </View>
           </ResultCallout>
 
           {result.rationale !== "" && (
@@ -125,7 +131,7 @@ export function RewriterResults({ rewriter }: { rewriter: RewriterState }) {
         <EmptyHint
           icon={PenLine}
           title="No rewrite yet"
-          hint="Paste your text below, set the tone and audience, then tap Rewrite."
+          hint="Enter text in the form, set the tone and audience, then tap Rewrite."
         />
       )}
     </Section>
@@ -133,53 +139,57 @@ export function RewriterResults({ rewriter }: { rewriter: RewriterState }) {
 }
 
 export function RewriterFooter({ rewriter }: { rewriter: RewriterState }) {
+  const colors = useThemeColors();
   const { form, pending, error, update, submit } = rewriter;
 
   return (
-    <View style={styles.footer}>
-      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
-        <TextField
-          label="Original text"
-          placeholder="Paste the text you want to rewrite…"
-          value={form.originalText}
-          onChangeText={(text) => update("originalText", text)}
-          editable={!pending}
-          maxLength={10000}
-          multiline
-          voice
-        />
-        <SelectField
-          label="Target tone"
-          options={TONE_OPTIONS}
-          value={form.targetTone}
-          onChange={(value) => update("targetTone", value)}
-          customPlaceholder="e.g. Sarcastic, Poetic, Urgent"
-        />
-        <SelectField
-          label="Audience"
-          options={AUDIENCE_OPTIONS}
-          value={form.audience}
-          onChange={(value) => update("audience", value)}
-          customPlaceholder="e.g. Hiring managers, Kids aged 8–10"
-        />
-        <SelectField
-          label="Transformation goal"
-          options={TRANSFORMATION_GOAL_OPTIONS}
-          value={form.transformationGoal}
-          onChange={(value) => update("transformationGoal", value)}
-          customPlaceholder="e.g. Formalise, Localise, Bullet points"
-        />
-        <TextField
-          label="User instructions (optional)"
-          placeholder="e.g. keep it under 15 words…"
-          value={form.customInstructions}
-          onChangeText={(text) => update("customInstructions", text)}
-          editable={!pending}
-          maxLength={1000}
-          multiline
-          voice
-        />
-      </ScrollView>
+    <View style={styles.form}>
+      <TextField
+        label="Original text"
+        placeholder="Paste the text you want to rewrite…"
+        value={form.originalText}
+        onChangeText={(text) => update("originalText", text)}
+        editable={!pending}
+        maxLength={10000}
+        multiline
+        voice
+      />
+      <SelectField
+        label="Target tone"
+        options={TONE_OPTIONS}
+        value={form.targetTone}
+        onChange={(value) => update("targetTone", value)}
+        customPlaceholder="e.g. Sarcastic, Poetic, Urgent"
+      />
+      <SelectField
+        label="Audience"
+        options={AUDIENCE_OPTIONS}
+        value={form.audience}
+        onChange={(value) => update("audience", value)}
+        customPlaceholder="e.g. Hiring managers, Kids aged 8–10"
+      />
+      <SelectField
+        label="Transformation goal"
+        options={TRANSFORMATION_GOAL_OPTIONS}
+        value={form.transformationGoal}
+        onChange={(value) => update("transformationGoal", value)}
+        customPlaceholder="e.g. Formalise, Localise, Bullet points"
+      />
+      <TextField
+        label="User instructions (optional)"
+        placeholder="e.g. keep it under 15 words…"
+        value={form.customInstructions}
+        onChangeText={(text) => update("customInstructions", text)}
+        editable={!pending}
+        maxLength={1000}
+        multiline
+        voice
+      />
+      {pending ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
+          Working on your rewrite. This can take a moment.
+        </Text>
+      ) : null}
       <ErrorText message={error} />
       <ActionButton
         label={pending ? "Rewriting…" : "Rewrite"}
@@ -199,14 +209,18 @@ function quote(text: string): string {
 }
 
 const styles = StyleSheet.create({
-  footer: {
-    gap: spacing.md,
+  form: {
+    gap: spacing.lg,
   },
-  fields: {
-    maxHeight: 380,
+  status: {
+    fontSize: 13,
+    lineHeight: 18,
   },
-  fieldsContent: {
-    gap: spacing.md,
+  actions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   empty: {
     fontSize: 14,

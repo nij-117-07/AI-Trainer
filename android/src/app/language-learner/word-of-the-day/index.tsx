@@ -15,6 +15,8 @@ export default function WordOfTheDayRoute() {
   return (
     <ToolScreen
       title="Word of the Day"
+      wide
+      footerSide={false}
       footer={
         <ActionButton
           label="New word"
@@ -30,7 +32,7 @@ export default function WordOfTheDayRoute() {
           <EmptyHint
             icon={Sparkles}
             title="No word yet"
-            hint="Tap New word below, choose a word type and theme, then generate."
+            hint="Tap New word, choose a word type and theme, then generate."
           />
         )}
       </Section>

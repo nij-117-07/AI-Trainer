@@ -25,15 +25,15 @@ export function ResetButton({ onPress, label }: { onPress: () => void; label?: s
 
 const styles = StyleSheet.create({
   button: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radius.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   labeled: {
-    height: 40,
+    height: 44,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,

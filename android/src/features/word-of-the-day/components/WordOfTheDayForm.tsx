@@ -1,8 +1,8 @@
 // src/features/word-of-the-day/components/WordOfTheDayForm.tsx
 /**
- * Word of the Day form, shown on its own page. The fields fill the page body; the button is pinned
- * in the footer. A successful generate saves the word and calls onGenerated, which returns to the
- * Word of the Day page.
+ * Word of the Day form, shown on its own page. On a phone the fields fill the page body and the button
+ * is pinned in the footer; on tablet and desktop the form sits in the side panel. A successful
+ * generate saves the word and calls onGenerated, which returns to the Word of the Day page.
  */
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
@@ -120,8 +120,20 @@ export function WordOfTheDayFormFooter({ word }: { word: WordOfTheDayFormState }
   );
 }
 
+export function WordOfTheDayFormSidePanel({ word }: { word: WordOfTheDayFormState }) {
+  return (
+    <View style={styles.sidePanel}>
+      <WordOfTheDayFormFields word={word} />
+      <WordOfTheDayFormFooter word={word} />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   footer: {
     gap: spacing.md,
+  },
+  sidePanel: {
+    gap: spacing.lg,
   },
 });

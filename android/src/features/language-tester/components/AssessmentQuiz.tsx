@@ -8,10 +8,11 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Check, RefreshCcw, Trophy, X } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { StepNavigator } from "@/components/tool/StepNavigator";
 import { OPTION_KEYS, type AssessmentQuestion, type AssessmentResult, type OptionKey } from "../types";
-import { EmptyNote, FeedbackBox, QuestionHeading, QuizModeBar, ScorePill, type QuizMode } from "./QuizParts";
+import { EmptyNote, FeedbackBox, FormWidth, QuestionHeading, QuizModeBar, ScorePill, type QuizMode } from "./QuizParts";
 import { usePersistedRunState } from "@/hooks/usePersistedRunState";
 
 const STORAGE_KEY = "language-learner.language-tester.assessment.run.v1";
@@ -44,67 +45,75 @@ export function AssessmentQuiz({ result }: { result: AssessmentResult }) {
     setActiveIndex(0);
   }
 
+  const cards = result.questions.map((question, index) =>
+    mode === "list" || index === activeIndex ? (
+      <QuestionCard
+        key={index}
+        index={index}
+        question={question}
+        selected={answers[index]}
+        checked={checked}
+        onSelect={(letter) => choose(index, letter)}
+      />
+    ) : null,
+  );
+
   return (
     <View style={styles.quiz}>
-      <Panel>
-        {result.assessmentTitle !== "" && (
-          <Text style={[styles.title, { color: colors.foreground }]}>{result.assessmentTitle}</Text>
-        )}
-        {result.levelRationale !== "" && (
-          <Text style={[styles.rationale, { color: colors.mutedForeground }]}>{result.levelRationale}</Text>
-        )}
-        <ListenButton text={result.levelRationale} label="Level rationale" />
-      </Panel>
-
-      <View style={styles.toolbar}>
-        <QuizModeBar mode={mode} onChange={setMode} />
-        <ScorePill text={checked ? `Score: ${score}/${total}` : `${answeredCount}/${total} answered`} />
-      </View>
-
-      {mode === "step" && total > 0 && (
-        <StepNavigator
-          index={activeIndex}
-          total={total}
-          onPrevious={() => setActiveIndex((index) => Math.max(0, index - 1))}
-          onNext={() => setActiveIndex((index) => Math.min(total - 1, index + 1))}
-        />
-      )}
-
-      {total === 0 && <EmptyNote message="No questions were returned. Try generating again." />}
-
-      {result.questions.map((question, index) =>
-        mode === "list" || index === activeIndex ? (
-          <QuestionCard
-            key={index}
-            index={index}
-            question={question}
-            selected={answers[index]}
-            checked={checked}
-            onSelect={(letter) => choose(index, letter)}
-          />
-        ) : null,
-      )}
-
-      {total > 0 && (
+      <FormWidth>
         <Panel>
-          {checked ? (
-            <View style={styles.summary}>
-              <Trophy size={20} color={colors.tone.amber.fg} />
-              <Text style={[styles.summaryText, { color: colors.foreground }]}>
-                You answered {score} of {total} correctly.
-              </Text>
-            </View>
-          ) : (
-            <Text style={[styles.summaryText, { color: colors.mutedForeground }]}>
-              {allAnswered ? "All answered. Check to see your score." : "Select an answer for each question, then check."}
+          {result.assessmentTitle !== "" && (
+            <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>
+              {result.assessmentTitle}
             </Text>
           )}
-          {checked ? (
-            <ActionButton label="Try again" icon={RefreshCcw} variant="outline" onPress={reset} />
-          ) : (
-            <ActionButton label="Check answers" onPress={() => setChecked(true)} />
+          {result.levelRationale !== "" && (
+            <Text style={[styles.rationale, { color: colors.mutedForeground }]}>{result.levelRationale}</Text>
           )}
+          <ListenButton text={result.levelRationale} label="Level rationale" />
         </Panel>
+
+        <View style={styles.toolbar}>
+          <QuizModeBar mode={mode} onChange={setMode} />
+          <ScorePill text={checked ? `Score: ${score}/${total}` : `${answeredCount}/${total} answered`} />
+        </View>
+
+        {mode === "step" && total > 0 && (
+          <StepNavigator
+            index={activeIndex}
+            total={total}
+            onPrevious={() => setActiveIndex((index) => Math.max(0, index - 1))}
+            onNext={() => setActiveIndex((index) => Math.min(total - 1, index + 1))}
+          />
+        )}
+
+        {total === 0 && <EmptyNote message="No questions were returned. Try generating again." />}
+      </FormWidth>
+
+      {mode === "list" ? <CardGrid>{cards}</CardGrid> : <FormWidth>{cards}</FormWidth>}
+
+      {total > 0 && (
+        <FormWidth>
+          <Panel>
+            {checked ? (
+              <View accessibilityLiveRegion="polite" style={styles.summary}>
+                <Trophy size={20} color={colors.tone.amber.fg} />
+                <Text style={[styles.summaryText, { color: colors.foreground }]}>
+                  You answered {score} of {total} correctly.
+                </Text>
+              </View>
+            ) : (
+              <Text style={[styles.summaryText, { color: colors.mutedForeground }]}>
+                {allAnswered ? "All answered. Check to see your score." : "Select an answer for each question, then check."}
+              </Text>
+            )}
+            {checked ? (
+              <ActionButton label="Try again" icon={RefreshCcw} variant="outline" onPress={reset} />
+            ) : (
+              <ActionButton label="Check answers" onPress={() => setChecked(true)} />
+            )}
+          </Panel>
+        </FormWidth>
       )}
     </View>
   );
@@ -153,7 +162,7 @@ function QuestionCard({ index, question, selected, checked, onSelect }: Question
               onPress={() => onSelect(letter)}
               disabled={checked}
               accessibilityRole="button"
-              accessibilityState={{ selected: isSelected }}
+              accessibilityState={{ selected: isSelected, disabled: checked }}
               accessibilityLabel={`Option ${letter}: ${text}`}
               style={({ pressed }) => [
                 styles.option,

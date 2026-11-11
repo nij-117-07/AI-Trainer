@@ -235,8 +235,9 @@ const styles = StyleSheet.create({
   },
   bulletRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: spacing.sm,
+    minHeight: 44,
   },
   bullet: {
     fontSize: 15,

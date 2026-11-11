@@ -71,7 +71,7 @@ export function ImageDropField({ value, onChange, disabled = false }: ImageDropF
           ]}
         >
           {processing ? <ActivityIndicator color={colors.primary} /> : <ImagePlus size={18} color={colors.primary} />}
-          <Text style={[styles.pickerText, { color: colors.foreground }]}>
+          <Text accessibilityLiveRegion="polite" style={[styles.pickerText, { color: colors.foreground }]}>
             {processing ? "Preparing image…" : "Choose image"}
           </Text>
         </Pressable>
@@ -107,10 +107,10 @@ const styles = StyleSheet.create({
   },
   remove: {
     position: "absolute",
-    top: spacing.sm,
-    right: spacing.sm,
-    width: 32,
-    height: 32,
+    top: spacing.xs,
+    right: spacing.xs,
+    width: 44,
+    height: 44,
     borderRadius: radius.full,
     borderWidth: 1,
     alignItems: "center",

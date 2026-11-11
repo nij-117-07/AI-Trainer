@@ -30,7 +30,7 @@ export default function ObservationTrainerRoute() {
           <EmptyHint
             icon={Eye}
             title="No report yet"
-            hint="Tap New training below, find or upload an image, describe what you saw, then train."
+            hint="Tap New training, find or upload an image, describe what you saw, then train."
           />
         )}
       </Section>

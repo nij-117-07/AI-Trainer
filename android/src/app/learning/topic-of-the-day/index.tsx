@@ -1,8 +1,10 @@
 // src/app/learning/topic-of-the-day/index.tsx
-import { Alert } from "react-native";
+import { ActivityIndicator, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { Layers, Plus } from "lucide-react-native";
+import { useThemeColors } from "@/theme";
 import { ActionButton } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
@@ -13,6 +15,7 @@ import type { BroadTopic } from "@/features/topic-of-the-day/types";
 
 export default function TopicOfTheDayRoute() {
   const router = useRouter();
+  const colors = useThemeColors();
   const { library, loaded, change } = useTopicLibrary();
 
   function confirmDelete(broad: BroadTopic) {
@@ -31,6 +34,7 @@ export default function TopicOfTheDayRoute() {
   return (
     <ToolScreen
       title="Topic of the Day"
+      wide
       footer={
         <ActionButton
           label="Add broader topic"
@@ -40,23 +44,27 @@ export default function TopicOfTheDayRoute() {
       }
     >
       <Section>
-        {loaded && library.broadTopics.length === 0 ? (
+        {!loaded ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : library.broadTopics.length === 0 ? (
           <EmptyHint
             icon={Layers}
             title="No broader topics yet"
-            hint="Tap Add broader topic below, for example Biology or Machine learning."
+            hint="Tap Add broader topic to start, for example Biology or Machine learning."
           />
         ) : (
-          library.broadTopics.map((broad) => (
-            <BroadTopicRow
-              key={broad.id}
-              broad={broad}
-              count={topicsFor(library, broad.id).length}
-              onOpen={() => router.push(`/learning/topic-of-the-day/${broad.id}`)}
-              onEdit={() => router.push({ pathname: "/learning/topic-of-the-day/broad-form", params: { id: broad.id } })}
-              onDelete={() => confirmDelete(broad)}
-            />
-          ))
+          <CardGrid>
+            {library.broadTopics.map((broad) => (
+              <BroadTopicRow
+                key={broad.id}
+                broad={broad}
+                count={topicsFor(library, broad.id).length}
+                onOpen={() => router.push(`/learning/topic-of-the-day/${broad.id}`)}
+                onEdit={() => router.push({ pathname: "/learning/topic-of-the-day/broad-form", params: { id: broad.id } })}
+                onDelete={() => confirmDelete(broad)}
+              />
+            ))}
+          </CardGrid>
         )}
       </Section>
     </ToolScreen>

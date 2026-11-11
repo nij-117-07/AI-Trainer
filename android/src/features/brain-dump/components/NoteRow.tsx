@@ -85,6 +85,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   pin: {
-    padding: spacing.xs,
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: -spacing.xs,
+    marginEnd: -spacing.sm,
   },
 });

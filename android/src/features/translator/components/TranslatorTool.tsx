@@ -1,16 +1,17 @@
-// src/features/translator/components/TranslatorTool.tsx
 /**
  * Translator: contextual translation with a chosen tone, reference material, and cultural notes.
- * The form sits in the footer; the last translation is kept on the device and shown above it.
+ * The form is the side panel on tablet and desktop and the first part of the page on phones. The
+ * last translation is kept on the device and shown in the results.
  */
 import { useEffect, useRef } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Languages, Lightbulb, Sparkles } from "lucide-react-native";
-import { spacing } from "@/theme";
+import { spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActiveLanguageNotice } from "@/features/language-profiles/components/ActiveLanguageNotice";
 import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { CopyButton } from "@/components/tool/CopyButton";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
@@ -85,12 +86,16 @@ export function TranslatorResults({ translator }: { translator: TranslatorState 
 
   return (
     <Section>
-      <ActiveLanguageNotice />
       {result ? (
         <>
           <ResultCallout icon={Languages} title="Translation" tone="sky">
             <MarkdownText content={quote(result.translatedText)} />
-            <ListenButton text={result.translatedText} label="Translation" />
+            <View style={styles.actions}>
+              <ListenButton text={result.translatedText} label="Translation" />
+              {result.translatedText !== "" && (
+                <CopyButton text={result.translatedText} label="Copy translation" />
+              )}
+            </View>
           </ResultCallout>
 
           {result.culturalNotes !== "" && (
@@ -113,7 +118,7 @@ export function TranslatorResults({ translator }: { translator: TranslatorState 
         <EmptyHint
           icon={Languages}
           title="No translation yet"
-          hint="Enter the text below, choose a tone, then tap Translate."
+          hint="Enter text in the form, choose a tone, then tap Translate."
         />
       )}
     </Section>
@@ -121,39 +126,44 @@ export function TranslatorResults({ translator }: { translator: TranslatorState 
 }
 
 export function TranslatorFooter({ translator }: { translator: TranslatorState }) {
+  const colors = useThemeColors();
   const { form, pending, error, update, submit } = translator;
 
   return (
-    <View style={styles.footer}>
-      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
-        <TextField
-          label="Text to translate"
-          placeholder="Paste or type the text you want to translate…"
-          value={form.textToTranslate}
-          onChangeText={(text) => update("textToTranslate", text)}
-          editable={!pending}
-          maxLength={10000}
-          multiline
-          voice
-        />
-        <SelectField
-          label="Tone"
-          options={TONE_OPTIONS}
-          value={form.tone}
-          onChange={(value) => update("tone", value)}
-          customPlaceholder="e.g. Friendly, Legal, Humorous"
-        />
-        <TextField
-          label="User instructions (optional)"
-          placeholder="e.g. avoid gendered pronouns, keep glossary terms as-is…"
-          value={form.customInstructions}
-          onChangeText={(text) => update("customInstructions", text)}
-          editable={!pending}
-          maxLength={1000}
-          multiline
-          voice
-        />
-      </ScrollView>
+    <View style={styles.form}>
+      <ActiveLanguageNotice />
+      <TextField
+        label="Text to translate"
+        placeholder="Paste or type the text you want to translate…"
+        value={form.textToTranslate}
+        onChangeText={(text) => update("textToTranslate", text)}
+        editable={!pending}
+        maxLength={10000}
+        multiline
+        voice
+      />
+      <SelectField
+        label="Tone"
+        options={TONE_OPTIONS}
+        value={form.tone}
+        onChange={(value) => update("tone", value)}
+        customPlaceholder="e.g. Friendly, Legal, Humorous"
+      />
+      <TextField
+        label="User instructions (optional)"
+        placeholder="e.g. avoid gendered pronouns, keep glossary terms as-is…"
+        value={form.customInstructions}
+        onChangeText={(text) => update("customInstructions", text)}
+        editable={!pending}
+        maxLength={1000}
+        multiline
+        voice
+      />
+      {pending ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
+          Working on your translation. This can take a moment.
+        </Text>
+      ) : null}
       <ErrorText message={error} />
       <ActionButton
         label={pending ? "Translating with context…" : "Translate"}
@@ -171,13 +181,17 @@ function quote(text: string): string {
 }
 
 const styles = StyleSheet.create({
-  footer: {
-    gap: spacing.md,
+  form: {
+    gap: spacing.lg,
   },
-  fields: {
-    maxHeight: 380,
+  status: {
+    fontSize: 13,
+    lineHeight: 18,
   },
-  fieldsContent: {
-    gap: spacing.md,
+  actions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.sm,
   },
 });

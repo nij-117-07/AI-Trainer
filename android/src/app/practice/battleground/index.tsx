@@ -35,7 +35,7 @@ export default function BattlegroundRoute() {
             <EmptyHint
               icon={Swords}
               title="No battle yet"
-              hint="Tap New battle below, describe your background and a topic, then enter the battleground."
+              hint="Tap New battle to describe your background and a topic, then enter the battleground."
             />
           )
         )}

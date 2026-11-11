@@ -2,6 +2,7 @@
 /** Shown before the first message: the persona's introduction and its starter prompts. */
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
+import { pointerCursor } from "@/components/tool/FormControls";
 import type { Persona } from "../types";
 import { PersonaAvatar } from "./PersonaAvatar";
 
@@ -15,12 +16,15 @@ export function EmptyChat({ persona, onPick }: EmptyChatProps) {
   return (
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <PersonaAvatar emoji={persona.avatar} size={64} />
-      <Text style={[styles.title, { color: colors.foreground }]}>{persona.name}</Text>
+      <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>
+        {persona.name}
+      </Text>
       <Text style={[styles.description, { color: colors.mutedForeground }]}>
         {persona.description || "Ask anything to start a new chat."}
       </Text>
       {persona.starters.length > 0 ? (
         <View style={styles.starters}>
+          <Text style={[styles.label, { color: colors.mutedForeground }]}>Try a prompt</Text>
           {persona.starters.map((starter) => (
             <Pressable
               key={starter}
@@ -29,6 +33,7 @@ export function EmptyChat({ persona, onPick }: EmptyChatProps) {
               accessibilityLabel={`Use prompt: ${starter}`}
               style={({ pressed }) => [
                 styles.starter,
+                pointerCursor,
                 { borderColor: colors.border, backgroundColor: colors.card },
                 pressed && { opacity: 0.85 },
               ]}
@@ -66,7 +71,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.md,
   },
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
   starter: {
+    minHeight: 44,
+    justifyContent: "center",
     borderWidth: 1,
     borderRadius: radius.xl,
     paddingHorizontal: spacing.lg,

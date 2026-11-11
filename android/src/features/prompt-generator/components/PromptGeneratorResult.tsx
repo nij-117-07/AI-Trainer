@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Bot, Hash } from "lucide-react-native";
 import { radius, spacing, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { CopyButton } from "@/components/tool/CopyButton";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import type { PersonaResult } from "../types";
@@ -16,7 +17,7 @@ export function PromptGeneratorResultView({ result }: { result: PersonaResult })
       <Panel>
         <View style={styles.nameBlock}>
           <Text style={[styles.eyebrow, { color: colors.mutedForeground }]}>Persona name</Text>
-          <Text selectable style={[styles.name, { color: colors.foreground }]}>
+          <Text selectable accessibilityRole="header" style={[styles.name, { color: colors.foreground }]}>
             {result.personaName || "Untitled persona"}
           </Text>
         </View>
@@ -26,7 +27,12 @@ export function PromptGeneratorResultView({ result }: { result: PersonaResult })
             {result.systemPrompt || "No system prompt was returned."}
           </Text>
         </View>
-        <ListenButton text={result.systemPrompt} label="System prompt" />
+        {result.systemPrompt !== "" && (
+          <View style={styles.actions}>
+            <CopyButton text={result.systemPrompt} label="Copy system prompt" />
+            <ListenButton text={result.systemPrompt} label="System prompt" />
+          </View>
+        )}
 
         {result.seedUsed !== "" && (
           <View style={[styles.seedRow, { borderColor: colors.border, backgroundColor: colors.muted }]}>
@@ -35,6 +41,7 @@ export function PromptGeneratorResultView({ result }: { result: PersonaResult })
             <Text selectable style={[styles.seed, { color: colors.foreground }]}>
               {result.seedUsed}
             </Text>
+            <CopyButton text={result.seedUsed} label="Copy seed" />
           </View>
         )}
       </Panel>
@@ -61,10 +68,15 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: spacing.lg,
   },
+  actions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
   prompt: {
-    fontFamily: "monospace",
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 15,
+    lineHeight: 23,
   },
   seedRow: {
     flexDirection: "row",

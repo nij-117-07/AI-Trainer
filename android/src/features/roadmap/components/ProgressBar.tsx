@@ -8,7 +8,13 @@ export function ProgressBar({ done, total, percent }: RoadmapProgress) {
   const colors = useThemeColors();
   const label = total === 0 ? "No items yet" : `${done} of ${total} done · ${percent}%`;
   return (
-    <View style={styles.wrap}>
+    <View
+      accessible
+      accessibilityRole="progressbar"
+      accessibilityLabel={label}
+      accessibilityValue={{ min: 0, max: 100, now: percent }}
+      style={styles.wrap}
+    >
       <View style={[styles.track, { backgroundColor: colors.muted }]}>
         <View style={[styles.fill, { backgroundColor: colors.tone.emerald.fg, width: `${percent}%` }]} />
       </View>

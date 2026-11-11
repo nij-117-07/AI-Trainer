@@ -30,7 +30,7 @@ export function TutorResults({ active, activeIndex, total, lastTopic, onGoTo, on
       <EmptyHint
         icon={Presentation}
         title="No lesson yet"
-        hint="Type your question in the form below and tap Explain it to me. You get an explanation, an analogy, and a question to answer."
+        hint="Type your question in the form and tap Explain it to me. You get an explanation, an analogy, and a question to answer."
       />
     );
   }
@@ -76,7 +76,7 @@ export function TutorResults({ active, activeIndex, total, lastTopic, onGoTo, on
         <ResultCallout icon={HelpCircle} title="Your turn" tone="sky">
           <MarkdownText content={active.tutorFeedback} />
           <ListenButton text={active.tutorFeedback} label="Your turn" />
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>Answer in the question box below to keep going.</Text>
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>Type your answer in the form to keep going.</Text>
         </ResultCallout>
       ) : null}
 
@@ -149,8 +149,8 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   iconButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radius.full,
     borderWidth: 1,
     alignItems: "center",
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   freshButton: {
-    minHeight: 40,
+    minHeight: 44,
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
   },

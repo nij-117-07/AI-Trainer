@@ -40,7 +40,7 @@ export default function ForesightTrainerRoute() {
             <EmptyHint
               icon={Compass}
               title="No scenario yet"
-              hint="Tap New scenario below, describe your situation, then start."
+              hint="Tap New scenario to describe your situation, then start."
             />
           )
         )}

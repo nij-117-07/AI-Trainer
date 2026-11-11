@@ -1,11 +1,13 @@
 /** RSS Manager list: the saved feed providers, with enable, fetch, edit, and delete. Add and edit happen on their own pages. */
 import { useCallback, useState } from "react";
-import { Alert, StyleSheet, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Plus, Settings2 } from "lucide-react-native";
 import { useThemeColors } from "@/theme";
+import { confirmAction } from "@/features/chatbot/lib/confirm";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { ActionButton, ErrorText } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { messageOf } from "../../lib/errors";
@@ -38,20 +40,13 @@ export function RssManagerScreen() {
   }
 
   function confirmDelete(feed: RssFeedConfig) {
-    Alert.alert(
+    confirmAction(
       "Delete this feed?",
       `"${feed.name}" will be removed along with its cached items. This action cannot be undone.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            setNotice(null);
-            remove(feed.id).catch((cause: unknown) => setNotice(messageOf(cause, "Could not delete the feed.")));
-          },
-        },
-      ],
+      () => {
+        setNotice(null);
+        remove(feed.id).catch((cause: unknown) => setNotice(messageOf(cause, "Could not delete the feed.")));
+      },
     );
   }
 
@@ -59,6 +54,8 @@ export function RssManagerScreen() {
     <ToolScreen
       title="RSS Manager"
       usesAi={false}
+      wide
+      footerSide={false}
       footer={<ActionButton label="Add feed" icon={Plus} onPress={() => router.push("/tools/rss/manager/new")} />}
     >
       <RssTabs active="manager" />
@@ -66,24 +63,30 @@ export function RssManagerScreen() {
         <ErrorText message={notice ?? error} />
 
         {feeds === null ? (
-          error ? null : <Text style={[styles.note, { color: colors.mutedForeground }]}>Loading feeds…</Text>
+          error ? null : (
+            <Text accessibilityLiveRegion="polite" style={[styles.note, { color: colors.mutedForeground }]}>
+              Loading feeds…
+            </Text>
+          )
         ) : list.length === 0 ? (
           <EmptyHint
             icon={Settings2}
             title="No feeds yet"
-            hint="Tap Add feed below. Any blog, news site, or RSS or Atom feed works."
+            hint="Tap Add feed to start. Any blog, news site, or RSS or Atom feed works."
           />
         ) : (
-          list.map((feed) => (
-            <FeedCard
-              key={feed.id}
-              feed={feed}
-              busy={busyId === feed.id}
-              onEdit={() => router.push({ pathname: "/tools/rss/manager/edit", params: { feedId: feed.id } })}
-              onDelete={() => confirmDelete(feed)}
-              onToggle={(enabled) => void handleToggle(feed, enabled)}
-            />
-          ))
+          <CardGrid>
+            {list.map((feed) => (
+              <FeedCard
+                key={feed.id}
+                feed={feed}
+                busy={busyId === feed.id}
+                onEdit={() => router.push({ pathname: "/tools/rss/manager/edit", params: { feedId: feed.id } })}
+                onDelete={() => confirmDelete(feed)}
+                onToggle={(enabled) => void handleToggle(feed, enabled)}
+              />
+            ))}
+          </CardGrid>
         )}
       </Section>
     </ToolScreen>
