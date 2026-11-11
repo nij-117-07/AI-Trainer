@@ -4,11 +4,11 @@
  * round adjudication, and the conclusion once the mission ends. The move box is the page footer
  * (BattleMoveFooter).
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Crosshair, FileText, Flag, Swords } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { CircleCheck, CircleX, Crosshair, FileText, Flag, Minus, Swords, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { AnswerComposer } from "@/components/tool/AnswerComposer";
 import { Disclosure } from "@/components/tool/Disclosure";
@@ -17,14 +17,16 @@ import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
+import { useToolScroll } from "@/components/tool/ToolScrollContext";
 import type { BattleSessionState } from "../hooks/useBattleSession";
 import { averageScore } from "../lib/game";
 import { textList } from "../lib/text";
-import type { BattleSession } from "../types";
+import type { BattleEvaluation, BattleSession } from "../types";
 
 export function BattleBoard({ session, pending }: { session: BattleSession; pending: boolean }) {
   const colors = useThemeColors();
   const router = useRouter();
+  const scroll = useToolScroll();
   const challenge = session.currentChallenge;
   const average = averageScore(session.roundScores) * 100;
   const evaluation = session.lastEvaluation;
@@ -32,6 +34,11 @@ export function BattleBoard({ session, pending }: { session: BattleSession; pend
   const constraints = challenge ? textList(challenge.constraints) : [];
   const reference = challenge?.referenceMaterial ?? {};
   const referenceCount = Object.keys(reference).length;
+  const verdict = evaluation ? roundVerdict(evaluation) : null;
+
+  useEffect(() => {
+    scroll?.current?.scrollToEnd({ animated: true });
+  }, [session.roundScores.length, scroll]);
 
   return (
     <View style={styles.board}>
@@ -41,14 +48,14 @@ export function BattleBoard({ session, pending }: { session: BattleSession; pend
             <Pill label={`Round ${session.roundNumber}`} filled />
             <Pill label={session.difficulty} />
           </View>
-          <Text style={[styles.average, { color: colors.foreground }]}>Avg score: {average.toFixed(0)}%</Text>
+          <Text style={[styles.strong, { color: colors.foreground }]}>Avg score: {average.toFixed(0)}%</Text>
         </View>
         <View style={styles.healthRow}>
           <HealthBar label="Your health" value={session.userHealth} />
           <HealthBar label="Opponent health" value={session.opponentHealth} />
         </View>
         {pending && (
-          <Text accessibilityLiveRegion="polite" style={[styles.body, { color: colors.mutedForeground }]}>
+          <Text accessibilityLiveRegion="polite" style={[styles.label, { color: colors.mutedForeground }]}>
             Adjudicating your move…
           </Text>
         )}
@@ -93,7 +100,7 @@ export function BattleBoard({ session, pending }: { session: BattleSession; pend
           <ListenButton text={challenge.question} label="Question" />
           {constraints.length > 0 && <TagList items={constraints} />}
           {challenge.environmentChange !== "" && challenge.environmentChange !== "No significant changes." && (
-            <Text style={[styles.note, { color: colors.mutedForeground }]}>{challenge.environmentChange}</Text>
+            <Text style={[styles.label, { color: colors.mutedForeground }]}>{challenge.environmentChange}</Text>
           )}
         </Panel>
       )}
@@ -108,13 +115,19 @@ export function BattleBoard({ session, pending }: { session: BattleSession; pend
         </Disclosure>
       )}
 
-      {evaluation && (
+      {evaluation && verdict && (
         <Disclosure
           title="Round adjudication"
           icon={Crosshair}
           summary={`${Math.round(evaluation.score * 100)}% · You ${signed(evaluation.hpDeltaUser)} HP · Opponent ${signed(evaluation.hpDeltaOpponent)} HP`}
           defaultOpen
         >
+          <View style={styles.verdictRow}>
+            <verdict.Icon size={18} color={verdict.tone === "bad" ? colors.destructive : colors.foreground} />
+            <Text accessibilityLiveRegion="polite" style={[styles.strong, { color: colors.foreground }]}>
+              {verdict.text}
+            </Text>
+          </View>
           <View
             accessibilityRole="progressbar"
             accessibilityLabel="Round score"
@@ -141,7 +154,7 @@ export function BattleBoard({ session, pending }: { session: BattleSession; pend
             ]}
           />
           {evaluation.battlefieldShift !== "" && (
-            <Text style={[styles.body, { color: colors.mutedForeground }]}>{evaluation.battlefieldShift}</Text>
+            <Text style={[styles.label, { color: colors.mutedForeground }]}>{evaluation.battlefieldShift}</Text>
           )}
         </Disclosure>
       )}
@@ -172,11 +185,11 @@ export function BattleMoveFooter({ battle }: { battle: BattleSessionState }) {
     <AnswerComposer
       label="Your move"
       value={answer}
-      placeholder="What's your move? Walk through your tactical decision…"
+      placeholder="Describe your move…"
       maxLength={2000}
       pending={battle.pending}
       error={battle.error}
-      submitLabel="Commit move"
+      submitLabel="Submit move"
       onChangeText={setAnswer}
       onSubmit={() => void submit()}
     />
@@ -190,7 +203,7 @@ function HealthBar({ label, value }: { label: string; value: number }) {
     <View style={styles.health}>
       <View style={styles.healthLabel}>
         <Text style={[styles.strong, { color: colors.foreground }]}>{label}</Text>
-        <Text style={[styles.body, { color: colors.mutedForeground }]}>{value} HP</Text>
+        <Text style={[styles.label, { color: colors.mutedForeground }]}>{value} HP</Text>
       </View>
       <View
         accessibilityRole="progressbar"
@@ -218,6 +231,17 @@ function Pill({ label, filled = false }: { label: string; filled?: boolean }) {
   );
 }
 
+/** Says who gained ground this round, from the HP deltas. Opponent deltas are never positive. */
+function roundVerdict(evaluation: BattleEvaluation): { text: string; Icon: LucideIcon; tone: "good" | "bad" | "even" } {
+  if (evaluation.hpDeltaOpponent < 0 && evaluation.hpDeltaUser >= 0) {
+    return { text: "You gained ground", Icon: CircleCheck, tone: "good" };
+  }
+  if (evaluation.hpDeltaUser < 0 && evaluation.hpDeltaOpponent === 0) {
+    return { text: "Opponent gained ground", Icon: CircleX, tone: "bad" };
+  }
+  return { text: "Even round", Icon: Minus, tone: "even" };
+}
+
 function formatReference(material: Record<string, string>): string {
   return Object.entries(material)
     .map(([key, value]) => `- **${key.replace(/_/g, " ")}:** ${value}`)
@@ -243,10 +267,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm,
   },
-  average: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
   healthRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -263,12 +283,12 @@ const styles = StyleSheet.create({
   },
   track: {
     height: 8,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     overflow: "hidden",
   },
   fill: {
     height: "100%",
-    borderRadius: radius.full,
+    borderRadius: shape.full,
   },
   challengeHeader: {
     flexDirection: "row",
@@ -276,32 +296,35 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing.sm,
   },
+  verdictRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
   pill: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   pillText: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
     textTransform: "capitalize",
   },
   body: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
   strong: {
-    fontSize: 14,
+    ...typeScale.label,
     fontWeight: "600",
   },
   italic: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
     fontStyle: "italic",
   },
-  note: {
-    fontSize: 13,
-    lineHeight: 18,
+  label: {
+    ...typeScale.label,
+    fontWeight: "400",
   },
 });

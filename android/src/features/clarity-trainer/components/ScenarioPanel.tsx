@@ -2,7 +2,7 @@
 /** The active scenario and its prompt. The reply box lives in the page footer. */
 import { StyleSheet, Text, View } from "react-native";
 import { Clock, MessageSquareText } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -70,17 +70,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.xs,
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
   pillText: {
-    fontSize: 12,
-    fontWeight: "500",
+    ...typeScale.caption,
   },
   body: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
   bold: {
     fontWeight: "600",

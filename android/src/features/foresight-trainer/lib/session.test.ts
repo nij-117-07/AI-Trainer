@@ -39,17 +39,18 @@ describe("applyDecision", () => {
   const base: ForesightSession = createSession("negotiation", start);
 
   it("moves to the next scene and keeps the old options when none come back", () => {
-    const next = applyDecision(base, outcome({ decisionHistory: [{ sceneNumber: 1, choiceMade: "A", approachType: "bold", scores: {}, thinkingPattern: "bold", keyBlindSpot: "Timing" }] }));
+    const next = applyDecision(base, outcome({ decisionHistory: [{ sceneNumber: 1, choiceMade: "A", approachType: "bold", scores: {}, thinkingPattern: "bold", keyBlindSpot: "Timing" }] }), "Call now");
     expect(next.sceneNumber).toBe(2);
     expect(next.currentScene.decisionPoint).toBe("Answer?");
     expect(next.options).toEqual(base.options);
     expect(next.decisionHistory).toHaveLength(1);
-    expect(next.log.map((entry) => entry.role)).toEqual(["assistant", "assistant", "assistant"]);
+    expect(next.log.map((entry) => entry.role)).toEqual(["assistant", "user", "assistant", "assistant"]);
+    expect(next.log[1].content).toBe("You chose: Call now");
   });
 
   it("finishes the scenario and appends the progress report", () => {
     const progress = normalizeProgress({ overallGrowth: "Better.", archetype: "The Bold Analyst", skillAssessment: "competent" });
-    const done = applyDecision(base, outcome({ scenarioComplete: true, progressReport: progress, nextScene: null }));
+    const done = applyDecision(base, outcome({ scenarioComplete: true, progressReport: progress, nextScene: null }), "Call now");
     expect(done.scenarioComplete).toBe(true);
     expect(done.progressReport?.archetype).toBe("The Bold Analyst");
     expect(done.log[done.log.length - 1].content).toContain("**Progress report**");
@@ -61,5 +62,10 @@ describe("formatDecision", () => {
     const text = formatDecision(outcome({ insight: normalizeInsight({ coachingQuestion: "What if you waited?" }) }));
     expect(text).toContain("**foresight**: 7/10");
     expect(text).toContain("What if you waited?");
+  });
+
+  it("separates the consequence lines into their own paragraphs", () => {
+    const text = formatDecision(outcome({ consequences: normalizeConsequences({ hiddenReveal: "Rival bid", newComplication: "Audit" }) }));
+    expect(text).toContain("\n\n**Hidden reveal:** Rival bid\n\n**New complication:** Audit\n\n");
   });
 });

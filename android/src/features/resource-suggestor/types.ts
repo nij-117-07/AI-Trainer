@@ -8,6 +8,7 @@ export interface ResourceSuggestorFormValues {
 }
 
 export interface ResourceItem {
+  kept: boolean;
   title: string;
   type: string;
   authorOrCreator: string;

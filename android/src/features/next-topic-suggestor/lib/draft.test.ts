@@ -18,7 +18,7 @@ describe("next-topic-suggestor draft", () => {
       result: { recommendations: [{ topicName: "Session cookies", reason: "Builds on routing." }, { topicName: "" }] },
     });
     expect(draft.result).toEqual({
-      recommendations: [{ topicName: "Session cookies", reason: "Builds on routing." }],
+      recommendations: [{ topicName: "Session cookies", reason: "Builds on routing.", kept: false }],
     });
   });
 

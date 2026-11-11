@@ -1,4 +1,5 @@
 // src/app/practice/clarity-trainer/index.tsx
+import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import { MessageSquareText, Sparkles } from "lucide-react-native";
 import { ActionButton } from "@/components/tool/FormControls";
@@ -6,6 +7,7 @@ import { AnswerComposer } from "@/components/tool/AnswerComposer";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
+import { useToolScroll } from "@/components/tool/ToolScrollContext";
 import { EvaluationPanels } from "@/features/clarity-trainer/components/EvaluationPanels";
 import { ScenarioPanel } from "@/features/clarity-trainer/components/ScenarioPanel";
 import { useClarityRound } from "@/features/clarity-trainer/hooks/useClarityRound";
@@ -14,9 +16,14 @@ import { LIMITS } from "@/features/clarity-trainer/options";
 export default function ClarityTrainerRoute() {
   const router = useRouter();
   const game = useClarityRound();
+  const scroll = useToolScroll();
   const round = game.round;
   const reviewed = round?.evaluation != null;
   const active = round !== null && !reviewed;
+
+  useEffect(() => {
+    if (reviewed) scroll?.current?.scrollToEnd({ animated: true });
+  }, [reviewed, scroll]);
 
   return (
     <ToolScreen
@@ -30,13 +37,13 @@ export default function ClarityTrainerRoute() {
             maxLength={LIMITS.response}
             pending={game.busy}
             error={game.error}
-            submitLabel="Evaluate"
+            submitLabel="Submit answer"
             onChangeText={game.changeResponse}
             onSubmit={() => void game.submitResponse()}
           />
         ) : (
           <ActionButton
-            label="New scenario"
+            label={reviewed ? "Next round" : "Start round"}
             icon={Sparkles}
             onPress={() => router.push("/practice/clarity-trainer/new")}
           />
@@ -62,7 +69,7 @@ export default function ClarityTrainerRoute() {
             <EmptyHint
               icon={MessageSquareText}
               title="No scenario yet"
-              hint="Tap New scenario to choose a difficulty and category, then generate."
+              hint="Choose a difficulty and category to get your first scenario."
             />
           )
         )}

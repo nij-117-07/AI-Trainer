@@ -1,6 +1,6 @@
 // src/features/riddle/components/RiddleForm.tsx
 /**
- * Riddle setup form, shown on its own page. The fields fill the body; the generate button and the
+ * Riddle setup form, shown on its own page. The fields fill the body; the start button and the
  * error sit in the footer. A successful generate returns to the riddle page.
  */
 import { StyleSheet, View } from "react-native";
@@ -39,12 +39,13 @@ export function RiddleFormFields({ setup }: { setup: RiddleSetupState }) {
         customPlaceholder="e.g. Child-friendly, Olympiad"
       />
       <TextField
-        label="User instructions (optional)"
+        label="Instructions (optional)"
         placeholder="e.g. Keep it under three lines, no numbers"
         value={form.userInstructions}
         onChangeText={(text) => update("userInstructions", text)}
         editable={!pending}
         maxLength={USER_INSTRUCTIONS_MAX}
+        hint={`${form.userInstructions.length} / ${USER_INSTRUCTIONS_MAX}`}
         multiline
         voice
       />
@@ -59,7 +60,7 @@ export function RiddleFormFooter({ setup }: { setup: RiddleSetupState }) {
     <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Crafting the riddle…" : "Generate riddle"}
+        label={pending ? "Generating riddle…" : "Start riddle"}
         icon={Sparkles}
         loading={pending}
         onPress={submit}

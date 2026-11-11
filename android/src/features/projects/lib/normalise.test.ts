@@ -32,6 +32,7 @@ describe("toProjectResult", () => {
     });
     expect(result.advice).toBe("Start small.");
     expect(result.projects[0]).toEqual({
+      kept: false,
       title: "Scraper",
       description: "Collect prices.",
       keyConcepts: ["HTTP", "7"],
@@ -45,6 +46,11 @@ describe("toProjectResult", () => {
 });
 
 describe("toProjectIdea", () => {
+  it("defaults kept to false and keeps a stored true", () => {
+    expect(toProjectIdea({ title: "Scraper" }).kept).toBe(false);
+    expect(toProjectIdea({ title: "Scraper", kept: true }).kept).toBe(true);
+  });
+
   it("treats a missing or non-numeric estimate as unknown", () => {
     expect(toProjectIdea({ estimatedHours: "soon" }).estimatedHours).toBeNull();
     expect(toProjectIdea({}).estimatedHours).toBeNull();

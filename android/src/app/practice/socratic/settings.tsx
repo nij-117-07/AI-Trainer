@@ -14,7 +14,7 @@ export default function SocraticSettingsRoute() {
   return (
     <ToolScreen
       title="Discussion settings"
-      headerRight={<ResetButton label="Reset settings" onPress={settings.reset} />}
+      headerRight={<ResetButton accessibilityLabel="Reset settings" onPress={settings.reset} />}
       footer={<ActionButton label="Use these settings" icon={Check} onPress={() => router.back()} />}
     >
       <SocraticSettingsFields settings={settings} />

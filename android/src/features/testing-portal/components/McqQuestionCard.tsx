@@ -1,11 +1,12 @@
 // src/features/testing-portal/components/McqQuestionCard.tsx
 /**
  * One MCQ with instant right/wrong feedback on option tap, plus "Recheck with AI",
- * which asks the configured model to solve the question.
+ * which asks the configured model to solve the question. The recheck appears only after an answer,
+ * so it never reveals the answer before the user has tried.
  */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CircleCheck, CircleX, ShieldCheck } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "@/hooks/useRequest";
 import { solveMcq } from "../lib/generators";
@@ -28,7 +29,6 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
   const recheck = useRequest(solveMcq);
 
   const revealed = selected !== undefined;
-  const isCorrect = selected === question.correctAnswer;
 
   return (
     <Panel>
@@ -40,27 +40,11 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
       </View>
       <ListenButton text={question.questionText} label="Question" />
 
-      {revealed &&
-        (isCorrect ? (
-          <View accessibilityLiveRegion="polite" style={styles.feedback}>
-            <CircleCheck size={16} color={colors.foreground} />
-            <Text style={[styles.feedbackText, { color: colors.foreground }]}>
-              Correct: {question.correctAnswer}
-            </Text>
-          </View>
-        ) : (
-          <View accessibilityLiveRegion="polite" style={styles.feedback}>
-            <CircleX size={16} color={colors.destructive} />
-            <Text style={[styles.feedbackText, { color: colors.destructive }]}>
-              Wrong. Correct answer: {question.correctAnswer}
-            </Text>
-          </View>
-        ))}
-
-      <View style={styles.options}>
+      <View style={styles.options} accessibilityLiveRegion="polite">
         {OPTION_KEYS.map((key) => {
           const isCorrectOption = revealed && key === question.correctAnswer;
           const isWrongPick = revealed && selected === key && key !== question.correctAnswer;
+          const verdict = isCorrectOption ? "Correct" : isWrongPick ? "Incorrect" : undefined;
           const borderColor = isCorrectOption ? colors.primary : isWrongPick ? colors.destructive : colors.border;
           return (
             <Pressable
@@ -68,7 +52,7 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
               disabled={revealed}
               onPress={() => onSelect(key)}
               accessibilityRole="button"
-              accessibilityLabel={`Option ${key}: ${question.options[key]}`}
+              accessibilityLabel={`Option ${key}: ${question.options[key]}${verdict ? `, ${verdict.toLowerCase()}` : ""}`}
               accessibilityState={{ selected: selected === key, disabled: revealed }}
               style={({ pressed }) => [
                 styles.option,
@@ -79,29 +63,45 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
               <View style={[styles.letter, { borderColor }]}>
                 <Text style={[styles.letterText, { color: colors.foreground }]}>{key}</Text>
               </View>
-              <Text style={[styles.optionText, { color: colors.foreground }]}>{question.options[key]}</Text>
+              <View style={styles.optionBody}>
+                <Text style={[styles.optionText, { color: colors.foreground }]}>{question.options[key]}</Text>
+                {verdict && (
+                  <View style={styles.verdict}>
+                    {isCorrectOption ? (
+                      <CircleCheck size={18} color={colors.primary} />
+                    ) : (
+                      <CircleX size={18} color={colors.destructive} />
+                    )}
+                    <Text style={[styles.verdictText, { color: isCorrectOption ? colors.foreground : colors.destructive }]}>
+                      {verdict}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </Pressable>
           );
         })}
       </View>
 
-      <View style={[styles.recheck, { borderTopColor: colors.border }]}>
-        <ActionButton
-          label={recheck.pending ? "Rechecking with AI…" : "Recheck with AI"}
-          icon={ShieldCheck}
-          variant="outline"
-          loading={recheck.pending}
-          onPress={() =>
-            recheck.run(settings, {
-              question: question.questionText,
-              context: contextSetting ?? "",
-              options: question.options,
-            })
-          }
-        />
-        <ErrorText message={recheck.error} />
-        {recheck.data && <SolverResultCard result={recheck.data} />}
-      </View>
+      {revealed && (
+        <View style={[styles.recheck, { borderTopColor: colors.border }]}>
+          <ActionButton
+            label={recheck.pending ? "Rechecking with AI…" : "Recheck with AI"}
+            icon={ShieldCheck}
+            variant="outline"
+            loading={recheck.pending}
+            onPress={() =>
+              recheck.run(settings, {
+                question: question.questionText,
+                context: contextSetting ?? "",
+                options: question.options,
+              })
+            }
+          />
+          <ErrorText message={recheck.error} />
+          {recheck.data && <SolverResultCard result={recheck.data} />}
+        </View>
+      )}
     </Panel>
   );
 }
@@ -115,28 +115,17 @@ const styles = StyleSheet.create({
   badge: {
     width: 26,
     height: 26,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
   badgeText: {
-    fontSize: 13,
-    fontWeight: "700",
+    ...typeScale.body,
+    fontWeight: "600",
   },
   question: {
     flex: 1,
-    fontSize: 16,
-    lineHeight: 23,
-    fontWeight: "500",
-  },
-  feedback: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  feedbackText: {
-    fontSize: 14,
-    fontWeight: "600",
+    ...typeScale.title,
   },
   options: {
     gap: spacing.sm,
@@ -145,28 +134,39 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    minHeight: 44,
+    minHeight: 56,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
   },
   letter: {
     width: 26,
     height: 26,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   letterText: {
-    fontSize: 13,
+    ...typeScale.body,
     fontWeight: "600",
   },
-  optionText: {
+  optionBody: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 21,
+    gap: spacing.xs,
+  },
+  optionText: {
+    ...typeScale.body,
+  },
+  verdict: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  verdictText: {
+    ...typeScale.label,
+    fontWeight: "600",
   },
   recheck: {
     borderTopWidth: 1,

@@ -3,7 +3,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { LayoutGrid, Settings2, type LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 
 export type RssView = "viewer" | "manager";
 
@@ -29,10 +29,11 @@ export function RssTabs({ active }: { active: RssView }) {
               if (!selected) router.replace(tab.route as never);
             }}
             accessibilityRole="tab"
+            accessibilityLabel={tab.label}
             accessibilityState={{ selected }}
             style={[styles.tab, selected && { backgroundColor: colors.card }]}
           >
-            <Icon size={16} color={tint} />
+            <Icon size={18} color={tint} />
             <Text style={[styles.label, { color: tint }]}>{tab.label}</Text>
           </Pressable>
         );
@@ -47,20 +48,19 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     gap: spacing.xs,
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     padding: spacing.xs,
   },
   tab: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 44,
-    borderRadius: radius.lg,
+    minHeight: touchTarget,
+    borderRadius: shape.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
   },
   label: {
-    fontSize: 14,
+    ...typeScale.label,
     fontWeight: "600",
   },
 });

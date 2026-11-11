@@ -12,7 +12,7 @@ export default function ForesightNewRoute() {
   return (
     <ToolScreen
       title="New scenario"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton onPress={setup.reset} accessibilityLabel="Reset form" />}
       footer={<ForesightFormFooter setup={setup} />}
     >
       <ForesightFormFields setup={setup} />

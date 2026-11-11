@@ -1,6 +1,5 @@
 // src/features/next-topic-suggestor/options.ts
 /** Dropdown presets and input limits for the Next Topic Suggestor. */
-import type { SelectOption } from "@/components/tool/SelectField";
 import type { TopicLevel } from "./types";
 
 export const LIMITS = {
@@ -10,12 +9,6 @@ export const LIMITS = {
   previousSuggestions: 2000,
   customUserInput: 1000,
 } as const;
-
-export const topicLevelOptions: SelectOption[] = [
-  { value: "Beginner", label: "Beginner" },
-  { value: "Intermediate", label: "Intermediate" },
-  { value: "Advanced", label: "Advanced" },
-];
 
 export function isTopicLevel(value: unknown): value is TopicLevel {
   return value === "Beginner" || value === "Intermediate" || value === "Advanced";

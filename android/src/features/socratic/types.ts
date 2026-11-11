@@ -25,6 +25,8 @@ export interface ChatMessage {
   content: string;
   /** "summary" marks the wrap-up that closes a discussion. */
   kind?: "turn" | "summary";
+  /** Set on a reply that was stopped before it finished. */
+  stopped?: boolean;
 }
 
 export interface SocraticChallengeValues {

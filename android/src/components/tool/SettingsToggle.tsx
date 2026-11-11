@@ -2,7 +2,7 @@
 /** Header row that opens and closes a settings form. Shows a one-line summary when closed. */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 
 interface SettingsToggleProps {
   title: string;
@@ -49,19 +49,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
     borderWidth: 1,
-    borderRadius: radius["2xl"],
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
+    minHeight: touchTarget,
+    borderRadius: shape.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   body: {
     flex: 1,
     gap: spacing.xs,
   },
   title: {
+    ...typeScale.title,
     fontSize: 16,
-    fontWeight: "600",
+    lineHeight: 22,
   },
   summary: {
-    fontSize: 13,
+    ...typeScale.caption,
   },
 });

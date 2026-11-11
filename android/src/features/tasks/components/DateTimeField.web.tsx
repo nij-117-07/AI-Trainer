@@ -4,7 +4,7 @@
  * field works in a desktop browser. The native version (DateTimeField.tsx) opens the OS picker.
  */
 import { StyleSheet } from "react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { Field } from "@/components/tool/FormControls";
 
 interface DateTimeFieldProps {
@@ -66,15 +66,15 @@ const styles = StyleSheet.create({
   input: {
     boxSizing: "border-box",
     width: "100%",
-    minHeight: 50,
+    minHeight: touchTarget + spacing.sm,
     borderWidth: 1,
     borderStyle: "solid",
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingLeft: spacing.lg,
     paddingRight: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.md,
-    fontSize: 16,
+    ...typeScale.body,
     fontFamily: "inherit",
   },
 });

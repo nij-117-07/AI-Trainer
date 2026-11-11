@@ -39,6 +39,7 @@ describe("toResourceResult", () => {
       nextSteps: "Read, then build.",
     });
     expect(result.recommendedResources[0]).toEqual({
+      kept: false,
       title: "Book",
       type: "book",
       authorOrCreator: "",
@@ -49,6 +50,15 @@ describe("toResourceResult", () => {
     });
     expect(result.recommendedResources[1].title).toBe("");
     expect(toResourceResult({ recommendedResources: "none" }).recommendedResources).toEqual([]);
+  });
+});
+
+describe("toResourceResult kept flag", () => {
+  it("defaults kept to false and keeps a stored true", () => {
+    const result = toResourceResult({
+      recommendedResources: [{ title: "A" }, { title: "B", kept: true }],
+    });
+    expect(result.recommendedResources.map((item) => item.kept)).toEqual([false, true]);
   });
 });
 

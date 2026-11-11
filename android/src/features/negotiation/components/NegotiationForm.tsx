@@ -25,7 +25,7 @@ export function NegotiationFormFields({ setup }: { setup: NegotiationSetupState 
         allowCustom={false}
       />
       <TextField
-        label="Domain"
+        label="Topic"
         placeholder="e.g. salary, real estate, business deal, diplomatic"
         value={form.domain}
         onChangeText={(text) => update("domain", text)}

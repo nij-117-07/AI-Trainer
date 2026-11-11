@@ -5,7 +5,7 @@
  */
 import { StyleSheet, Text, View } from "react-native";
 import { CircleCheck, Eye, Lightbulb, ListChecks, Search, Sparkles, Target, TriangleAlert } from "lucide-react-native";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors, type Tone } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -77,18 +77,18 @@ export function ObservationResult({ result }: { result: ObservationTrainResult }
       </Panel>
 
       <Panel>
-        <SectionTitle icon={Eye} title="Ground-truth analysis" />
-        <LabeledText label="What is actually there" body={imageAnalysis.groundTruthDescription} />
+        <SectionTitle icon={Eye} title="What was in the image" />
+        <LabeledText label="Description" body={imageAnalysis.groundTruthDescription} />
         <ListenButton text={imageAnalysis.groundTruthDescription} label="Ground truth" />
         {imageAnalysis.keyElements.length > 0 && (
           <View style={styles.block}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Key elements</Text>
+            <Text accessibilityRole="header" style={[styles.label, { color: colors.foreground }]}>Key elements</Text>
             <BulletList items={imageAnalysis.keyElements} />
           </View>
         )}
         {imageAnalysis.subtleDetails.length > 0 && (
           <View style={styles.block}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Subtle details</Text>
+            <Text accessibilityRole="header" style={[styles.label, { color: colors.foreground }]}>Subtle details</Text>
             <BulletList items={imageAnalysis.subtleDetails} />
           </View>
         )}
@@ -149,51 +149,48 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   score: {
-    fontSize: 36,
-    fontWeight: "700",
+    ...typeScale.display,
   },
   outOf: {
-    fontSize: 16,
-    fontWeight: "400",
+    ...typeScale.body,
   },
   badge: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   badgeText: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
     textTransform: "capitalize",
   },
   bar: {
     height: 10,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     overflow: "hidden",
   },
   barFill: {
     height: "100%",
-    borderRadius: radius.full,
+    borderRadius: shape.full,
   },
   block: {
     gap: spacing.sm,
   },
   label: {
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
   muted: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
   },
   body: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
   missed: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
     gap: spacing.sm,
   },
@@ -204,13 +201,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   missedTitle: {
+    ...typeScale.body,
     flex: 1,
-    fontSize: 15,
     fontWeight: "600",
   },
   encouragement: {
-    fontSize: 14,
+    ...typeScale.label,
     fontStyle: "italic",
-    lineHeight: 20,
+    fontWeight: "400",
   },
 });

@@ -6,7 +6,7 @@
  */
 import { Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Search } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
 import { IMAGE_REQUIREMENTS_MAX } from "../lib/validate";
 import type { useImageSearch } from "../hooks/useImageSearch";
@@ -24,7 +24,7 @@ export function ImageSearchPanel({ requirements, onRequirementsChange, search, d
   if (Platform.OS === "web") {
     return (
       <Text style={[styles.note, { color: colors.mutedForeground }]}>
-        Image search runs in the Android app. On web, upload your own image instead.
+        Image search works in the Android app. On web, upload your own image.
       </Text>
     );
   }
@@ -45,6 +45,7 @@ export function ImageSearchPanel({ requirements, onRequirementsChange, search, d
       <ActionButton
         label={search.pending ? "Finding a photo…" : "Find image"}
         icon={Search}
+        variant="outline"
         loading={search.pending}
         disabled={busy || !requirements.trim()}
         onPress={() => void search.find(requirements)}
@@ -104,8 +105,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   note: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
   strip: {
     gap: spacing.sm,
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     width: 112,
     height: 84,
     borderWidth: 2,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     overflow: "hidden",
   },
   thumbImage: {

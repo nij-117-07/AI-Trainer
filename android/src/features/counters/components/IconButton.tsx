@@ -1,26 +1,19 @@
-// src/features/counters/components/PillButton.tsx
-/** Labeled button for counter and countdown actions. Text sits beside the icon so each action is clear without guessing. */
-import { Pressable, StyleSheet, Text } from "react-native";
+// src/features/counters/components/IconButton.tsx
+/** Icon-only 48 button for counter and countdown actions. The label names the action and the object. */
+import { Pressable, StyleSheet } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { pointerCursor } from "@/components/tool/FormControls";
+import { shape, touchTarget, useThemeColors } from "@/theme";
 
-interface PillButtonProps {
-  label: string;
-  accessibilityLabel?: string;
+interface IconButtonProps {
+  accessibilityLabel: string;
   icon: LucideIcon;
   onPress: () => void;
   primary?: boolean;
   disabled?: boolean;
 }
 
-export function PillButton({
-  label,
-  accessibilityLabel = label,
-  icon: Icon,
-  onPress,
-  primary = false,
-  disabled = false,
-}: PillButtonProps) {
+export function IconButton({ accessibilityLabel, icon: Icon, onPress, primary = false, disabled = false }: IconButtonProps) {
   const colors = useThemeColors();
   const foreground = primary ? colors.primaryForeground : colors.foreground;
   return (
@@ -31,32 +24,25 @@ export function PillButton({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
-        styles.pill,
+        styles.button,
+        pointerCursor,
         primary ? { backgroundColor: colors.primary } : { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card },
         pressed && styles.pressed,
         disabled && styles.disabled,
       ]}
     >
-      <Icon size={18} color={foreground} />
-      <Text style={[styles.label, { color: foreground }]}>{label}</Text>
+      <Icon size={24} color={foreground} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  pill: {
-    flex: 1,
-    minHeight: 50,
-    flexDirection: "row",
+  button: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
-    gap: spacing.sm,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: "600",
   },
   pressed: {
     opacity: 0.85,

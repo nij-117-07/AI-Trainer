@@ -24,3 +24,14 @@ export function clampVersionIndex(index: number, length: number): number {
   if (length === 0) return -1;
   return Math.min(Math.max(index, 0), length - 1);
 }
+
+export interface PendingClear {
+  responses: TutorResponse[];
+  activeIndex: number;
+}
+
+/** The answers hidden by Clear answers until the undo window closes. Null when there is nothing to clear. */
+export function beginClear(versions: TutorResponse[], activeIndex: number): PendingClear | null {
+  if (versions.length === 0) return null;
+  return { responses: versions, activeIndex };
+}

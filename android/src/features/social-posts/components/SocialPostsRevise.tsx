@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Pencil, Sparkles } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -132,7 +132,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   missing: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
 });

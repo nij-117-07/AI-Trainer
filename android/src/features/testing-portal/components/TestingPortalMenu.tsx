@@ -1,11 +1,11 @@
 // src/features/testing-portal/components/TestingPortalMenu.tsx
 /**
- * Testing Portal landing page: one small box per tool. Tapping a box opens that tool.
+ * Testing Portal landing page: one card per tool. The whole card opens that tool.
  */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { BookOpen, Brain, Gauge, ListChecks, Target, type LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { BookOpen, Brain, ChevronRight, Gauge, ListChecks, Target, type LucideIcon } from "lucide-react-native";
+import { cardPadding, shape, spacing, touchTarget, typeScale, useThemeColors, type Tone } from "@/theme";
 import { CardGrid } from "@/components/tool/CardGrid";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 
@@ -22,7 +22,7 @@ const TOOLS: PortalTool[] = [
   {
     key: "mcq",
     title: "MCQs",
-    description: "Generate multiple choice questions and answer them with instant feedback.",
+    description: "Make multiple-choice questions and check answers.",
     route: "/practice/testing-portal/mcq",
     icon: ListChecks,
     tone: "sky",
@@ -30,7 +30,7 @@ const TOOLS: PortalTool[] = [
   {
     key: "theoretical",
     title: "Theoretical",
-    description: "Open-ended questions with a focus area and evaluation criteria.",
+    description: "Open-ended questions with your own criteria.",
     route: "/practice/testing-portal/theoretical",
     icon: Brain,
     tone: "rose",
@@ -38,7 +38,7 @@ const TOOLS: PortalTool[] = [
   {
     key: "answer",
     title: "Expert answer",
-    description: "Write a detailed answer to a theoretical or technical question.",
+    description: "Write a detailed answer to a technical question.",
     route: "/practice/testing-portal/answer",
     icon: BookOpen,
     tone: "amber",
@@ -46,7 +46,7 @@ const TOOLS: PortalTool[] = [
   {
     key: "solver",
     title: "Solve an MCQ",
-    description: "Paste a question with its options and get the correct option with reasoning.",
+    description: "Paste a question and get the correct option.",
     route: "/practice/testing-portal/solver",
     icon: Target,
     tone: "emerald",
@@ -54,7 +54,7 @@ const TOOLS: PortalTool[] = [
   {
     key: "grader",
     title: "Performance Grader",
-    description: "Grade a written answer or image against a target objective and see your score.",
+    description: "Score a written answer or image against a goal.",
     route: "/practice/testing-portal/grader",
     icon: Gauge,
     tone: "sky",
@@ -79,16 +79,19 @@ export function TestingPortalMenu() {
               accessibilityLabel={`Open ${tool.title}`}
               accessibilityHint={tool.description}
               style={({ pressed }) => [
-                styles.box,
-                { backgroundColor: tone.bg, borderColor: tone.border },
-                pressed && { opacity: 0.85 },
+                styles.card,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                pressed && { backgroundColor: colors.muted },
               ]}
             >
-              <View style={[styles.iconTile, { backgroundColor: colors.card, borderColor: tone.border }]}>
+              <View style={[styles.iconTile, { backgroundColor: tone.bg }]}>
                 <Icon size={20} color={tone.fg} />
               </View>
-              <Text style={[styles.title, { color: colors.foreground }]}>{tool.title}</Text>
-              <Text style={[styles.description, { color: colors.mutedForeground }]}>{tool.description}</Text>
+              <View style={styles.body}>
+                <Text style={[styles.title, { color: colors.foreground }]}>{tool.title}</Text>
+                <Text style={[styles.description, { color: colors.mutedForeground }]}>{tool.description}</Text>
+              </View>
+              <ChevronRight size={20} color={colors.mutedForeground} />
             </Pressable>
           );
         })}
@@ -98,26 +101,30 @@ export function TestingPortalMenu() {
 }
 
 const styles = StyleSheet.create({
-  box: {
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.lg,
+    minHeight: touchTarget,
+    padding: cardPadding.compact,
     borderWidth: 1,
-    borderRadius: radius["2xl"],
-    padding: spacing.xl,
-    gap: spacing.md,
+    borderRadius: shape.lg,
   },
   iconTile: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.lg,
-    borderWidth: 1,
+    width: 40,
+    height: 40,
+    borderRadius: shape.md,
     alignItems: "center",
     justifyContent: "center",
   },
+  body: {
+    flex: 1,
+    gap: spacing.xs,
+  },
   title: {
-    fontSize: 18,
-    fontWeight: "600",
+    ...typeScale.title,
   },
   description: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...typeScale.body,
   },
 });

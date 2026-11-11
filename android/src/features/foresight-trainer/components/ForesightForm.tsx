@@ -4,8 +4,8 @@
  * and the start button. A successful start returns to the scenario page.
  */
 import { StyleSheet, Text, View } from "react-native";
-import { Sparkles } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Sparkles, TriangleAlert } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
 import { CountSlider } from "@/components/tool/CountSlider";
 import { SelectField } from "@/components/tool/SelectField";
@@ -53,6 +53,7 @@ export function ForesightFormFields({ setup }: { setup: ForesightSetupState }) {
 
       {hasSession ? (
         <View style={[styles.warning, { borderColor: colors.tone.amber.border, backgroundColor: colors.tone.amber.bg }]}>
+          <TriangleAlert size={18} color={colors.tone.amber.fg} />
           <Text style={[styles.warningText, { color: colors.tone.amber.fg }]}>
             Starting again will replace the active scenario.
           </Text>
@@ -80,12 +81,15 @@ export function ForesightFormFooter({ setup }: { setup: ForesightSetupState }) {
 
 const styles = StyleSheet.create({
   warning: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
   },
   warningText: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.body,
+    flex: 1,
   },
 });

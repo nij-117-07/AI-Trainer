@@ -1,6 +1,6 @@
 // src/app/practice/testing-portal/answer/index.tsx
 import { useRouter } from "expo-router";
-import { BookOpen } from "lucide-react-native";
+import { BookOpen, Plus } from "lucide-react-native";
 import { ActionButton } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
@@ -18,8 +18,8 @@ export default function AnswerRoute() {
       title="Expert answer"
       footer={
         <ActionButton
-          label={expert.answer ? "New answer" : "Generate answer"}
-          icon={BookOpen}
+          label="New answer"
+          icon={Plus}
           onPress={() => router.push("/practice/testing-portal/answer/new")}
         />
       }
@@ -28,11 +28,7 @@ export default function AnswerRoute() {
         {expert.answer ? (
           <AnswerResultView answer={expert.answer} />
         ) : expert.loaded ? (
-          <EmptyHint
-            icon={BookOpen}
-            title="No answer yet"
-            hint="Tap Generate answer, add your question and context, then generate."
-          />
+          <EmptyHint icon={BookOpen} title="No answer yet" hint="Add a question and context to get an expert answer." />
         ) : (
           <PortalLoading />
         )}

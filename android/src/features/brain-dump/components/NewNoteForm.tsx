@@ -12,8 +12,7 @@ export function NewNoteFields({ note }: { note: NewNoteState }) {
   return (
     <TextField
       label="Brain dump"
-      hint="Get it out of your head. Use #tags to group ideas later."
-      placeholder="What's on your mind?"
+      placeholder="What's on your mind? Add #tags to group ideas."
       value={note.text}
       onChangeText={note.setText}
       editable={!note.pending}
@@ -29,7 +28,7 @@ export function NewNoteFooter({ note }: { note: NewNoteState }) {
     <View style={styles.footer}>
       <ErrorText message={note.error} />
       <ActionButton
-        label={note.pending ? "Saving…" : "Save to notes"}
+        label={note.pending ? "Saving…" : "Save note"}
         icon={Save}
         loading={note.pending}
         onPress={() => void note.save()}

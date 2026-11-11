@@ -1,61 +1,71 @@
 // src/features/explainer/components/AtozTab.tsx
 /** A-to-Z Tutorial: one cohesive markdown document that covers a topic from basics to mastery. */
-import { ScrollView, StyleSheet, View } from "react-native";
-import { BookOpenText, Sparkles } from "lucide-react-native";
-import { spacing } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { useEffect, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
+import { BookOpenText, Plus, Sparkles, X } from "lucide-react-native";
+import { shape, spacing, touchTarget, useThemeColors } from "@/theme";
+import { ActionButton, ChoiceChips, ErrorText, Field, Panel, TextField } from "@/components/tool/FormControls";
+import { CopyButton } from "@/components/tool/CopyButton";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ListenButton } from "@/components/tool/ListenButton";
-import { MarkdownText } from "@/components/tool/MarkdownText";
+import { ResetButton } from "@/components/tool/ResetButton";
 import { Section } from "@/components/tool/Section";
-import { SectionTitle } from "@/components/tool/SectionTitle";
-import { SelectField } from "@/components/tool/SelectField";
 import { useExplainerTool } from "../hooks/useExplainerTool";
-import { ResultLoading } from "./ResultLoading";
+import { TutorialSteps } from "./TutorialSteps";
 import { LIMITS, parseTutorial, TUTORIAL_DEFAULTS, TUTORIAL_KEY } from "../lib/drafts";
 import { generateTutorial } from "../lib/generators";
-import { explanationStyleOptions, expertiseLevelOptions } from "../options";
+import { explanationStyleOptions, expertiseLevelOptions, type ChoiceItem } from "../options";
+
+const CUSTOM = "__custom__";
 
 export function useTutorial() {
-  return useExplainerTool(TUTORIAL_KEY, TUTORIAL_DEFAULTS, parseTutorial, generateTutorial);
+  const state = useExplainerTool(TUTORIAL_KEY, TUTORIAL_DEFAULTS, parseTutorial, generateTutorial);
+  const [editing, setEditing] = useState(false);
+  const { result, pending, error } = state;
+
+  useEffect(() => {
+    if (result && !pending && !error) setEditing(false);
+  }, [result, pending, error]);
+
+  return {
+    ...state,
+    editing,
+    openForm: () => setEditing(true),
+    closeForm: () => setEditing(false),
+  };
 }
 
 export type TutorialState = ReturnType<typeof useTutorial>;
 
-export function TutorialResults({ state }: { state: TutorialState }) {
-  const { result, pending } = state;
+export function TutorialHeaderActions({ state }: { state: TutorialState }) {
+  const colors = useThemeColors();
+  if (!state.editing) return null;
 
-  if (pending) {
-    return <ResultLoading title="Writing your tutorial" hint="Long tutorials can take a minute." />;
-  }
+  return (
+    <View style={styles.headerActions}>
+      <ResetButton onPress={state.reset} accessibilityLabel="Reset form" />
+      <Pressable
+        onPress={state.closeForm}
+        accessibilityRole="button"
+        accessibilityLabel="Close form"
+        style={({ pressed }) => [
+          styles.iconButton,
+          { borderColor: colors.border },
+          pressed && { backgroundColor: colors.muted },
+        ]}
+      >
+        <X size={20} color={colors.foreground} />
+      </Pressable>
+    </View>
+  );
+}
 
-  if (!result) {
-    return (
-      <EmptyHint
-        icon={BookOpenText}
-        title="Write a full tutorial"
-        hint="Enter a topic in the form, then tap Write tutorial."
-      />
-    );
-  }
+export function TutorialForm({ state }: { state: TutorialState }) {
+  const { form, pending, update } = state;
 
   return (
     <Section>
       <Panel>
-        <SectionTitle icon={BookOpenText} title="Full A-to-Z tutorial" />
-        <MarkdownText content={result.fullExplanation} />
-        <ListenButton text={result.fullExplanation} label="Tutorial" />
-      </Panel>
-    </Section>
-  );
-}
-
-export function TutorialFooter({ state }: { state: TutorialState }) {
-  const { form, pending, error, update, submit } = state;
-
-  return (
-    <View style={styles.footer}>
-      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
         <TextField
           label="Topic"
           placeholder="e.g. FastAPI architecture"
@@ -64,21 +74,111 @@ export function TutorialFooter({ state }: { state: TutorialState }) {
           editable={!pending}
           maxLength={LIMITS.topic}
         />
-        <SelectField
-          label="Expertise level"
+      </Panel>
+      <Panel>
+        <ChoiceField
+          label="Expertise level (optional)"
+          customLabel="Custom expertise level"
           options={expertiseLevelOptions}
           value={form.expertiseLevel}
           onChange={(value) => update("expertiseLevel", value)}
           customPlaceholder="e.g. postgraduate"
         />
-        <SelectField
-          label="Explanation style"
+        <ChoiceField
+          label="Explanation style (optional)"
+          customLabel="Custom explanation style"
           options={explanationStyleOptions}
           value={form.explanationStyle}
           onChange={(value) => update("explanationStyle", value)}
           customPlaceholder="e.g. history-first"
         />
-      </ScrollView>
+      </Panel>
+    </Section>
+  );
+}
+
+function ChoiceField({
+  label,
+  customLabel,
+  options,
+  value,
+  onChange,
+  customPlaceholder,
+}: {
+  label: string;
+  customLabel: string;
+  options: ChoiceItem[];
+  value: string;
+  onChange: (value: string) => void;
+  customPlaceholder: string;
+}) {
+  const [customSelected, setCustomSelected] = useState(false);
+  const isPreset = options.some((option) => option.value === value);
+  const customMode = !isPreset && (customSelected || value !== "");
+
+  function pick(choice: string) {
+    if (choice === CUSTOM) {
+      setCustomSelected(true);
+      onChange("");
+      return;
+    }
+    setCustomSelected(false);
+    onChange(choice);
+  }
+
+  return (
+    <Field label={label}>
+      <ChoiceChips
+        options={[...options, { value: CUSTOM, label: "Custom" }]}
+        value={customMode ? CUSTOM : value}
+        onChange={pick}
+      />
+      {customMode ? (
+        <TextField
+          label={customLabel}
+          placeholder={customPlaceholder}
+          value={value}
+          onChangeText={onChange}
+          maxLength={LIMITS.level}
+        />
+      ) : null}
+    </Field>
+  );
+}
+
+export function TutorialResults({ state }: { state: TutorialState }) {
+  const { result } = state;
+
+  if (!result) {
+    return (
+      <EmptyHint
+        icon={BookOpenText}
+        title="No tutorial yet"
+        hint="Enter a topic to get a step-by-step tutorial."
+      />
+    );
+  }
+
+  return (
+    <Section>
+      <View style={styles.actions}>
+        <CopyButton text={result.fullExplanation} label="Copy tutorial" />
+        <ListenButton text={result.fullExplanation} label="Tutorial" />
+      </View>
+      <TutorialSteps content={result.fullExplanation} />
+    </Section>
+  );
+}
+
+export function TutorialFooter({ state }: { state: TutorialState }) {
+  const { pending, error, submit, openForm, editing } = state;
+
+  if (!editing) {
+    return <ActionButton label="New tutorial" icon={Plus} onPress={openForm} />;
+  }
+
+  return (
+    <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
         label={pending ? "Writing…" : "Write tutorial"}
@@ -91,7 +191,24 @@ export function TutorialFooter({ state }: { state: TutorialState }) {
 }
 
 const styles = StyleSheet.create({
-  footer: { gap: spacing.md },
-  fields: { maxHeight: 340 },
-  fieldsContent: { gap: spacing.md },
+  headerActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderWidth: 1,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: spacing.sm,
+  },
+  footer: {
+    gap: spacing.md,
+  },
 });

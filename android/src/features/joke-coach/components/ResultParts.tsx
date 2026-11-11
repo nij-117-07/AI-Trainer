@@ -1,7 +1,7 @@
 // src/features/joke-coach/components/ResultParts.tsx
 /** Small result pieces shared by the Joke Coach modes: score bars, bullet lists, and empty notes. */
 import { StyleSheet, Text, View } from "react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 
 export function ScoreBar({ label, value, max = 10 }: { label: string; value: number; max?: number }) {
@@ -57,26 +57,25 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   scoreLabel: {
-    fontSize: 14,
+    ...typeScale.body,
   },
   scoreValue: {
-    fontSize: 14,
+    ...typeScale.body,
     fontWeight: "600",
   },
   track: {
     height: 6,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     overflow: "hidden",
   },
   fill: {
     height: "100%",
   },
   empty: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
   label: {
-    fontSize: 13,
+    ...typeScale.body,
     fontWeight: "600",
   },
 });

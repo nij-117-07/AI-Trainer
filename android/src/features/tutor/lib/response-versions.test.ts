@@ -1,5 +1,7 @@
 // src/features/tutor/lib/response-versions.test.ts
-import { clampVersionIndex, normalizeTutorResponse, parseStoredVersions } from "./response-versions";
+import { beginClear, clampVersionIndex, normalizeTutorResponse, parseStoredVersions } from "./response-versions";
+
+const ANSWER = { adaptedExplanation: "Water boils...", conceptAnalogy: "", tutorFeedback: "" };
 
 describe("normalizeTutorResponse", () => {
   it("returns empty strings for missing or non-string fields", () => {
@@ -31,6 +33,16 @@ describe("parseStoredVersions", () => {
       null,
     ]);
     expect(parsed).toEqual([{ adaptedExplanation: "Water boils...", conceptAnalogy: "", tutorFeedback: "" }]);
+  });
+});
+
+describe("beginClear", () => {
+  it("returns null when there is nothing to clear", () => {
+    expect(beginClear([], -1)).toBeNull();
+  });
+
+  it("keeps the cleared answers and the active index for undo", () => {
+    expect(beginClear([ANSWER, ANSWER], 1)).toEqual({ responses: [ANSWER, ANSWER], activeIndex: 1 });
   });
 });
 

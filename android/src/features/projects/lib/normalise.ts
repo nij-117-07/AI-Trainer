@@ -29,6 +29,7 @@ function numberOf(value: unknown): number | null {
 export function toProjectIdea(raw: unknown): ProjectIdea {
   const item = asRecord(raw);
   return {
+    kept: item.kept === true,
     title: textOf(item.title),
     description: textOf(item.description),
     keyConcepts: listOf(item.keyConcepts as unknown[]).map(textOf),

@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CalendarDays, Check, Inbox, Sun, Tags } from "lucide-react-native";
 import type { LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ChoiceChips, Panel } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { SettingsToggle } from "@/components/tool/SettingsToggle";
@@ -167,36 +167,35 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.xs,
     padding: spacing.xs,
-    borderRadius: radius.xl,
+    borderRadius: shape.full,
   },
   segment: {
     flex: 1,
-    minHeight: 44,
+    minHeight: touchTarget,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
     borderWidth: 1,
     borderColor: "transparent",
-    borderRadius: radius.lg,
+    borderRadius: shape.full,
   },
   segmentCount: {
-    fontSize: 18,
-    fontWeight: "700",
+    ...typeScale.title,
   },
   segmentLabel: {
-    fontSize: 12,
+    ...typeScale.caption,
     fontWeight: "600",
   },
   group: {
     gap: spacing.sm,
   },
   heading: {
-    fontSize: 14,
+    ...typeScale.body,
     fontWeight: "600",
   },
   list: {
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     overflow: "hidden",
   },
   divider: {
@@ -205,18 +204,17 @@ const styles = StyleSheet.create({
   empty: {
     alignItems: "center",
     gap: spacing.md,
-    paddingVertical: spacing["2xl"],
+    paddingVertical: spacing.xl,
   },
   emptyIcon: {
     width: 48,
     height: 48,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
   emptyText: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
     textAlign: "center",
     paddingHorizontal: spacing.lg,
   },

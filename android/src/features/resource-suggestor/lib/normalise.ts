@@ -31,6 +31,7 @@ export function textOf(value: unknown): string {
 export function toResourceItem(raw: unknown): ResourceItem {
   const item = asRecord(raw);
   return {
+    kept: item.kept === true,
     title: textOf(item.title),
     type: textOf(item.type),
     authorOrCreator: textOf(item.authorOrCreator),

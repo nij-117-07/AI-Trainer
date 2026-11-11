@@ -27,8 +27,15 @@ describe("what-to-do-now normalise", () => {
   it("fills missing fields safely", () => {
     const result = toWhatToDoNowResult({ doNow: [{ action: "Write intro", minutes: 25.4 }, { action: "" }, null] });
     expect(result.timeContext).toBe("");
-    expect(result.doNow).toEqual([{ action: "Write intro", goal: "", reason: "", minutes: 25 }]);
+    expect(result.doNow).toEqual([{ action: "Write intro", goal: "", reason: "", minutes: 25, done: false }]);
     expect(result.avoid).toEqual([]);
+  });
+
+  it("keeps the done state and defaults it to false", () => {
+    const result = toWhatToDoNowResult({
+      doNow: [{ action: "Write intro", done: true }, { action: "Read notes", done: "yes" }],
+    });
+    expect(result.doNow.map((item) => item.done)).toEqual([true, false]);
   });
 
   it("restores a saved draft and drops bad values", () => {

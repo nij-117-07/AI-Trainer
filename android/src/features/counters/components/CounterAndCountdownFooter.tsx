@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Plus, Timer } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
 import type { CounterStore } from "../hooks/useCounterStore";
 import { MAX_ITEMS, NAME_MAX, parseTarget } from "../lib/counters";
@@ -57,16 +57,17 @@ function CounterForm({ store }: { store: CounterStore }) {
         onChangeText={setName}
         maxLength={NAME_MAX}
         editable={!full}
+        style={styles.input}
       />
       <TextField
         label="Target"
-        hint="A whole number from 1 to 100000."
         placeholder="e.g. 8"
         value={target}
         onChangeText={setTarget}
         keyboardType="number-pad"
         maxLength={6}
         editable={!full}
+        style={styles.input}
       />
       <SuccessText message={error ? null : added} />
       <ErrorText message={full ? "You have reached the limit. Delete a counter to add another." : error} />
@@ -76,7 +77,6 @@ function CounterForm({ store }: { store: CounterStore }) {
 }
 
 function CountdownForm({ store }: { store: CounterStore }) {
-  const colors = useThemeColors();
   const [name, setName] = useState("");
   const [hours, setHours] = useState("");
   const [minutes, setMinutes] = useState("");
@@ -88,7 +88,7 @@ function CountdownForm({ store }: { store: CounterStore }) {
   function add() {
     const durationSec = durationFromParts(hours, minutes, seconds);
     if (name.trim() === "") return setError("Give the countdown a name.");
-    if (durationSec === null) return setError("Enter a duration above zero. Minutes and seconds must be 0 to 59.");
+    if (durationSec === null) return setError("Enter a time from 1 second to 99 hours. Minutes and seconds must be 0 to 59.");
     const countdownName = name.trim().slice(0, NAME_MAX);
     store.addCountdown(countdownName, durationSec);
     setName("");
@@ -108,21 +108,46 @@ function CountdownForm({ store }: { store: CounterStore }) {
         onChangeText={setName}
         maxLength={NAME_MAX}
         editable={!full}
+        style={styles.input}
       />
       <View style={styles.partsRow}>
         <View style={styles.part}>
-          <TextField label="Hours" placeholder="0" value={hours} onChangeText={setHours} keyboardType="number-pad" maxLength={2} editable={!full} />
+          <TextField
+            label="Hours"
+            placeholder="0"
+            value={hours}
+            onChangeText={setHours}
+            keyboardType="number-pad"
+            maxLength={2}
+            editable={!full}
+            style={styles.input}
+          />
         </View>
         <View style={styles.part}>
-          <TextField label="Minutes" placeholder="25" value={minutes} onChangeText={setMinutes} keyboardType="number-pad" maxLength={2} editable={!full} />
+          <TextField
+            label="Minutes"
+            placeholder="25"
+            value={minutes}
+            onChangeText={setMinutes}
+            keyboardType="number-pad"
+            maxLength={2}
+            editable={!full}
+            style={styles.input}
+          />
         </View>
         <View style={styles.part}>
-          <TextField label="Seconds" placeholder="0" value={seconds} onChangeText={setSeconds} keyboardType="number-pad" maxLength={2} editable={!full} />
+          <TextField
+            label="Seconds"
+            placeholder="0"
+            value={seconds}
+            onChangeText={setSeconds}
+            keyboardType="number-pad"
+            maxLength={2}
+            editable={!full}
+            style={styles.input}
+          />
         </View>
       </View>
-      <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-        Up to 99 hours. You get an alert when time is up, if notifications are allowed.
-      </Text>
       <SuccessText message={error ? null : added} />
       <ErrorText message={full ? "You have reached the limit. Delete a countdown to add another." : error} />
       <ActionButton label={full ? "Limit reached" : "Add countdown"} icon={Timer} onPress={add} disabled={full} />
@@ -134,6 +159,9 @@ const styles = StyleSheet.create({
   form: {
     gap: spacing.md,
   },
+  input: {
+    minHeight: 56,
+  },
   partsRow: {
     flexDirection: "row",
     gap: spacing.sm,
@@ -141,13 +169,8 @@ const styles = StyleSheet.create({
   part: {
     flex: 1,
   },
-  hint: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
   success: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
     fontWeight: "600",
   },
 });

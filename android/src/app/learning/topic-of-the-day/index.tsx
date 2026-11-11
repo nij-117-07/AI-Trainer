@@ -1,5 +1,5 @@
 // src/app/learning/topic-of-the-day/index.tsx
-import { ActivityIndicator, Alert } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { Layers, Plus } from "lucide-react-native";
 import { useThemeColors } from "@/theme";
@@ -8,33 +8,29 @@ import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
+import { UndoSnackbar } from "@/components/tool/UndoSnackbar";
 import { BroadTopicRow } from "@/features/topic-of-the-day/components/BroadTopicRow";
-import { showSaveError, useTopicLibrary } from "@/features/topic-of-the-day/hooks/usePersistedDraft";
+import { useTopicLibrary } from "@/features/topic-of-the-day/hooks/usePersistedDraft";
 import { deleteBroadTopic, topicsFor } from "@/features/topic-of-the-day/lib/library";
 import type { BroadTopic } from "@/features/topic-of-the-day/types";
 
 export default function TopicOfTheDayRoute() {
   const router = useRouter();
   const colors = useThemeColors();
-  const { library, loaded, change } = useTopicLibrary();
+  const { library, loaded, pending, removeLater, undo, dismiss } = useTopicLibrary();
 
-  function confirmDelete(broad: BroadTopic) {
-    const count = topicsFor(library, broad.id).length;
-    const topicCount = count === 1 ? "1 topic" : `${count} topics`;
-    Alert.alert("Delete this broader topic?", `"${broad.name}" and its ${topicCount} will be removed. This can't be undone.`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => void change((current) => deleteBroadTopic(current, broad.id)).catch(showSaveError),
-      },
-    ]);
+  function deleteBroad(broad: BroadTopic) {
+    removeLater({
+      message: `Deleted broader topic ${broad.name}`,
+      apply: (current) => deleteBroadTopic(current, broad.id),
+    });
   }
 
   return (
     <ToolScreen
       title="Topic of the Day"
       wide
+      usesAi={false}
       footer={
         <ActionButton
           label="Add broader topic"
@@ -50,7 +46,7 @@ export default function TopicOfTheDayRoute() {
           <EmptyHint
             icon={Layers}
             title="No broader topics yet"
-            hint="Tap Add broader topic to start, for example Biology or Machine learning."
+            hint="Add a broad area you study, such as Biology."
           />
         ) : (
           <CardGrid>
@@ -61,11 +57,13 @@ export default function TopicOfTheDayRoute() {
                 count={topicsFor(library, broad.id).length}
                 onOpen={() => router.push(`/learning/topic-of-the-day/${broad.id}`)}
                 onEdit={() => router.push({ pathname: "/learning/topic-of-the-day/broad-form", params: { id: broad.id } })}
-                onDelete={() => confirmDelete(broad)}
+                onDelete={() => deleteBroad(broad)}
               />
             ))}
           </CardGrid>
         )}
+
+        {pending ? <UndoSnackbar message={pending.message} onUndo={undo} onDismiss={dismiss} /> : null}
       </Section>
     </ToolScreen>
   );

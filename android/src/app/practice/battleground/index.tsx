@@ -18,7 +18,7 @@ export default function BattlegroundRoute() {
   return (
     <ToolScreen
       title="Battleground Simulator"
-      headerRight={session ? <ResetButton label="Reset battle" onPress={battle.reset} /> : undefined}
+      headerRight={session ? <ResetButton accessibilityLabel="Reset battle" onPress={battle.reset} /> : undefined}
       footer={
         active ? (
           <BattleMoveFooter battle={battle} />
@@ -35,7 +35,7 @@ export default function BattlegroundRoute() {
             <EmptyHint
               icon={Swords}
               title="No battle yet"
-              hint="Tap New battle to describe your background and a topic, then enter the battleground."
+              hint="Pick a topic and difficulty to face an AI opponent."
             />
           )
         )}

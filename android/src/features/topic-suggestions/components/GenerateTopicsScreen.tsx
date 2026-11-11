@@ -1,20 +1,21 @@
-// src/features/topic-suggestions/components/GenerateTopicsScreen.tsx
 /**
- * Suggest page. Setup: the form in the footer. Review: the suggested topics in the body, each with
- * a checkbox, and the footer adds only the ticked ones to the list.
+ * Suggest page. Setup: the form in the body, with Suggest topics in the footer. Review: the suggested
+ * topics as a checklist in the body, with Find more and Keep N topics in the footer. Only the kept topics join the list.
  */
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Check, Lightbulb, Sparkles, X } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
-import { EmptyHint } from "@/components/tool/EmptyHint";
+import { ArrowLeft, Check, Lightbulb, Pencil, Sparkles, X } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { ActionButton, ErrorText, pointerCursor, TextField } from "@/components/tool/FormControls";
 import { ResetButton } from "@/components/tool/ResetButton";
+import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { SelectField } from "@/components/tool/SelectField";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { TOPIC_LEVEL_OPTIONS } from "@/features/guides/options";
 import { useSuggestTopics, type SuggestTopicsState } from "../hooks/useSuggestTopics";
+import type { TopicCandidate } from "../types";
 import { TopicCandidateRow } from "./TopicCandidateRow";
 
 const LIMITS = {
@@ -29,70 +30,86 @@ export function GenerateTopicsScreen() {
   const state = useSuggestTopics((message) => {
     Alert.alert("Added to your list", message, [{ text: "OK", onPress: () => router.back() }]);
   });
+  const [editing, setEditing] = useState(false);
+  const reviewing = !!state.batch && !editing;
+
+  useEffect(() => {
+    setEditing(false);
+  }, [state.batch]);
 
   return (
     <ToolScreen
       title="Suggest topics"
-      headerRight={<ResetButton onPress={state.reset} />}
-      footer={state.batch ? <ReviewFooter state={state} /> : <SetupFooter state={state} />}
+      headerRight={
+        <View style={styles.actions}>
+          {reviewing ? <EditButton onPress={() => setEditing(true)} /> : null}
+          {reviewing ? <DiscardButton disabled={state.adding} onPress={state.discardBatch} /> : null}
+          <ResetButton onPress={state.reset} accessibilityLabel="Reset form and results" />
+        </View>
+      }
+      footer={
+        reviewing ? (
+          <ReviewFooter state={state} />
+        ) : (
+          <SetupFooter state={state} onBack={state.batch ? () => setEditing(false) : undefined} />
+        )
+      }
     >
-      <GenerateBody state={state} />
+      {reviewing && state.batch ? <ReviewBody state={state} batch={state.batch} /> : <SetupBody state={state} />}
     </ToolScreen>
   );
 }
 
-function GenerateBody({ state }: { state: SuggestTopicsState }) {
+function EditButton({ onPress }: { onPress: () => void }) {
   const colors = useThemeColors();
-  const { batch, notice, busy } = state;
-
-  if (!batch) {
-    return (
-      <View style={styles.body}>
-        {notice ? <Text style={[styles.notice, { color: colors.foreground }]}>{notice}</Text> : null}
-        <EmptyHint
-          icon={Sparkles}
-          title={busy ? "Finding topics…" : "No new topics yet"}
-          hint={busy ? "This can take a moment." : "Fill in the form and tap Suggest topics. Then pick the ones you want to add."}
-        />
-      </View>
-    );
-  }
-
-  const allSelected = state.selectedCount === batch.length;
-
   return (
-    <View style={styles.body}>
-      {notice ? <Text style={[styles.notice, { color: colors.foreground }]}>{notice}</Text> : null}
-
-      <View style={styles.header}>
-        <SectionTitle icon={Lightbulb} title="Suggested topics" />
-        <Pressable
-          onPress={() => state.setAllSelected(!allSelected)}
-          accessibilityRole="button"
-          style={({ pressed }) => [styles.toggleAll, pressed && { opacity: 0.6 }]}
-        >
-          <Text style={[styles.toggleAllText, { color: colors.primary }]}>{allSelected ? "Clear all" : "Select all"}</Text>
-        </Pressable>
-      </View>
-
-      {batch.map((topic, index) => (
-        <TopicCandidateRow
-          key={`${topic.topicName}-${index}`}
-          topic={topic}
-          selected={state.selected[index] === true}
-          onToggle={() => state.toggleSelected(index)}
-        />
-      ))}
-    </View>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="Edit form"
+      style={({ pressed }) => [
+        styles.iconButton,
+        pointerCursor,
+        { borderColor: colors.border },
+        pressed && { backgroundColor: colors.muted },
+      ]}
+    >
+      <Pencil size={20} color={colors.foreground} />
+    </Pressable>
   );
 }
 
-function SetupFooter({ state }: { state: SuggestTopicsState }) {
-  const { form, busy, update, generate, error } = state;
+function DiscardButton({ disabled, onPress }: { disabled: boolean; onPress: () => void }) {
+  const colors = useThemeColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel="Discard suggested topics"
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => [
+        styles.iconButton,
+        { borderColor: colors.border },
+        pressed && { backgroundColor: colors.muted },
+        disabled && styles.disabled,
+      ]}
+    >
+      <X size={20} color={colors.foreground} />
+    </Pressable>
+  );
+}
+
+function SetupBody({ state }: { state: SuggestTopicsState }) {
+  const colors = useThemeColors();
+  const { form, busy, update } = state;
 
   return (
-    <View style={styles.footer}>
-      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
+    <Section>
+      <View style={styles.group}>
+        <Text accessibilityRole="header" style={[styles.groupTitle, { color: colors.mutedForeground }]}>
+          Your goal
+        </Text>
         <TextField
           label="Broader topic"
           placeholder="e.g. Cybersecurity"
@@ -109,6 +126,12 @@ function SetupFooter({ state }: { state: SuggestTopicsState }) {
           editable={!busy}
           maxLength={LIMITS.specificInterest}
         />
+      </View>
+
+      <View style={styles.group}>
+        <Text accessibilityRole="header" style={[styles.groupTitle, { color: colors.mutedForeground }]}>
+          What you know
+        </Text>
         <TextField
           label="Background knowledge"
           placeholder="e.g. Flask routing and SQL basics"
@@ -126,57 +149,126 @@ function SetupFooter({ state }: { state: SuggestTopicsState }) {
           onChange={(value) => update("topicLevel", value)}
           allowCustom={false}
         />
-        <TextField
-          label="Custom input (optional)"
-          placeholder="e.g. Focus on hands-on prevention techniques"
-          value={form.customUserInput}
-          onChangeText={(text) => update("customUserInput", text)}
-          editable={!busy}
-          maxLength={LIMITS.customUserInput}
-          multiline
-          voice
-        />
-      </ScrollView>
+      </View>
+
+      <TextField
+        label="Custom input (optional)"
+        placeholder="e.g. Focus on hands-on prevention techniques"
+        value={form.customUserInput}
+        onChangeText={(text) => update("customUserInput", text)}
+        editable={!busy}
+        maxLength={LIMITS.customUserInput}
+        multiline
+        voice
+      />
+    </Section>
+  );
+}
+
+function SetupFooter({ state, onBack }: { state: SuggestTopicsState; onBack?: () => void }) {
+  const { busy, generate, error, saveError, notice } = state;
+
+  return (
+    <View style={styles.footer}>
+      <ErrorText message={notice} />
       <ErrorText message={error} />
+      <ErrorText message={saveError} />
       <ActionButton
         label={busy ? "Finding topics…" : "Suggest topics"}
         icon={Sparkles}
         loading={busy}
         onPress={generate}
       />
+      {onBack ? (
+        <ActionButton label="Back to suggestions" icon={ArrowLeft} variant="outline" disabled={busy} onPress={onBack} />
+      ) : null}
     </View>
   );
 }
 
+function ReviewBody({ state, batch }: { state: SuggestTopicsState; batch: TopicCandidate[] }) {
+  const colors = useThemeColors();
+  const allKept = state.keptCount === batch.length;
+
+  return (
+    <Section>
+      <View style={styles.header}>
+        <SectionTitle icon={Lightbulb} title="Suggested topics" />
+        <Pressable
+          onPress={() => state.setAllKept(!allKept)}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.toggleAll, pressed && { opacity: 0.6 }]}
+        >
+          <Text style={[styles.toggleAllText, { color: colors.primary }]}>{allKept ? "Clear all" : "Select all"}</Text>
+        </Pressable>
+      </View>
+
+      {state.keptCount > 0 && (
+        <View style={styles.status}>
+          <Check size={14} color={colors.primary} />
+          <Text style={[typeScale.caption, { color: colors.mutedForeground }]}>{state.keptCount} kept</Text>
+        </View>
+      )}
+
+      <View style={styles.list}>
+        {batch.map((topic, index) => (
+          <TopicCandidateRow
+            key={`${topic.topicName}-${index}`}
+            topic={topic}
+            selected={topic.kept}
+            onToggle={() => state.toggleKept(index)}
+          />
+        ))}
+      </View>
+    </Section>
+  );
+}
+
 function ReviewFooter({ state }: { state: SuggestTopicsState }) {
-  const { selectedCount, adding, addSelected, discardBatch } = state;
-  const label = adding
-    ? "Adding…"
-    : selectedCount === 0
-      ? "Select topics to add"
-      : `Add ${selectedCount} selected to my list`;
+  const { keptCount, adding, busy, notice, error, saveError, generate, keepTopics } = state;
+  const noun = keptCount === 1 ? "topic" : "topics";
 
   return (
     <View style={styles.footer}>
+      <ErrorText message={notice} />
+      <ErrorText message={error} />
+      <ErrorText message={saveError} />
+      <ActionButton label={busy ? "Finding topics…" : "Find more"} icon={Sparkles} loading={busy} disabled={adding} onPress={generate} />
       <ActionButton
-        label={label}
+        label={adding ? "Keeping…" : `Keep ${keptCount} ${noun}`}
         icon={Check}
+        variant="outline"
         loading={adding}
-        disabled={selectedCount === 0 || adding}
-        onPress={addSelected}
+        disabled={keptCount === 0 || adding || busy}
+        onPress={keepTopics}
       />
-      <ActionButton label="Discard these topics" icon={X} variant="outline" disabled={adding} onPress={discardBatch} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  body: {
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  disabled: {
+    opacity: 0.6,
+  },
+  group: {
     gap: spacing.md,
   },
-  notice: {
-    fontSize: 14,
-    lineHeight: 20,
+  groupTitle: {
+    ...typeScale.label,
+    fontWeight: "600",
   },
   header: {
     flexDirection: "row",
@@ -184,21 +276,23 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   toggleAll: {
-    minHeight: 44,
+    minHeight: touchTarget,
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
   },
   toggleAllText: {
-    fontSize: 14,
+    ...typeScale.label,
     fontWeight: "600",
   },
+  status: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  list: {
+    gap: spacing.sm,
+  },
   footer: {
-    gap: spacing.md,
-  },
-  fields: {
-    maxHeight: 340,
-  },
-  fieldsContent: {
     gap: spacing.md,
   },
 });

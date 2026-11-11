@@ -2,7 +2,7 @@
 /** One search result: favicon and host, the page title, snippet, and URL. Tapping opens the page in the browser. */
 import { Alert, Image, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { ExternalLink } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { cardPadding, shape, spacing, typeScale, useThemeColors } from "@/theme";
 import type { WebSearchResult } from "../types";
 
 interface SearchResultCardProps {
@@ -46,7 +46,7 @@ export function SearchResultCard({ result, rank }: SearchResultCardProps) {
         </Text>
       </View>
 
-      <Text style={[styles.title, { color: colors.primary }]} numberOfLines={3}>
+      <Text style={[styles.title, { color: colors.primary }]} numberOfLines={2}>
         {result.title || result.url}
       </Text>
 
@@ -69,9 +69,9 @@ export function SearchResultCard({ result, rank }: SearchResultCardProps) {
 const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    gap: spacing.sm,
+    borderRadius: shape.lg,
+    padding: cardPadding.compact,
+    gap: spacing.xs,
   },
   hostRow: {
     flexDirection: "row",
@@ -79,27 +79,24 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   rank: {
-    fontSize: 12,
+    ...typeScale.caption,
     fontVariant: ["tabular-nums"],
   },
   favicon: {
     width: 16,
     height: 16,
-    borderRadius: 4,
+    borderRadius: shape.xs,
     borderWidth: 1,
   },
   host: {
+    ...typeScale.caption,
     flexShrink: 1,
-    fontSize: 12,
   },
   title: {
-    fontSize: 16,
-    fontWeight: "600",
-    lineHeight: 22,
+    ...typeScale.title,
   },
   snippet: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
   urlRow: {
     flexDirection: "row",
@@ -107,7 +104,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   url: {
+    ...typeScale.caption,
     flexShrink: 1,
-    fontSize: 12,
   },
 });

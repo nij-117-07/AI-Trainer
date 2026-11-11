@@ -12,7 +12,7 @@ export default function NegotiationNewRoute() {
   return (
     <ToolScreen
       title="New negotiation"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton onPress={setup.reset} accessibilityLabel="Reset form" />}
       footer={<NegotiationFormFooter setup={setup} />}
     >
       <NegotiationFormFields setup={setup} />

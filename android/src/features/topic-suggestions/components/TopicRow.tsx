@@ -1,25 +1,9 @@
 // src/features/topic-suggestions/components/TopicRow.tsx
-/** One topic on the list: tick it, open it to read why it fits, or remove it. */
-import { useState } from "react";
+/** One saved topic on the list, one line high. Tap the row to mark it done, or tap the trash icon to remove it. */
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { Check, ChevronDown, ChevronUp, Trash2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { ListenButton } from "@/components/tool/ListenButton";
-import { MarkdownText } from "@/components/tool/MarkdownText";
-import type { TopicRecommendation } from "@/features/guides/types";
+import { Check, Trash2 } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import type { SavedTopic } from "../types";
-
-export function TopicDetails({ topic }: { topic: TopicRecommendation }) {
-  const colors = useThemeColors();
-  if (topic.reason.trim() === "") return null;
-  return (
-    <View style={styles.details}>
-      <Text style={[styles.detailsLabel, { color: colors.mutedForeground }]}>Why this topic</Text>
-      <MarkdownText content={topic.reason} />
-      <ListenButton text={topic.reason} label="Reason" />
-    </View>
-  );
-}
 
 interface TopicRowProps {
   topic: SavedTopic;
@@ -29,7 +13,6 @@ interface TopicRowProps {
 
 export function TopicRow({ topic, onToggle, onRemove }: TopicRowProps) {
   const colors = useThemeColors();
-  const [open, setOpen] = useState(false);
 
   function confirmRemove() {
     Alert.alert("Remove this topic?", `"${topic.topicName}" will be removed from your list.`, [
@@ -40,15 +23,16 @@ export function TopicRow({ topic, onToggle, onRemove }: TopicRowProps) {
 
   return (
     <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <View style={styles.head}>
-        <Pressable
-          onPress={onToggle}
-          accessibilityRole="checkbox"
-          accessibilityLabel={`Mark "${topic.topicName}" done`}
-          accessibilityState={{ checked: topic.done }}
-          hitSlop={10}
+      <Pressable
+        onPress={onToggle}
+        accessibilityRole="checkbox"
+        accessibilityLabel={`Mark topic ${topic.topicName} done`}
+        accessibilityState={{ checked: topic.done }}
+        style={({ pressed }) => [styles.toggle, pressed && { backgroundColor: colors.muted }]}
+      >
+        <View
           style={[
-            styles.checkbox,
+            styles.box,
             {
               borderColor: topic.done ? colors.primary : colors.border,
               backgroundColor: topic.done ? colors.primary : colors.background,
@@ -56,102 +40,69 @@ export function TopicRow({ topic, onToggle, onRemove }: TopicRowProps) {
           ]}
         >
           {topic.done ? <Check size={14} color={colors.primaryForeground} /> : null}
-        </Pressable>
-
-        <Pressable
-          onPress={() => setOpen((value) => !value)}
-          accessibilityRole="button"
-          accessibilityState={{ expanded: open }}
-          accessibilityLabel={`${open ? "Collapse" : "Expand"} ${topic.topicName}`}
-          style={styles.titleArea}
-        >
-          <Text
-            numberOfLines={open ? undefined : 2}
-            style={[
-              styles.title,
-              { color: topic.done ? colors.mutedForeground : colors.foreground },
-              topic.done && styles.done,
-            ]}
-          >
-            {topic.topicName}
-          </Text>
-          {open ? (
-            <ChevronUp size={18} color={colors.mutedForeground} />
-          ) : (
-            <ChevronDown size={18} color={colors.mutedForeground} />
-          )}
-        </Pressable>
-
-        <Pressable
-          onPress={confirmRemove}
-          accessibilityRole="button"
-          accessibilityLabel={`Remove ${topic.topicName}`}
-          style={styles.remove}
-        >
-          <Trash2 size={18} color={colors.mutedForeground} />
-        </Pressable>
-      </View>
-
-      {open ? (
-        <View style={[styles.body, { borderTopColor: colors.border }]}>
-          <TopicDetails topic={topic} />
         </View>
-      ) : null}
+        <Text
+          numberOfLines={1}
+          style={[
+            styles.title,
+            { color: topic.done ? colors.mutedForeground : colors.foreground },
+            topic.done && styles.done,
+          ]}
+        >
+          {topic.topicName}
+        </Text>
+      </Pressable>
+
+      <Pressable
+        onPress={confirmRemove}
+        accessibilityRole="button"
+        accessibilityLabel={`Remove topic ${topic.topicName}`}
+        style={({ pressed }) => [styles.remove, pressed && { backgroundColor: colors.muted }]}
+      >
+        <Trash2 size={20} color={colors.mutedForeground} />
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    borderWidth: 1,
-    borderRadius: radius.xl,
-    overflow: "hidden",
-  },
-  head: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
+    minHeight: 56,
     borderWidth: 1,
-    borderRadius: radius.md,
+    borderRadius: shape.md,
+    overflow: "hidden",
+    paddingLeft: spacing.md,
+  },
+  toggle: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "stretch",
+    gap: spacing.md,
+    minWidth: 0,
+  },
+  box: {
+    width: 22,
+    height: 22,
+    borderWidth: 1,
+    borderRadius: shape.xs,
     alignItems: "center",
     justifyContent: "center",
   },
-  titleArea: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    minHeight: 44,
-  },
   title: {
     flex: 1,
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
   done: {
     textDecorationLine: "line-through",
   },
   remove: {
-    width: 44,
-    height: 44,
+    width: touchTarget,
+    height: touchTarget,
     alignItems: "center",
     justifyContent: "center",
-  },
-  body: {
-    borderTopWidth: 1,
-    padding: spacing.lg,
-  },
-  details: {
-    gap: spacing.md,
-  },
-  detailsLabel: {
-    fontSize: 13,
-    fontWeight: "600",
   },
 });

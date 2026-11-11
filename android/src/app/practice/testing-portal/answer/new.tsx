@@ -12,7 +12,7 @@ export default function AnswerNewRoute() {
   return (
     <ToolScreen
       title="New answer"
-      headerRight={<ResetButton label="Reset form" onPress={setup.reset} />}
+      headerRight={<ResetButton accessibilityLabel="Reset form" onPress={setup.reset} />}
       footer={<AnswerFormFooter setup={setup} />}
     >
       <AnswerFormFields setup={setup} />

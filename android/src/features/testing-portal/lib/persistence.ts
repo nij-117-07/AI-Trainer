@@ -4,17 +4,27 @@
  * Saved data is read through sanitizeMcqResult, so damaged entries are dropped instead of crashing.
  */
 import { loadDocument } from "@/lib/document-store";
-import { OPTION_KEYS, type GradingResult, type McqItem, type OptionKey, type Options, type TheoreticalItem } from "../types";
+import {
+  OPTION_KEYS,
+  type AnswerResult,
+  type GradingResult,
+  type McqItem,
+  type OptionKey,
+  type Options,
+  type TheoreticalItem,
+} from "../types";
 import { PAST_QUESTIONS_LIMIT } from "./past-questions";
 
 export const MCQ_STORAGE_KEYS = {
   form: "practice.testing-portal.mcq.form.v1",
   result: "practice.testing-portal.mcq.result.v1",
+  answers: "practice.testing-portal.mcq.answers.v1",
 } as const;
 
 export const THEORETICAL_STORAGE_KEYS = {
   form: "practice.testing-portal.theoretical.form.v1",
   result: "practice.testing-portal.theoretical.result.v1",
+  answers: "practice.testing-portal.theoretical.answers.v1",
 } as const;
 
 export const ANSWER_STORAGE_KEYS = {
@@ -74,6 +84,29 @@ export async function loadMcqResult(): Promise<McqResult> {
   return sanitizeMcqResult(saved);
 }
 
+export interface McqAnswer {
+  selected: OptionKey;
+  checked: boolean;
+}
+
+/** Keyed by question index. */
+export type McqAnswers = Partial<Record<number, McqAnswer>>;
+
+export function sanitizeMcqAnswers(saved: unknown): McqAnswers {
+  if (!isRecord(saved)) return {};
+  const answers: McqAnswers = {};
+  for (const [key, value] of Object.entries(saved)) {
+    if (!/^\d+$/.test(key) || !isRecord(value) || !isOptionKey(value.selected)) continue;
+    answers[Number(key)] = { selected: value.selected, checked: value.checked === true };
+  }
+  return answers;
+}
+
+export async function loadMcqAnswers(): Promise<McqAnswers> {
+  const saved = await loadDocument<unknown>(MCQ_STORAGE_KEYS.answers, null).catch(() => null);
+  return sanitizeMcqAnswers(saved);
+}
+
 export interface TheoreticalResult {
   questions: TheoreticalItem[];
   history: string[];
@@ -122,6 +155,46 @@ export function sanitizeTheoreticalResult(saved: unknown): TheoreticalResult {
 export async function loadTheoreticalResult(): Promise<TheoreticalResult> {
   const saved = await loadDocument<unknown>(THEORETICAL_STORAGE_KEYS.result, null).catch(() => null);
   return sanitizeTheoreticalResult(saved);
+}
+
+/** The user's work on one theoretical question. The image is not stored. */
+export interface TheoreticalAnswer {
+  answer: string;
+  /** The answer text the saved grade was made for. */
+  gradedText: string | null;
+  grade: GradingResult | null;
+  expert: AnswerResult | null;
+}
+
+export const EMPTY_THEORETICAL_ANSWER: TheoreticalAnswer = { answer: "", gradedText: null, grade: null, expert: null };
+
+/** Keyed by question index. */
+export type TheoreticalAnswers = Record<number, TheoreticalAnswer>;
+
+export function sanitizeTheoreticalAnswers(saved: unknown): TheoreticalAnswers {
+  if (!isRecord(saved)) return {};
+  const answers: TheoreticalAnswers = {};
+  for (const [key, value] of Object.entries(saved)) {
+    if (!/^\d+$/.test(key) || !isRecord(value)) continue;
+    const rawGrade = value.grade;
+    const rawExpert = value.expert;
+    const expertText = isRecord(rawExpert) ? textOf(rawExpert.answerText) : "";
+    answers[Number(key)] = {
+      answer: typeof value.answer === "string" ? value.answer : "",
+      gradedText: typeof value.gradedText === "string" ? value.gradedText : null,
+      grade: isRecord(rawGrade) ? toGrade(rawGrade) : null,
+      expert:
+        isRecord(rawExpert) && expertText
+          ? { answerText: expertText, keyConceptsCovered: stringList(rawExpert.keyConceptsCovered) }
+          : null,
+    };
+  }
+  return answers;
+}
+
+export async function loadTheoreticalAnswers(): Promise<TheoreticalAnswers> {
+  const saved = await loadDocument<unknown>(THEORETICAL_STORAGE_KEYS.answers, null).catch(() => null);
+  return sanitizeTheoreticalAnswers(saved);
 }
 
 /** Returns the saved answer, or null when there is none or it is unreadable. */
@@ -184,6 +257,7 @@ export const GRADER_STORAGE_KEYS = {
 
 export interface SavedGrade {
   questionAsked: string;
+  targetObjective: string;
   userAnswerText: string;
   hadImage: boolean;
   grade: GradingResult;
@@ -193,23 +267,27 @@ function stringList(value: unknown): string[] {
   return Array.isArray(value) ? value.map(textOf).filter((item) => item.length > 0) : [];
 }
 
+function toGrade(raw: Record<string, unknown>): GradingResult {
+  const score = Number(raw.score);
+  return {
+    combinedAnalysis: textOf(raw.combinedAnalysis),
+    score: Number.isFinite(score) ? score : 0,
+    strengths: stringList(raw.strengths),
+    weaknesses: stringList(raw.weaknesses),
+    detailedFeedback: textOf(raw.detailedFeedback),
+    isTargetMet: raw.isTargetMet === true,
+  };
+}
+
 /** Returns the saved grade, or null when there is none or it is unreadable. */
 export function sanitizeGraderResult(saved: unknown): SavedGrade | null {
   if (!isRecord(saved) || !isRecord(saved.grade)) return null;
-  const raw = saved.grade;
-  const score = Number(raw.score);
   return {
     questionAsked: textOf(saved.questionAsked),
+    targetObjective: textOf(saved.targetObjective),
     userAnswerText: textOf(saved.userAnswerText),
     hadImage: saved.hadImage === true,
-    grade: {
-      combinedAnalysis: textOf(raw.combinedAnalysis),
-      score: Number.isFinite(score) ? score : 0,
-      strengths: stringList(raw.strengths),
-      weaknesses: stringList(raw.weaknesses),
-      detailedFeedback: textOf(raw.detailedFeedback),
-      isTargetMet: raw.isTargetMet === true,
-    },
+    grade: toGrade(saved.grade),
   };
 }
 

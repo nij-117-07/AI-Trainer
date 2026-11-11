@@ -4,6 +4,7 @@ import { Puzzle as PuzzleIcon, Sparkles } from "lucide-react-native";
 import { ActionButton } from "@/components/tool/FormControls";
 import { AnswerComposer } from "@/components/tool/AnswerComposer";
 import { EmptyHint } from "@/components/tool/EmptyHint";
+import { ResetButton } from "@/components/tool/ResetButton";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { PuzzleRoundView } from "@/features/puzzle/components/PuzzleRoundView";
@@ -21,6 +22,11 @@ export default function PuzzleRoute() {
   return (
     <ToolScreen
       title="Puzzle Generator"
+      headerRight={
+        round ? (
+          <ResetButton accessibilityLabel="New puzzle" onPress={() => router.push("/practice/puzzle/new")} />
+        ) : null
+      }
       footer={
         active ? (
           <AnswerComposer
@@ -30,13 +36,13 @@ export default function PuzzleRoute() {
             maxLength={ANSWER_MAX}
             pending={game.evaluate.pending}
             error={game.evaluate.error}
-            submitLabel={attempts.length > 0 ? "Check again" : "Submit"}
+            submitLabel="Submit answer"
             onChangeText={game.changeAnswer}
             onSubmit={() => void game.submitAnswer()}
           />
         ) : (
           <ActionButton
-            label="New puzzle"
+            label={round ? "Next puzzle" : "Start puzzle"}
             icon={Sparkles}
             onPress={() => router.push("/practice/puzzle/new")}
           />
@@ -45,23 +51,13 @@ export default function PuzzleRoute() {
     >
       <Section>
         {round ? (
-          <>
-            <PuzzleRoundView key={round.puzzle.puzzleText} round={round} />
-            {active && (
-              <ActionButton
-                label="Start a different puzzle"
-                icon={Sparkles}
-                variant="outline"
-                onPress={() => router.push("/practice/puzzle/new")}
-              />
-            )}
-          </>
+          <PuzzleRoundView key={round.puzzle.puzzleText} round={round} />
         ) : (
           game.loaded && (
             <EmptyHint
               icon={PuzzleIcon}
               title="No puzzle yet"
-              hint="Tap New puzzle, choose a puzzle type and difficulty, then generate."
+              hint="Pick a type and difficulty to begin."
             />
           )
         )}

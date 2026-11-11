@@ -1,16 +1,17 @@
 // src/features/interview/components/ProgressStage.tsx
 /**
  * Step 5: the merged performance profile after the review. The footer holds Next question. The body
- * holds Undo the merge.
+ * leads with the running score and the weak areas, and the score bars sit under a reveal. The body
+ * also holds Undo profile update.
  */
 import { StyleSheet, Text, View } from "react-native";
 import { Undo2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton } from "@/components/tool/FormControls";
 import { TagList } from "@/components/tool/TagList";
 import type { InterviewPending } from "../hooks/useInterviewSession";
 import type { InterviewSessionState, PerformanceTrend } from "../types";
-import { BadgeRow, EmptyNote, StageBadge, StagePanel, SubHeading } from "./StagePanel";
+import { EmptyNote, Reveal, StagePanel, SubHeading } from "./StagePanel";
 
 const TREND_COPY: Record<PerformanceTrend, string> = {
   improving: "Your answers are trending upward — keep the momentum.",
@@ -31,11 +32,19 @@ export function ProgressStage({ state, pending, onUndo }: ProgressStageProps) {
 
   return (
     <StagePanel
-      label="Performance profile updated"
+      label="Profile updated"
       hint={TREND_COPY[state.performanceTrend]}
       isPending={pending === "progress"}
       pendingLabel="Updating your profile…"
-      actions={<ActionButton label="Undo" icon={Undo2} variant="outline" disabled={pending !== null} onPress={onUndo} />}
+      actions={
+        <ActionButton
+          label="Undo profile update"
+          icon={Undo2}
+          variant="outline"
+          disabled={pending !== null}
+          onPress={onUndo}
+        />
+      }
     >
       <View style={[styles.summary, { borderColor: colors.border, backgroundColor: colors.muted }]}>
         <View style={styles.stat}>
@@ -53,18 +62,16 @@ export function ProgressStage({ state, pending, onUndo }: ProgressStageProps) {
           </Text>
         </View>
       </View>
-      <BadgeRow>
-        <StageBadge label={state.performanceTrend} tone="sky" />
-        {profile.confidenceLevel ? <StageBadge label={`confidence: ${profile.confidenceLevel}`} /> : null}
-      </BadgeRow>
 
-      <ScoreBars title="Topic scores" scores={profile.topicScores} />
-      <ScoreBars title="Question type scores" scores={profile.typeScores} />
-
-      <SubHeading>Strong areas</SubHeading>
-      {profile.strongAreas.length > 0 ? <TagList items={profile.strongAreas} /> : <EmptyNote>None recorded yet.</EmptyNote>}
       <SubHeading>Weak areas</SubHeading>
       {profile.weakAreas.length > 0 ? <TagList items={profile.weakAreas} /> : <EmptyNote>None recorded yet.</EmptyNote>}
+      <SubHeading>Strong areas</SubHeading>
+      {profile.strongAreas.length > 0 ? <TagList items={profile.strongAreas} /> : <EmptyNote>None recorded yet.</EmptyNote>}
+
+      <Reveal title="Score breakdown" summary={profile.confidenceLevel ? `Confidence: ${profile.confidenceLevel}` : undefined}>
+        <ScoreBars title="Topic scores" scores={profile.topicScores} />
+        <ScoreBars title="Question type scores" scores={profile.typeScores} />
+      </Reveal>
     </StagePanel>
   );
 }
@@ -79,7 +86,7 @@ export function ScoreBars({ title, scores }: { title: string; scores: Record<str
       {entries.map(([label, score]) => (
         <View key={label} style={styles.barRow}>
           <View style={styles.barLabelRow}>
-            <Text style={[styles.barLabel, { color: colors.mutedForeground }]} numberOfLines={1}>
+            <Text style={[styles.barLabel, { color: colors.foreground }]} numberOfLines={1}>
               {label}
             </Text>
             <Text style={[styles.barValue, { color: colors.foreground }]}>{score.toFixed(1)}/10</Text>
@@ -99,7 +106,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.lg,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
   },
   stat: {
@@ -107,14 +114,14 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   statLabel: {
-    fontSize: 12,
+    ...typeScale.caption,
   },
   statValue: {
-    fontSize: 24,
+    ...typeScale.title,
     fontWeight: "700",
   },
   statOf: {
-    fontSize: 13,
+    ...typeScale.caption,
     fontWeight: "400",
   },
   bars: {
@@ -131,15 +138,15 @@ const styles = StyleSheet.create({
   },
   barLabel: {
     flexShrink: 1,
-    fontSize: 14,
+    ...typeScale.body,
   },
   barValue: {
-    fontSize: 14,
+    ...typeScale.body,
     fontWeight: "600",
   },
   track: {
     height: 6,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     overflow: "hidden",
   },
   fill: {

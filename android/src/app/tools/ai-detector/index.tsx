@@ -11,7 +11,7 @@ export default function AiDetectorRoute() {
   return (
     <ToolScreen
       title="AI Detector"
-      headerRight={<ResetButton onPress={detector.reset} />}
+      headerRight={<ResetButton onPress={detector.reset} label="Reset" />}
       footerSide={false}
       footer={<AiDetectorFooter detector={detector} />}
     >

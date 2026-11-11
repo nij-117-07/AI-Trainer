@@ -1,8 +1,11 @@
 // src/features/tutor-chat/components/ChatComposer.tsx
-/** Message box with a send button. The button is disabled while the input is empty or a reply is pending. */
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
+/**
+ * Message box with voice input and a send button. Send is disabled while the input is empty or a
+ * reply is pending. On web, Enter sends and Shift+Enter adds a line, except while an IME is composing.
+ */
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Send } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { VoiceInputRow } from "@/components/tool/VoiceInputRow";
 import { appendTranscript } from "@/features/chatbot/lib/voice-text";
 
@@ -14,28 +17,54 @@ interface ChatComposerProps {
   placeholder?: string;
 }
 
+/** The DOM keyboard event that react-native-web passes to onKeyPress. */
+interface WebKeyEvent {
+  key: string;
+  shiftKey: boolean;
+  isComposing?: boolean;
+  keyCode?: number;
+  preventDefault: () => void;
+}
+
+const IME_KEY_CODE = 229;
+
 export function ChatComposer({ value, onChangeText, onSend, pending, placeholder }: ChatComposerProps) {
   const colors = useThemeColors();
   const canSend = value.trim().length > 0 && !pending;
 
+  function handleKeyPress(event: unknown) {
+    const key = event as WebKeyEvent;
+    if (key.key !== "Enter" || key.shiftKey || key.isComposing || key.keyCode === IME_KEY_CODE) return;
+    key.preventDefault();
+    if (canSend) onSend();
+  }
+
   return (
     <View style={styles.wrap}>
-      <View style={styles.row}>
+      <View style={[styles.box, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <TextInput
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
           placeholderTextColor={colors.mutedForeground}
+          accessibilityLabel="Message the tutor"
           multiline
           editable={!pending}
           textAlignVertical="top"
-          style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+          onKeyPress={Platform.OS === "web" ? handleKeyPress : undefined}
+          style={[styles.input, typeScale.body, { color: colors.foreground }]}
         />
+        <View style={styles.voice}>
+          <VoiceInputRow
+            disabled={pending}
+            onTranscript={(text) => onChangeText(appendTranscript(value, text))}
+          />
+        </View>
         <Pressable
           onPress={onSend}
           disabled={!canSend}
           accessibilityRole="button"
-          accessibilityLabel="Send message"
+          accessibilityLabel={pending ? "Waiting for the tutor" : "Send message"}
           accessibilityState={{ disabled: !canSend, busy: pending }}
           style={({ pressed }) => [
             styles.send,
@@ -47,48 +76,54 @@ export function ChatComposer({ value, onChangeText, onSend, pending, placeholder
           {pending ? (
             <ActivityIndicator color={colors.primaryForeground} />
           ) : (
-            <Send size={18} color={colors.primaryForeground} />
+            <Send size={20} color={colors.primaryForeground} />
           )}
         </Pressable>
       </View>
-      <VoiceInputRow
-        disabled={pending}
-        onTranscript={(text) => onChangeText(appendTranscript(value, text))}
-      />
+      {Platform.OS === "web" ? (
+        <Text style={[styles.hint, { color: colors.mutedForeground }]}>Enter to send, Shift+Enter for a new line</Text>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
-  row: {
+  box: {
     flexDirection: "row",
     alignItems: "flex-end",
-    gap: spacing.sm,
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    padding: spacing.sm,
   },
   input: {
     flex: 1,
-    minHeight: 50,
-    maxHeight: 140,
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.lg,
+    minHeight: touchTarget,
+    maxHeight: 200,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
-    fontSize: 16,
+  },
+  voice: {
+    width: touchTarget,
   },
   send: {
-    width: 50,
-    height: 50,
-    borderRadius: radius.full,
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
   pressed: {
-    opacity: 0.85,
+    borderRadius: shape.lg,
+  },
+  hint: {
+    ...typeScale.caption,
+    paddingHorizontal: spacing.sm,
   },
 });

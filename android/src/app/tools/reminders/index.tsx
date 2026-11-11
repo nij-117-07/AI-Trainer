@@ -17,7 +17,7 @@ export default function RemindersRoute() {
       wide
       footerSide={false}
       footer={
-        store.loaded ? <ActionButton label="New reminder" icon={Plus} onPress={() => router.push("/tools/reminders/new")} /> : null
+        store.loaded ? <ActionButton label="Add reminder" icon={Plus} onPress={() => router.push("/tools/reminders/new")} /> : null
       }
     >
       <RemindersList store={store} />

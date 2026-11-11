@@ -1,9 +1,9 @@
 // src/features/rss/components/RssHubMenu.tsx
-/** RSS Feed landing page: one card each for the Viewer (read articles) and the Manager (configure feeds). */
+/** RSS Feed landing page: one row each for the Viewer (read articles) and the Manager (configure feeds). */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Newspaper, Settings2, type LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { ChevronRight, Newspaper, Settings2, type LucideIcon } from "lucide-react-native";
+import { cardPadding, shape, spacing, typeScale, useThemeColors, type Tone } from "@/theme";
 import { CardGrid } from "@/components/tool/CardGrid";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 
@@ -20,7 +20,7 @@ const LINKS: HubLink[] = [
   {
     key: "viewer",
     title: "RSS Viewer",
-    description: "Browse, search, and filter the latest articles from your channels.",
+    description: "Read the latest articles from your feeds.",
     route: "/tools/rss/viewer",
     icon: Newspaper,
     tone: "sky",
@@ -28,7 +28,7 @@ const LINKS: HubLink[] = [
   {
     key: "manager",
     title: "RSS Manager",
-    description: "Add, edit, enable, and fetch the RSS and Atom providers.",
+    description: "Add, edit, and test feed sources.",
     route: "/tools/rss/manager",
     icon: Settings2,
     tone: "amber",
@@ -53,15 +53,18 @@ export function RssHubMenu() {
               accessibilityLabel={`Open ${link.title}`}
               style={({ pressed }) => [
                 styles.card,
-                { backgroundColor: tone.bg, borderColor: tone.border },
-                pressed && { opacity: 0.85 },
+                { backgroundColor: colors.card, borderColor: colors.border },
+                pressed && { backgroundColor: colors.muted },
               ]}
             >
-              <View style={[styles.iconTile, { backgroundColor: colors.card, borderColor: tone.border }]}>
-                <Icon size={20} color={tone.fg} />
+              <View style={[styles.iconTile, { backgroundColor: tone.bg }]}>
+                <Icon size={22} color={tone.fg} />
               </View>
-              <Text style={[styles.title, { color: colors.foreground }]}>{link.title}</Text>
-              <Text style={[styles.description, { color: colors.mutedForeground }]}>{link.description}</Text>
+              <View style={styles.text}>
+                <Text style={[styles.title, { color: colors.foreground }]}>{link.title}</Text>
+                <Text style={[styles.description, { color: colors.mutedForeground }]}>{link.description}</Text>
+              </View>
+              <ChevronRight size={20} color={colors.mutedForeground} />
             </Pressable>
           );
         })}
@@ -72,25 +75,28 @@ export function RssHubMenu() {
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    borderRadius: radius["2xl"],
-    padding: spacing.xl,
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.md,
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    padding: cardPadding.compact,
   },
   iconTile: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.lg,
-    borderWidth: 1,
+    width: 48,
+    height: 48,
+    borderRadius: shape.md,
     alignItems: "center",
     justifyContent: "center",
   },
+  text: {
+    flex: 1,
+    gap: spacing.xs,
+  },
   title: {
-    fontSize: 18,
-    fontWeight: "600",
+    ...typeScale.title,
   },
   description: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...typeScale.body,
   },
 });

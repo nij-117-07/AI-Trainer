@@ -1,10 +1,10 @@
 // src/features/interview/components/InterviewFooter.tsx
 /**
  * Session page footer: the primary action of the current stage (answer box while answering), or
- * New interview when no stage is open.
+ * Start new interview when no stage is open.
  */
 import { useRouter } from "expo-router";
-import { Briefcase, Pencil, RotateCcw, StepForward } from "lucide-react-native";
+import { Briefcase, Check, RotateCcw, StepForward } from "lucide-react-native";
 import { AnswerComposer } from "@/components/tool/AnswerComposer";
 import { ActionButton, ErrorText } from "@/components/tool/FormControls";
 import type { InterviewScreen } from "../hooks/useInterviewScreen";
@@ -15,7 +15,7 @@ export function InterviewFooter({ screen }: { screen: InterviewScreen }) {
   const { state, pending, error } = screen;
   const busy = pending !== null;
   const newInterview = (
-    <ActionButton label="New interview" icon={Briefcase} onPress={() => router.push("/practice/interview/new")} />
+    <ActionButton label="Start new interview" icon={Briefcase} onPress={() => router.push("/practice/interview/new")} />
   );
 
   if (!state || state.stage === "report") return newInterview;
@@ -25,9 +25,9 @@ export function InterviewFooter({ screen }: { screen: InterviewScreen }) {
       <>
         <ErrorText message={error} />
         {screen.directive.editing ? (
-          <ActionButton label="Save edits" icon={Pencil} loading={busy} onPress={screen.directive.save} />
+          <ActionButton label="Save directive" icon={Check} loading={busy} onPress={screen.directive.save} />
         ) : (
-          <ActionButton label="Proceed" icon={StepForward} loading={busy} onPress={screen.proceedFromDecide} />
+          <ActionButton label="Ask question" icon={StepForward} loading={busy} onPress={screen.proceedFromDecide} />
         )}
       </>
     );
@@ -36,13 +36,13 @@ export function InterviewFooter({ screen }: { screen: InterviewScreen }) {
   if (state.stage === "answer" && state.currentQuestion) {
     return (
       <AnswerComposer
-        label="Your response"
+        label="Your answer"
         value={screen.answer.value}
         placeholder="Type your answer…"
         maxLength={ANSWER_MAX_LENGTH}
         pending={busy}
         error={error}
-        submitLabel="Submit"
+        submitLabel="Submit answer"
         onChangeText={screen.answer.setValue}
         onSubmit={() => void screen.answer.submit()}
       />
@@ -54,7 +54,7 @@ export function InterviewFooter({ screen }: { screen: InterviewScreen }) {
       <>
         <ErrorText message={error} />
         {screen.review.editing ? (
-          <ActionButton label="Re-review" icon={RotateCcw} loading={busy} onPress={screen.review.reReview} />
+          <ActionButton label="Re-review answer" icon={RotateCcw} loading={busy} onPress={screen.review.reReview} />
         ) : (
           <ActionButton label="Track progress" icon={StepForward} loading={busy} onPress={screen.proceedFromReview} />
         )}

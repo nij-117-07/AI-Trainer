@@ -1,8 +1,8 @@
 // src/app/tools/creative-assets/index.tsx
 import { useRouter } from "expo-router";
-import { Palette, Sparkles } from "lucide-react-native";
+import { Palette, Plus, Sparkles } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
@@ -33,7 +33,7 @@ export default function CreativeAssetsRoute() {
           ) : null}
           <ActionButton
             label="New assets"
-            icon={Palette}
+            icon={Plus}
             variant="outline"
             onPress={() => router.push("/tools/creative-assets/new")}
           />
@@ -47,7 +47,7 @@ export default function CreativeAssetsRoute() {
           <EmptyHint
             icon={Palette}
             title="No assets yet"
-            hint="Tap New assets, choose a task type and topic, then generate."
+            hint="Tap New assets to start."
           />
         )}
       </Section>
@@ -60,8 +60,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   hint: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
     textAlign: "center",
   },
 });

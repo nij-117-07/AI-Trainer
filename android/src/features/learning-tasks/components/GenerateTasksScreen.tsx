@@ -1,15 +1,14 @@
 // src/features/learning-tasks/components/GenerateTasksScreen.tsx
 /**
- * Generate page. Setup: the form in the footer. Review: the new tasks in the body, each with a
- * checkbox, and the footer adds only the ticked ones to the list.
+ * Generate page. Setup: the fields in the body and Generate tasks in the footer. Review: the new
+ * tasks in the body, each with a check to keep it, and the footer adds only the kept ones.
  */
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Check, Lightbulb, ListChecks, Sparkles, X } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Lightbulb, ListChecks, Plus, Sparkles, Trash2 } from "lucide-react-native";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { CountSlider } from "@/components/tool/CountSlider";
-import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResetButton } from "@/components/tool/ResetButton";
@@ -20,6 +19,7 @@ import { ToolScreen } from "@/components/tool/ToolScreen";
 import { CURRENT_LEVEL_OPTIONS } from "@/features/guides/options";
 import { useGenerateTasks, type GenerateTasksState } from "../hooks/useGenerateTasks";
 import { CandidateRow } from "./CandidateRow";
+import { IconButton } from "./IconButton";
 
 export function GenerateTasksScreen() {
   const router = useRouter();
@@ -30,7 +30,13 @@ export function GenerateTasksScreen() {
   return (
     <ToolScreen
       title="Generate tasks"
-      headerRight={<ResetButton onPress={state.reset} />}
+      headerRight={
+        state.batch ? (
+          <IconButton icon={Trash2} label="Discard these tasks" onPress={state.discardBatch} disabled={state.adding} />
+        ) : (
+          <ResetButton accessibilityLabel="Reset form" onPress={state.reset} />
+        )
+      }
       footer={state.batch ? <ReviewFooter state={state} /> : <SetupFooter state={state} />}
     >
       <GenerateBody state={state} />
@@ -46,11 +52,7 @@ function GenerateBody({ state }: { state: GenerateTasksState }) {
     return (
       <View style={styles.body}>
         {notice ? <Text style={[styles.notice, { color: colors.foreground }]}>{notice}</Text> : null}
-        <EmptyHint
-          icon={Sparkles}
-          title="No new tasks yet"
-          hint="Fill in the form and tap Generate tasks. Then pick the ones you want to add."
-        />
+        <SetupFields state={state} />
       </View>
     );
   }
@@ -81,24 +83,26 @@ function GenerateBody({ state }: { state: GenerateTasksState }) {
         </Pressable>
       </View>
 
-      {batch.tasks.map((task, index) => (
-        <CandidateRow
-          key={`${task.title}-${index}`}
-          task={task}
-          selected={state.selected[index] === true}
-          onToggle={() => state.toggleSelected(index)}
-        />
-      ))}
+      <View style={styles.list}>
+        {batch.tasks.map((task, index) => (
+          <CandidateRow
+            key={`${task.title}-${index}`}
+            task={task}
+            selected={state.selected[index] === true}
+            onToggle={() => state.toggleSelected(index)}
+          />
+        ))}
+      </View>
     </View>
   );
 }
 
-function SetupFooter({ state }: { state: GenerateTasksState }) {
-  const { form, busy, update, generate, error } = state;
+function SetupFields({ state }: { state: GenerateTasksState }) {
+  const { form, busy, update } = state;
 
   return (
-    <View style={styles.footer}>
-      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
+    <>
+      <Panel>
         <TextField
           label="Subject"
           placeholder="e.g. FastAPI"
@@ -117,6 +121,8 @@ function SetupFooter({ state }: { state: GenerateTasksState }) {
           multiline
           voice
         />
+      </Panel>
+      <Panel>
         <SelectField
           label="Current level"
           options={CURRENT_LEVEL_OPTIONS}
@@ -135,10 +141,19 @@ function SetupFooter({ state }: { state: GenerateTasksState }) {
           multiline
           voice
         />
-      </ScrollView>
+      </Panel>
+    </>
+  );
+}
+
+function SetupFooter({ state }: { state: GenerateTasksState }) {
+  const { busy, generate, error } = state;
+
+  return (
+    <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={busy ? "Crafting your tasks…" : "Generate tasks"}
+        label={busy ? "Generating tasks…" : "Generate tasks"}
         icon={Sparkles}
         loading={busy}
         onPress={generate}
@@ -148,34 +163,33 @@ function SetupFooter({ state }: { state: GenerateTasksState }) {
 }
 
 function ReviewFooter({ state }: { state: GenerateTasksState }) {
-  const { selectedCount, adding, addSelected, discardBatch } = state;
+  const { selectedCount, adding, addSelected } = state;
   const label = adding
     ? "Adding…"
     : selectedCount === 0
       ? "Select tasks to add"
-      : `Add ${selectedCount} selected to my list`;
+      : `Add ${selectedCount} ${selectedCount === 1 ? "task" : "tasks"}`;
 
   return (
     <View style={styles.footer}>
       <ActionButton
         label={label}
-        icon={Check}
+        icon={Plus}
         loading={adding}
         disabled={selectedCount === 0 || adding}
         onPress={addSelected}
       />
-      <ActionButton label="Discard these tasks" icon={X} variant="outline" disabled={adding} onPress={discardBatch} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   body: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   notice: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
   },
   header: {
     flexDirection: "row",
@@ -183,21 +197,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   toggleAll: {
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
   },
   toggleAllText: {
-    fontSize: 14,
+    ...typeScale.label,
     fontWeight: "600",
   },
+  list: {
+    gap: spacing.sm,
+  },
   footer: {
-    gap: spacing.md,
-  },
-  fields: {
-    maxHeight: 340,
-  },
-  fieldsContent: {
     gap: spacing.md,
   },
 });

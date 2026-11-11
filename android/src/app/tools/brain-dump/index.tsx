@@ -1,6 +1,6 @@
 // src/app/tools/brain-dump/index.tsx
 import { useRouter } from "expo-router";
-import { NotebookPen } from "lucide-react-native";
+import { Plus } from "lucide-react-native";
 import { ActionButton } from "@/components/tool/FormControls";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { NotesList } from "@/features/brain-dump/components/NotesList";
@@ -16,7 +16,7 @@ export default function BrainDumpRoute() {
       usesAi={false}
       footer={
         store.loaded ? (
-          <ActionButton label="New note" icon={NotebookPen} onPress={() => router.push("/tools/brain-dump/new")} />
+          <ActionButton label="New note" icon={Plus} onPress={() => router.push("/tools/brain-dump/new")} />
         ) : null
       }
     >

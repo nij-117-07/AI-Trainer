@@ -15,17 +15,18 @@ export default function ForesightTrainerRoute() {
   const run = useForesightRun();
   const session = run.session;
   const active = session !== null && !session.scenarioComplete;
+  const title = active && session ? `Scene ${session.sceneNumber} of ${session.maxScenes}` : "Foresight Trainer";
 
   return (
     <ToolScreen
-      title="Foresight Trainer"
-      headerRight={<ResetButton onPress={run.reset} />}
+      title={title}
+      headerRight={<ResetButton onPress={run.reset} accessibilityLabel="Reset scenario" />}
       footer={
         active ? (
           <ForesightFooter run={run} />
         ) : (
           <ActionButton
-            label="New scenario"
+            label={session ? "Start new scenario" : "Create scenario"}
             icon={Sparkles}
             onPress={() => router.push("/practice/foresight-trainer/new")}
           />
@@ -40,7 +41,7 @@ export default function ForesightTrainerRoute() {
             <EmptyHint
               icon={Compass}
               title="No scenario yet"
-              hint="Tap New scenario to describe your situation, then start."
+              hint="Describe a situation you face, and the trainer builds the first scene."
             />
           )
         )}

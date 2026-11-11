@@ -3,11 +3,13 @@
  * The open session. The body holds the session settings (collapsed by default) and the
  * conversation, with each tutor reply's key concepts under it. The footer holds the message box.
  */
-import { useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { ChevronDown, ChevronUp, ListRestart, MessagesSquare, Trash2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { useEffect, type ReactNode } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { GraduationCap, MessagesSquare, RotateCcw } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
+import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
+import { CopyButton } from "@/components/tool/CopyButton";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ErrorBoundary } from "@/components/tool/ErrorBoundary";
 import { ListenButton } from "@/components/tool/ListenButton";
@@ -25,7 +27,7 @@ interface ChatWorkspaceProps {
 }
 
 const STATUS_TEXT = {
-  idle: "Edits autosave",
+  idle: "",
   saving: "Saving…",
   saved: "Saved",
   error: "Save failed",
@@ -34,7 +36,6 @@ const STATUS_TEXT = {
 export function ChatWorkspace({ chat }: ChatWorkspaceProps) {
   const colors = useThemeColors();
   const scroll = useToolScroll();
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const { active, pending } = chat;
   const messageCount = active?.chatHistory.length ?? 0;
 
@@ -49,93 +50,48 @@ export function ChatWorkspace({ chat }: ChatWorkspaceProps) {
     additionalContext: active.additionalContext,
   };
   const rows = withReplyConcepts(active.chatHistory, active.breakdowns);
-  const sessionId = active.id;
-
-  function confirmDelete() {
-    Alert.alert(
-      "Delete this session?",
-      `"${settings.masterTopic || "This session"}" and its chat history will be permanently removed.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            chat.deleteSession(sessionId).catch((error: unknown) => {
-              Alert.alert("Could not delete", error instanceof Error ? error.message : "Please try again.");
-            });
-          },
-        },
-      ],
-    );
-  }
 
   return (
     <Section>
-      <ActionButton label="All sessions" icon={ListRestart} variant="outline" onPress={chat.closeSession} />
-
-      <Panel>
-        <Pressable
-          onPress={() => setSettingsOpen((open) => !open)}
-          accessibilityRole="button"
-          accessibilityState={{ expanded: settingsOpen }}
-          accessibilityLabel={`Session settings, ${settings.masterTopic || "Untitled session"}`}
-          style={styles.settingsHead}
-        >
-          <View style={styles.settingsText}>
-            <Text style={[styles.settingsLabel, { color: colors.mutedForeground }]}>Topic</Text>
-            <Text style={[styles.settingsTopic, { color: colors.foreground }]} numberOfLines={1}>
-              {settings.masterTopic || "Untitled session"}
-            </Text>
-          </View>
-          {settingsOpen ? (
-            <ChevronUp size={18} color={colors.mutedForeground} />
-          ) : (
-            <ChevronDown size={18} color={colors.mutedForeground} />
-          )}
-        </Pressable>
-
-        {settingsOpen ? (
-          <>
-            <TextField
-              label="Master topic"
-              placeholder="e.g. Quantum physics"
-              value={settings.masterTopic}
-              onChangeText={(text) => chat.updateSettingsDraft({ masterTopic: text })}
-              editable={!pending}
-              maxLength={300}
-            />
-            <TextField
-              label="Your background (optional)"
-              placeholder="Background, goals, or learning style…"
-              value={settings.additionalContext}
-              onChangeText={(text) => chat.updateSettingsDraft({ additionalContext: text })}
-              editable={!pending}
-              maxLength={2000}
-              multiline
-              voice
-            />
-            <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
-              {STATUS_TEXT[chat.settingsStatus]}
-            </Text>
-            <ErrorText message={chat.settingsError} />
-            <ActionButton label="Delete session" icon={Trash2} variant="outline" disabled={pending} onPress={confirmDelete} />
-          </>
-        ) : null}
-      </Panel>
+      <Disclosure title="Session settings" summary={settings.additionalContext || "No background added"}>
+        <TextField
+          label="Master topic"
+          placeholder="e.g. Quantum physics"
+          value={settings.masterTopic}
+          onChangeText={(text) => chat.updateSettingsDraft({ masterTopic: text })}
+          editable={!pending}
+          maxLength={300}
+        />
+        <TextField
+          label="Your background (optional)"
+          placeholder="Background, goals, or learning style…"
+          value={settings.additionalContext}
+          onChangeText={(text) => chat.updateSettingsDraft({ additionalContext: text })}
+          editable={!pending}
+          maxLength={2000}
+          multiline
+          voice
+        />
+        <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
+          {STATUS_TEXT[chat.settingsStatus]}
+        </Text>
+        <ErrorText message={chat.settingsError} />
+      </Disclosure>
 
       {rows.length === 0 && !pending ? (
         <EmptyHint
           icon={MessagesSquare}
-          title="Start the conversation"
-          hint="Ask a question in the message box. The tutor replies with an explanation and the key concepts."
+          title="Ask your first question"
+          hint="The tutor replies with an answer and the key concepts."
         />
       ) : null}
 
-      {rows.map(({ message, concepts }, index) => (
-        <MessageBubble key={index} message={message} concepts={concepts} />
-      ))}
-      {pending ? <ThinkingBubble /> : null}
+      <View accessibilityRole="log" accessibilityLabel="Conversation" style={styles.log}>
+        {rows.map(({ message, concepts }, index) => (
+          <MessageItem key={index} message={message} concepts={concepts} />
+        ))}
+        {pending ? <ThinkingReply /> : null}
+      </View>
     </Section>
   );
 }
@@ -143,7 +99,12 @@ export function ChatWorkspace({ chat }: ChatWorkspaceProps) {
 export function ChatFooter({ chat }: { chat: TutorChatState }) {
   return (
     <View style={styles.footer}>
-      <ErrorText message={chat.turnError} />
+      {chat.turnError ? (
+        <>
+          <ErrorText message={chat.turnError} />
+          <ActionButton label="Retry" icon={RotateCcw} variant="outline" onPress={() => void chat.sendTurn()} />
+        </>
+      ) : null}
       <ChatComposer
         value={chat.draft}
         onChangeText={chat.setDraft}
@@ -151,104 +112,112 @@ export function ChatFooter({ chat }: { chat: TutorChatState }) {
           void chat.sendTurn();
         }}
         pending={chat.pending}
-        placeholder="Ask a question about your topic…"
+        placeholder="Ask a question…"
       />
     </View>
   );
 }
 
-function MessageBubble({ message, concepts }: { message: ChatMessage; concepts: ConceptItem[] | null }) {
+function MessageItem({ message, concepts }: { message: ChatMessage; concepts: ConceptItem[] | null }) {
   const colors = useThemeColors();
-  const isUser = message.role === "user";
-  return (
-    <View style={[styles.column, isUser ? styles.columnEnd : styles.columnStart]}>
-      <View
-        style={[
-          styles.bubble,
-          isUser
-            ? { backgroundColor: colors.primary, borderBottomRightRadius: radius.md }
-            : { backgroundColor: colors.muted, borderBottomLeftRadius: radius.md },
-        ]}
+
+  if (message.role === "user") {
+    return (
+      <Text
+        selectable
+        accessibilityLabel={`You: ${message.content}`}
+        style={[styles.userText, { color: colors.foreground, backgroundColor: colors.tone.sky.bg, borderColor: colors.tone.sky.border }]}
       >
-        {isUser ? (
-          <Text selectable style={[styles.userText, { color: colors.primaryForeground }]}>
-            {message.content}
-          </Text>
-        ) : (
-          <>
-            <MarkdownText content={message.content} />
-            <ListenButton text={message.content} label="Reply" />
-          </>
-        )}
+        {message.content}
+      </Text>
+    );
+  }
+
+  return (
+    <TutorReply>
+      <MarkdownText content={message.content} />
+      <View style={styles.actions}>
+        <CopyButton text={message.content} label="Copy reply" />
+        <ListenButton text={message.content} label="Reply" />
       </View>
-      {!isUser && concepts && concepts.length > 0 ? (
-        <View style={styles.concepts}>
-          <ErrorBoundary label="Key concepts">
-            <ReplyConcepts items={concepts} />
-          </ErrorBoundary>
-        </View>
+      {concepts && concepts.length > 0 ? (
+        <ErrorBoundary label="Key concepts">
+          <ReplyConcepts items={concepts} />
+        </ErrorBoundary>
       ) : null}
-    </View>
+    </TutorReply>
   );
 }
 
-function ThinkingBubble() {
+function ThinkingReply() {
   const colors = useThemeColors();
   return (
-    <View style={[styles.column, styles.columnStart]}>
-      <View style={[styles.bubble, { backgroundColor: colors.muted }]}>
-        <Text style={[styles.thinking, { color: colors.mutedForeground }]}>Tutor is thinking…</Text>
+    <TutorReply>
+      <Text accessibilityLiveRegion="polite" style={[styles.thinking, { color: colors.mutedForeground }]}>
+        Thinking…
+      </Text>
+    </TutorReply>
+  );
+}
+
+function TutorReply({ children }: { children: ReactNode }) {
+  const colors = useThemeColors();
+  return (
+    <View style={styles.reply}>
+      <View style={[styles.avatar, { backgroundColor: colors.tone.sky.bg }]}>
+        <GraduationCap size={18} color={colors.tone.sky.fg} />
+      </View>
+      <View style={styles.replyBody}>
+        <Text style={[styles.speaker, { color: colors.mutedForeground }]}>Tutor</Text>
+        {children}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  settingsHead: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    minHeight: 44,
-  },
-  settingsText: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  settingsLabel: {
-    fontSize: 12,
-  },
-  settingsTopic: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
   status: {
-    fontSize: 13,
+    ...typeScale.caption,
   },
-  column: {
-    gap: spacing.sm,
+  log: {
+    gap: spacing.lg,
   },
-  columnEnd: {
-    alignItems: "flex-end",
-  },
-  columnStart: {
-    alignItems: "flex-start",
-  },
-  bubble: {
-    maxWidth: "88%",
-    borderRadius: radius.xl,
+  userText: {
+    ...typeScale.body,
+    alignSelf: "flex-end",
+    maxWidth: "80%",
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    borderTopRightRadius: shape.xs,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
-  concepts: {
-    width: "88%",
+  reply: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
   },
-  userText: {
-    fontSize: 15,
-    lineHeight: 22,
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  replyBody: {
+    flex: 1,
+    gap: spacing.sm,
+  },
+  speaker: {
+    ...typeScale.caption,
   },
   thinking: {
-    fontSize: 14,
-    fontStyle: "italic",
+    ...typeScale.body,
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
   },
   footer: {
     gap: spacing.sm,

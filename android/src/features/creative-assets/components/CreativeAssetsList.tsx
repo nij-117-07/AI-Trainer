@@ -22,8 +22,12 @@ export function CreativeAssetsList({ result, onToggle }: { result: CreativeAsset
           <CardGrid>
             {batch.items.map((item) => (
               <Panel key={item.id}>
-                <CheckboxRow label={item.suggestion} checked={item.liked} onToggle={() => onToggle(item.id)} />
-                <CopyButton text={item.suggestion} label="Copy suggestion" />
+                <View style={styles.choice}>
+                  <View style={styles.checkbox}>
+                    <CheckboxRow label={item.suggestion} checked={item.liked} onToggle={() => onToggle(item.id)} />
+                  </View>
+                  <CopyButton text={item.suggestion} label="Copy suggestion" />
+                </View>
                 {item.explanation !== "" && (
                   <ResultCallout icon={Lightbulb} title="Why it works" tone="amber">
                     <MarkdownText content={item.explanation} />
@@ -42,5 +46,13 @@ export function CreativeAssetsList({ result, onToggle }: { result: CreativeAsset
 const styles = StyleSheet.create({
   batch: {
     gap: spacing.lg,
+  },
+  choice: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  checkbox: {
+    flex: 1,
   },
 });

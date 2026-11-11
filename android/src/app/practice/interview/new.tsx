@@ -12,7 +12,7 @@ export default function InterviewNewRoute() {
   return (
     <ToolScreen
       title="New interview"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton onPress={setup.reset} accessibilityLabel="Reset form" />}
       footer={<SetupFormFooter setup={setup} />}
     >
       <SetupFormFields setup={setup} />

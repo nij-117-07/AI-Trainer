@@ -30,7 +30,7 @@ export default function NewTopicRoute() {
   return (
     <ToolScreen
       title="New topic"
-      headerRight={<ResetButton onPress={topic.reset} />}
+      headerRight={<ResetButton onPress={topic.reset} accessibilityLabel="Reset topic form" />}
       footer={<TopicOfTheDayFormFooter topic={topic} />}
     >
       <TopicOfTheDayFormFields topic={topic} broad={broad} />

@@ -22,9 +22,9 @@ export const QUOTE_DEFAULTS: QuoteFormValues = {
 };
 
 export const REFLECTION_DEFAULTS: ReflectionFormValues = {
-  currentMood: "Anxious about work.",
-  goalAlignment: "Creative independence.",
-  recentPatterns: "High energy in mornings, crash by 3 PM.",
+  currentMood: "",
+  goalAlignment: "",
+  recentPatterns: "",
 };
 
 export interface Draft<TForm, TResult> {

@@ -40,6 +40,7 @@ export default function BroadTopicFormRoute() {
   return (
     <ToolScreen
       title={existing ? "Edit broader topic" : "New broader topic"}
+      usesAi={false}
       footer={
         <View style={styles.footer}>
           <ErrorText message={error} />
@@ -49,7 +50,7 @@ export default function BroadTopicFormRoute() {
     >
       <TextField
         label="Broader topic"
-        hint="A broad area you study. Focused topics are added inside it."
+        hint={existing ? undefined : "Focused topics are added inside it."}
         placeholder="e.g. Biology, Machine learning, Personal finance"
         value={name}
         onChangeText={(text) => {

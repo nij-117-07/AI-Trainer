@@ -1,6 +1,8 @@
 // src/features/rss/components/viewer/ViewerFilters.tsx
-/** Channel, category, search, and time-range controls for the RSS viewer. */
-import { Panel, TextField } from "@/components/tool/FormControls";
+/** Channel, category, search, and time-range controls for the RSS viewer, folded into a disclosure that summarizes the active choices. */
+import { SlidersHorizontal } from "lucide-react-native";
+import { TextField } from "@/components/tool/FormControls";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { SelectField } from "@/components/tool/SelectField";
 import { ALL_CATEGORIES, ALL_FEEDS, TIME_RANGE_OPTIONS } from "../../options";
 import type { RssFeedConfig, RssTimeRange, RssViewerFilters } from "../../types";
@@ -22,8 +24,17 @@ export function ViewerFilters({ feeds, filters, categories, onChange }: ViewerFi
     ...categories.map((category) => ({ value: category, label: category })),
   ];
 
+  const summary = [
+    feeds.find((feed) => feed.id === filters.feedId)?.name ?? "All channels",
+    filters.category === ALL_CATEGORIES ? "All categories" : filters.category,
+    TIME_RANGE_OPTIONS.find((option) => option.value === filters.timeRange)?.label,
+    filters.search ? `"${filters.search}"` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <Panel>
+    <Disclosure title="Filters" icon={SlidersHorizontal} summary={summary}>
       <SelectField
         label="Channel"
         options={channelOptions}
@@ -52,6 +63,6 @@ export function ViewerFilters({ feeds, filters, categories, onChange }: ViewerFi
         onChange={(value) => onChange("timeRange", value as RssTimeRange)}
         allowCustom={false}
       />
-    </Panel>
+    </Disclosure>
   );
 }

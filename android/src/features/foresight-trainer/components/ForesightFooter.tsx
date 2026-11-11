@@ -1,11 +1,11 @@
 // src/features/foresight-trainer/components/ForesightFooter.tsx
 /**
- * Scenario page footer while a scene is open: the chosen option, then the reasoning box. Commit
+ * Scenario page footer while a scene is open: the chosen option, then the reasoning box. Submit
  * sends both the choice and the reasoning.
  */
 import { StyleSheet, Text, View } from "react-native";
 import { AnswerComposer } from "@/components/tool/AnswerComposer";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import type { ForesightRunState } from "../hooks/useForesightRun";
 import { CUSTOM_CHOICE } from "../hooks/useForesightRun";
 
@@ -15,9 +15,9 @@ export function ForesightFooter({ run }: { run: ForesightRunState }) {
   const colors = useThemeColors();
   const session = run.session;
 
-  let chosen = "Choose an option, then explain your reasoning.";
+  let chosen = "No option chosen yet.";
   if (run.selected === CUSTOM_CHOICE) {
-    chosen = run.choice ? `Your option: ${run.choice}` : "Your option: describe it in Write your own option.";
+    chosen = run.choice ? `Your option: ${run.choice}` : "Describe your own option above.";
   } else if (run.selected && session) {
     const index = session.options.findIndex((option) => option.id === run.selected);
     const option = session.options[index];
@@ -32,13 +32,13 @@ export function ForesightFooter({ run }: { run: ForesightRunState }) {
         {chosen}
       </Text>
       <AnswerComposer
-        label="Your reasoning (the AI will evaluate this)"
+        label="Your reasoning"
         value={run.reasoning}
         placeholder="Who is affected, what could backfire, what are the second-order effects?"
         maxLength={2000}
         pending={run.pending}
         error={run.error}
-        submitLabel="Commit"
+        submitLabel="Submit choice"
         onChangeText={run.setReasoning}
         onSubmit={() => void run.submit()}
       />
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   choice: {
-    fontSize: 14,
+    ...typeScale.body,
     fontWeight: "600",
   },
 });

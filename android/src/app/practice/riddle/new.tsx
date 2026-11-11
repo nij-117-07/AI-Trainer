@@ -12,7 +12,7 @@ export default function RiddleNewRoute() {
   return (
     <ToolScreen
       title="New riddle"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton onPress={setup.reset} accessibilityLabel="Reset form" />}
       footer={<RiddleFormFooter setup={setup} />}
     >
       <RiddleFormFields setup={setup} />

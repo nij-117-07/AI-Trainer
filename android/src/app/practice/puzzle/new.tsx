@@ -12,7 +12,7 @@ export default function PuzzleNewRoute() {
   return (
     <ToolScreen
       title="New puzzle"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton accessibilityLabel="Reset form" onPress={setup.reset} />}
       footer={<PuzzleFormFooter setup={setup} />}
     >
       <PuzzleFormFields setup={setup} />

@@ -12,7 +12,7 @@ export default function DebateNewRoute() {
   return (
     <ToolScreen
       title="New debate"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton accessibilityLabel="Reset form" onPress={setup.reset} />}
       footer={<DebateFormFooter setup={setup} />}
     >
       <DebateFormFields setup={setup} />

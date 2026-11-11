@@ -19,10 +19,10 @@ export default function McqRoute() {
   return (
     <ToolScreen
       title="MCQs"
-      headerRight={hasQuestions ? <ResetButton label="Clear all" onPress={mcq.clear} /> : undefined}
+      headerRight={hasQuestions ? <ResetButton accessibilityLabel="Clear all questions" onPress={mcq.clear} /> : undefined}
       footer={
         <ActionButton
-          label={hasQuestions ? "Generate more" : "Generate MCQs"}
+          label={hasQuestions ? "Generate more questions" : "Generate questions"}
           icon={Sparkles}
           onPress={() => router.push("/practice/testing-portal/mcq/new")}
         />
@@ -34,12 +34,15 @@ export default function McqRoute() {
             key={mcq.quizKey}
             questions={questions}
             contextSetting={mcq.result.contextSetting}
+            answers={mcq.answers}
+            onSelect={mcq.selectAnswer}
+            onRetry={mcq.resetAnswers}
           />
         ) : mcq.loaded ? (
           <EmptyHint
             icon={ListChecks}
             title="No questions yet"
-            hint="Tap Generate MCQs, choose a topic and context, then generate."
+            hint="Tap Generate questions to start."
           />
         ) : (
           <PortalLoading />

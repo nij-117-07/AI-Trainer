@@ -1,14 +1,18 @@
 // src/features/interview/components/InterviewReport.tsx
-/** Final report: score summary, score breakdowns, profile areas, and the question-by-question log. The New interview button is in InterviewFooter. */
+/**
+ * Final report. It leads with the final score and the one thing to fix. The score breakdown, the
+ * areas, and the question-by-question log sit under reveals. The New interview button is in InterviewFooter.
+ */
 import { StyleSheet, Text, View } from "react-native";
-import { Minus, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { Minus, Target, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors, type Tone } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
+import { ResultCallout } from "@/components/tool/ResultCallout";
 import { TagList } from "@/components/tool/TagList";
-import { buildInterviewReport } from "../lib/report";
+import { buildInterviewReport, type InterviewReportData } from "../lib/report";
 import type { InterviewSessionState, PerformanceTrend } from "../types";
-import { BadgeRow, EmptyNote, StageBadge, SubHeading } from "./StagePanel";
+import { EmptyNote, Reveal, StageBadge, SubHeading } from "./StagePanel";
 import { ScoreBars } from "./ProgressStage";
 
 const TREND_META: Record<PerformanceTrend, { label: string; icon: LucideIcon; tone: Tone }> = {
@@ -22,6 +26,12 @@ function clock(iso: string): string {
   return Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+/** The one thing to fix: the first weakness of the lowest-scoring answer, else the first weak area. */
+function fixFirst(report: InterviewReportData): string | null {
+  const weakest = [...report.history].sort((a, b) => a.review.overallScore - b.review.overallScore)[0];
+  return weakest?.review.weaknesses[0] ?? report.weakAreas[0] ?? null;
+}
+
 interface InterviewReportProps {
   state: InterviewSessionState;
 }
@@ -31,33 +41,38 @@ export function InterviewReport({ state }: InterviewReportProps) {
   const report = buildInterviewReport(state, new Date().toISOString());
   const trend = TREND_META[report.performanceTrend];
   const TrendIcon = trend.icon;
+  const fix = fixFirst(report);
 
   return (
-    <View style={styles.stack}>
-      <Panel>
-        <View style={styles.summary}>
-          <View>
-            <Text style={[styles.label, { color: colors.mutedForeground }]}>Final score</Text>
-            <Text style={[styles.score, { color: colors.foreground }]}>
-              {report.overallScore.toFixed(1)}
-              <Text style={[styles.outOf, { color: colors.mutedForeground }]}>/10</Text>
-            </Text>
-          </View>
-          <View style={[styles.trend, { borderColor: colors.tone[trend.tone].border, backgroundColor: colors.tone[trend.tone].bg }]}>
-            <TrendIcon size={14} color={colors.tone[trend.tone].fg} />
-            <Text style={[styles.trendText, { color: colors.tone[trend.tone].fg }]}>{trend.label}</Text>
-          </View>
+    <Panel>
+      <Text style={[styles.label, { color: colors.mutedForeground }]}>Final score</Text>
+      <View style={styles.summary}>
+        <Text style={[styles.score, { color: colors.foreground }]}>
+          {report.overallScore.toFixed(1)}
+          <Text style={[styles.outOf, { color: colors.mutedForeground }]}>/10</Text>
+        </Text>
+        <View style={[styles.trend, { borderColor: colors.tone[trend.tone].border, backgroundColor: colors.tone[trend.tone].bg }]}>
+          <TrendIcon size={16} color={colors.tone[trend.tone].fg} />
+          <Text style={[styles.trendText, { color: colors.tone[trend.tone].fg }]}>{trend.label}</Text>
         </View>
-        <Text style={[styles.meta, { color: colors.mutedForeground }]}>
-          {report.questionsAnswered}/{report.maxQuestions} questions answered
-        </Text>
-        <Text style={[styles.meta, { color: colors.mutedForeground }]}>
-          Started {clock(report.startedAt)} · Finished {clock(report.finishedAt)}
-        </Text>
+      </View>
+      <Text style={[styles.meta, { color: colors.mutedForeground }]}>
+        {report.questionsAnswered}/{report.maxQuestions} questions answered · Started {clock(report.startedAt)} · Finished{" "}
+        {clock(report.finishedAt)}
+      </Text>
 
+      {fix ? (
+        <ResultCallout icon={Target} title="Fix first" tone="amber">
+          <Text style={[styles.body, { color: colors.foreground }]}>{fix}</Text>
+        </ResultCallout>
+      ) : null}
+
+      <Reveal title="Score breakdown">
         <ScoreBars title="Topic scores" scores={report.topicScores} />
         <ScoreBars title="Question type scores" scores={report.typeScores} />
+      </Reveal>
 
+      <Reveal title="Areas and next topics">
         <SubHeading>Strong areas</SubHeading>
         {report.strongAreas.length > 0 ? <TagList items={report.strongAreas} /> : <EmptyNote>None recorded.</EmptyNote>}
         <SubHeading>Weak areas</SubHeading>
@@ -70,10 +85,9 @@ export function InterviewReport({ state }: InterviewReportProps) {
         ) : (
           <EmptyNote>None recorded.</EmptyNote>
         )}
-      </Panel>
+      </Reveal>
 
-      <Panel>
-        <Text style={[styles.logTitle, { color: colors.foreground }]}>Question log</Text>
+      <Reveal title={`Question log (${report.history.length})`}>
         {report.history.length === 0 ? (
           <EmptyNote>No questions were answered.</EmptyNote>
         ) : (
@@ -85,15 +99,13 @@ export function InterviewReport({ state }: InterviewReportProps) {
                 </Text>
                 <StageBadge label={`${entry.review.overallScore.toFixed(1)}/10`} tone="sky" />
               </View>
-              <BadgeRow>
-                <StageBadge label={entry.topic || "general"} />
-                <StageBadge label={entry.difficulty} />
-                <StageBadge label={entry.review.recommendation} />
-              </BadgeRow>
-              <Text style={[styles.answer, { color: colors.mutedForeground }]}>{entry.answer}</Text>
+              <Text style={[styles.meta, { color: colors.mutedForeground }]}>
+                {entry.topic || "General"} · {entry.difficulty}
+              </Text>
+              <Text style={[styles.body, { color: colors.mutedForeground }]}>{entry.answer}</Text>
               {entry.review.weaknesses.length > 0 ? (
                 <>
-                  <Text style={[styles.answer, { color: colors.foreground }]}>
+                  <Text style={[styles.body, { color: colors.foreground }]}>
                     To improve: {entry.review.weaknesses.join("; ")}
                   </Text>
                   <ListenButton text={entry.review.weaknesses.join(". ")} label="Feedback" />
@@ -102,14 +114,14 @@ export function InterviewReport({ state }: InterviewReportProps) {
             </View>
           ))
         )}
-      </Panel>
-    </View>
+      </Reveal>
+    </Panel>
   );
 }
 
 const styles = StyleSheet.create({
-  stack: {
-    gap: spacing.lg,
+  label: {
+    ...typeScale.caption,
   },
   summary: {
     flexDirection: "row",
@@ -117,15 +129,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing.md,
   },
-  label: {
-    fontSize: 12,
-  },
   score: {
-    fontSize: 32,
-    fontWeight: "700",
+    ...typeScale.display,
   },
   outOf: {
-    fontSize: 14,
+    ...typeScale.body,
     fontWeight: "400",
   },
   trend: {
@@ -133,21 +141,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.xs,
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   trendText: {
-    fontSize: 12,
+    ...typeScale.caption,
     fontWeight: "600",
   },
   meta: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
-  logTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+  body: {
+    ...typeScale.body,
   },
   entry: {
     borderTopWidth: 1,
@@ -161,13 +167,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   entryQuestion: {
+    ...typeScale.body,
     flexShrink: 1,
-    fontSize: 14,
     fontWeight: "600",
-    lineHeight: 20,
-  },
-  answer: {
-    fontSize: 14,
-    lineHeight: 20,
   },
 });

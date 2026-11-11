@@ -1,9 +1,7 @@
 // src/app/learning/skill-architect/new.tsx
-import { Layers } from "lucide-react-native";
-import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ResetButton } from "@/components/tool/ResetButton";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { SkillTreeCreateFooter } from "@/features/skill-architect/components/SkillTreeCreate";
+import { SkillTreeCreateFooter, SkillTreeCreateForm } from "@/features/skill-architect/components/SkillTreeCreate";
 import { useSkillTreeCreate } from "@/features/skill-architect/hooks/useSkillTreeCreate";
 
 export default function SkillArchitectNewRoute() {
@@ -11,15 +9,12 @@ export default function SkillArchitectNewRoute() {
 
   return (
     <ToolScreen
-      title="Create a new skill tree"
-      headerRight={<ResetButton onPress={state.reset} />}
+      title="New skill tree"
+      headerRight={<ResetButton onPress={state.reset} accessibilityLabel="Reset form" />}
       footer={<SkillTreeCreateFooter state={state} />}
+      footerSide={false}
     >
-      <EmptyHint
-        icon={Layers}
-        title="Describe what you want to master"
-        hint="Fill in the form and tap Generate skill tree. Your tree opens when it is ready."
-      />
+      <SkillTreeCreateForm state={state} />
     </ToolScreen>
   );
 }

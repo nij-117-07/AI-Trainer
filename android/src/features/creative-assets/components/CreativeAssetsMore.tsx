@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Sparkles, ThumbsUp } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -83,7 +83,7 @@ export function CreativeAssetsMoreFields({ more }: { more: CreativeAssetsMoreSta
   if (liked.length === 0) {
     return (
       <Text style={[styles.missing, { color: colors.mutedForeground }]}>
-        Tick at least one suggestion on the results page first.
+        Tick at least one suggestion first.
       </Text>
     );
   }
@@ -99,7 +99,7 @@ export function CreativeAssetsMoreFields({ more }: { more: CreativeAssetsMoreSta
         ))}
       </Panel>
       <TextField
-        label="User instructions (optional)"
+        label="Instructions (optional)"
         placeholder="e.g. Shorter, more playful, avoid puns."
         value={instructions}
         onChangeText={setInstructions}
@@ -119,7 +119,7 @@ export function CreativeAssetsMoreFooter({ more }: { more: CreativeAssetsMoreSta
     <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Generating more…" : "Generate more"}
+        label={pending ? "Generating assets…" : "Generate more assets"}
         icon={Sparkles}
         loading={pending}
         disabled={liked.length === 0}
@@ -134,11 +134,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   liked: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
   missing: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
 });

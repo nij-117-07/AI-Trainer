@@ -67,7 +67,7 @@ export function PuzzleFormFooter({ setup }: { setup: PuzzleSetupState }) {
     <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Crafting the puzzle…" : "Generate puzzle"}
+        label={pending ? "Generating puzzle…" : "Start puzzle"}
         icon={PuzzleIcon}
         loading={pending}
         onPress={submit}

@@ -1,21 +1,23 @@
 // src/features/testing-portal/components/TheoreticalQuestionCard.tsx
 /**
- * One theoretical question with an answer box (text, voice, and/or image), "Grade my answer",
- * then resubmit or "Next question". The model answer is offered only after grading, so the
- * learner attempts the question first. Mirrors the webui question card.
+ * One theoretical question with an answer box (text, voice, and/or image), grading, then resubmit
+ * or "Next question". The hint and the model answer are offered only on request, so the learner
+ * attempts the question first.
  */
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { ArrowRight, BookOpen, ShieldCheck } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ArrowRight, BookOpen, Lightbulb } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "@/hooks/useRequest";
 import { gradeAnswer, generateAnswer } from "../lib/generators";
+import type { TheoreticalAnswer } from "../lib/persistence";
 import type { ImageInput, TheoreticalItem } from "../types";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText, Panel } from "@/components/tool/FormControls";
+import { AnswerComposer } from "@/components/tool/AnswerComposer";
+import { ImagePickerField } from "@/components/tool/ImagePickerField";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { GraderFeedback } from "./GraderFeedback";
-import { ImagePickerField } from "@/components/tool/ImagePickerField";
 
 const MAX_ANSWER_CHARS = 5000;
 
@@ -24,6 +26,9 @@ interface TheoreticalQuestionCardProps {
   question: TheoreticalItem;
   contextSetting: string;
   difficultyLevel: string;
+  saved: TheoreticalAnswer;
+  saveFailed: boolean;
+  onChange: (patch: Partial<TheoreticalAnswer>) => void;
   onNext?: () => void;
 }
 
@@ -32,39 +37,46 @@ export function TheoreticalQuestionCard({
   question,
   contextSetting,
   difficultyLevel,
+  saved,
+  saveFailed,
+  onChange,
   onNext,
 }: TheoreticalQuestionCardProps) {
   const colors = useThemeColors();
   const { settings } = useAiSettings();
-  const [answer, setAnswer] = useState("");
   const [image, setImage] = useState<ImageInput | null>(null);
+  const [hintShown, setHintShown] = useState(false);
   const grade = useRequest(gradeAnswer);
   const expert = useRequest(generateAnswer);
-  const [gradedSnapshot, setGradedSnapshot] = useState<{ text: string; imageUri: string | null } | null>(null);
-  const hasAnswer = answer.trim().length > 0 || image !== null;
+  const [gradedImageUri, setGradedImageUri] = useState<string | null>(null);
   const answerChanged =
-    gradedSnapshot !== null && (gradedSnapshot.text !== answer || gradedSnapshot.imageUri !== (image?.uri ?? null));
+    saved.grade !== null && (saved.gradedText !== saved.answer || gradedImageUri !== (image?.uri ?? null));
 
-  function handleGrade() {
-    setGradedSnapshot({ text: answer, imageUri: image?.uri ?? null });
-    return grade.run(settings, {
+  async function handleGrade() {
+    const text = saved.answer;
+    const imageUri = image?.uri ?? null;
+    const result = await grade.run(settings, {
       scenario: contextSetting,
       questionAsked: question.questionText,
       targetObjective: question.evaluationCriteria,
       expectedLevel: difficultyLevel,
-      userAnswerText: answer,
+      userAnswerText: text,
       image,
     });
+    if (!result) return;
+    setGradedImageUri(imageUri);
+    onChange({ grade: result, gradedText: text });
   }
 
-  function handleExpertAnswer() {
-    return expert.run(settings, {
+  async function handleExpertAnswer() {
+    const result = await expert.run(settings, {
       question: question.questionText,
       context: contextSetting,
       difficulty: difficultyLevel,
       responseFormat: "paragraph",
       customInstructions: "",
     });
+    if (result) onChange({ expert: result });
   }
 
   return (
@@ -74,57 +86,60 @@ export function TheoreticalQuestionCard({
           <Text style={[styles.badgeNumber, { color: colors.foreground }]}>{index + 1}</Text>
         </View>
         <View style={styles.headerBody}>
-          <Text selectable style={[styles.questionText, { color: colors.foreground }]}>
+          <Text selectable accessibilityRole="header" style={[styles.questionText, { color: colors.foreground }]}>
             {question.questionText}
           </Text>
-          <View style={[styles.tag, { borderColor: colors.border }]}>
-            <Text style={[styles.tagText, { color: colors.mutedForeground }]}>{question.focusArea}</Text>
-          </View>
-          <Text style={[styles.criteria, { color: colors.mutedForeground }]}>
-            Great answers cover: {question.evaluationCriteria}
-          </Text>
+          {question.focusArea ? (
+            <Text style={[styles.meta, { color: colors.mutedForeground }]}>{question.focusArea}</Text>
+          ) : null}
+          {question.evaluationCriteria ? (
+            hintShown ? (
+              <Text selectable style={[styles.meta, { color: colors.mutedForeground }]}>
+                Great answers cover: {question.evaluationCriteria}
+              </Text>
+            ) : (
+              <Pressable
+                onPress={() => setHintShown(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Show hint"
+                style={({ pressed }) => [styles.hintButton, pressed && { opacity: 0.7 }]}
+              >
+                <Lightbulb size={16} color={colors.primary} />
+                <Text style={[styles.hintText, { color: colors.primary }]}>Hint</Text>
+              </Pressable>
+            )
+          ) : null}
         </View>
       </View>
 
       <View style={[styles.section, { borderTopColor: colors.border }]}>
-        <TextField
+        <AnswerComposer
           label="Your answer"
-          placeholder="Write your answer here, then grade it against the objective."
-          hint={`${answer.length} / ${MAX_ANSWER_CHARS}`}
-          value={answer}
-          onChangeText={setAnswer}
+          placeholder="Write your answer"
+          value={saved.answer}
           maxLength={MAX_ANSWER_CHARS}
-          multiline
-          editable={!grade.pending}
-          voice
+          pending={grade.pending}
+          error={grade.error}
+          submitLabel={saved.grade ? "Resubmit answer" : "Grade answer"}
+          allowEmpty={image !== null}
+          onChangeText={(text) => onChange({ answer: text })}
+          onSubmit={handleGrade}
         />
-        <ImagePickerField value={image} onChange={setImage} disabled={grade.pending} />
-        {grade.data && (
-          <Text
-            accessibilityLiveRegion="polite"
-            style={[styles.hint, { color: answerChanged ? colors.foreground : colors.mutedForeground }]}
-          >
-            {answerChanged
-              ? "Your answer has changed. Resubmit to update the feedback."
-              : "Edit your answer and resubmit to get new feedback."}
+        <ImagePickerField value={image} onChange={setImage} disabled={grade.pending} label="Answer image (optional)" noun="answer image" hint="" />
+        {answerChanged && (
+          <Text accessibilityLiveRegion="polite" style={[styles.meta, { color: colors.foreground }]}>
+            Answer changed. Resubmit to update the feedback.
           </Text>
         )}
-        <ActionButton
-          label={grade.pending ? "Grading…" : grade.data ? "Resubmit for grading" : "Grade my answer"}
-          icon={ShieldCheck}
-          loading={grade.pending}
-          disabled={!hasAnswer}
-          onPress={handleGrade}
-        />
-        <ErrorText message={grade.error} />
-        {grade.data && <GraderFeedback result={grade.data} />}
+        <ErrorText message={saveFailed ? "Changes couldn't be saved. They'll try again." : null} />
+        {saved.grade && <GraderFeedback result={saved.grade} />}
       </View>
 
-      {grade.data && (
+      {saved.grade && (
         <View style={[styles.section, { borderTopColor: colors.border }]}>
           {onNext && <ActionButton label="Next question" icon={ArrowRight} onPress={onNext} />}
 
-          {!expert.data && (
+          {!saved.expert && (
             <ActionButton
               label={expert.pending ? "Generating model answer…" : "Show model answer"}
               icon={BookOpen}
@@ -134,15 +149,15 @@ export function TheoreticalQuestionCard({
             />
           )}
           <ErrorText message={expert.error} />
-          {expert.data && (
+          {saved.expert && (
             <View style={[styles.expert, { backgroundColor: colors.background, borderColor: colors.border }]}>
               <Text selectable style={[styles.body, { color: colors.foreground }]}>
-                {expert.data.answerText}
+                {saved.expert.answerText}
               </Text>
-              <ListenButton text={expert.data.answerText} label="Model answer" />
-              {expert.data.keyConceptsCovered.length > 0 && (
+              <ListenButton text={saved.expert.answerText} label="Model answer" />
+              {saved.expert.keyConceptsCovered.length > 0 && (
                 <View style={styles.chips}>
-                  {expert.data.keyConceptsCovered.map((concept, conceptIndex) => (
+                  {saved.expert.keyConceptsCovered.map((concept, conceptIndex) => (
                     <View
                       key={`${concept}-${conceptIndex}`}
                       style={[styles.chip, { backgroundColor: colors.muted, borderColor: colors.border }]}
@@ -167,14 +182,14 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   badge: {
-    width: 26,
-    height: 26,
-    borderRadius: radius.full,
+    width: 28,
+    height: 28,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
   badgeNumber: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "700",
   },
   headerBody: {
@@ -182,45 +197,37 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   questionText: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: "500",
+    ...typeScale.title,
   },
-  tag: {
+  meta: {
+    ...typeScale.label,
+    fontWeight: "400",
+  },
+  hintButton: {
+    flexDirection: "row",
+    alignItems: "center",
     alignSelf: "flex-start",
-    borderWidth: 1,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    gap: spacing.xs,
+    minHeight: touchTarget,
+    paddingRight: spacing.sm,
   },
-  tagText: {
-    fontSize: 12,
+  hintText: {
+    ...typeScale.label,
     fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  criteria: {
-    fontSize: 13,
-    lineHeight: 19,
   },
   section: {
     borderTopWidth: 1,
     paddingTop: spacing.lg,
     gap: spacing.md,
   },
-  hint: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
   expert: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.lg,
     gap: spacing.md,
   },
   body: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...typeScale.body,
   },
   chips: {
     flexDirection: "row",
@@ -229,12 +236,12 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   chipText: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "500",
   },
 });

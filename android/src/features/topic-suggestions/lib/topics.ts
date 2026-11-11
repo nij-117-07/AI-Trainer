@@ -6,7 +6,7 @@
 import { TOPIC_LEVELS } from "@/features/guides/options";
 import { isRecord, listOf, textOf } from "@/features/guides/lib/text";
 import type { TopicRecommendation } from "@/features/guides/types";
-import type { AppendTopicsResult, SavedTopic, TopicContext, TopicFormValues } from "../types";
+import type { AppendTopicsResult, SavedTopic, TopicCandidate, TopicContext, TopicFormValues } from "../types";
 
 export const TOPIC_LIST_KEY = "learning.topic-suggestions.v1";
 export const TOPIC_DRAFT_KEY = "learning.topic-suggestions-generator.v1";
@@ -49,13 +49,13 @@ export function normalizeList(raw: unknown): SavedTopic[] {
   });
 }
 
-export function normalizeDraft(raw: unknown): { form: TopicFormValues; batch: TopicRecommendation[] | null } {
+export function normalizeDraft(raw: unknown): { form: TopicFormValues; batch: TopicCandidate[] | null } {
   const saved = isRecord(raw) && isRecord(raw.form) ? raw.form : {};
   const level = textOr(saved.topicLevel, TOPIC_FORM_DEFAULTS.topicLevel);
   const batch = isRecord(raw)
     ? listOf(raw.batch).flatMap((item) => {
         const topic = toRecommendation(item);
-        return topic ? [topic] : [];
+        return topic ? [{ ...topic, kept: isRecord(item) && item.kept === true }] : [];
       })
     : [];
 

@@ -5,7 +5,7 @@ import type { Subtopic, SubtopicResult } from "../types";
 
 function toSubtopic(raw: unknown): Subtopic {
   const item = asRecord(raw);
-  return { name: textOf(item.name), description: textOf(item.description) };
+  return { name: textOf(item.name), description: textOf(item.description), kept: item.kept === true };
 }
 
 export function toSubtopicResult(raw: unknown): SubtopicResult {

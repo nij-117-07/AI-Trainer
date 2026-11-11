@@ -3,7 +3,7 @@
  * Shared frame for every Testing Portal page: header with a back button, a notice when AI is
  * not configured, and a keyboard-aware scroll area so text fields stay above the keyboard.
  */
-import { useRef, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -14,6 +14,7 @@ import { isAiConfigured } from "@/features/ai-settings/lib/llm";
 import { ActionButton, Panel, pointerCursor } from "@/components/tool/FormControls";
 import { useGoBack } from "@/lib/navigation";
 import { ToolScrollContext } from "./ToolScrollContext";
+import { SnackbarSlotContext } from "./snackbar-slot";
 
 interface ToolScreenProps {
   title: string;
@@ -47,6 +48,8 @@ export function ToolScreen({
   const { size } = useLayout();
   const configured = isAiConfigured(settings);
   const scrollRef = useRef<ScrollViewInstance>(null);
+  const [snackbar, setSnackbar] = useState<ReactNode>(null);
+  const snackbarSlot = useCallback((node: ReactNode) => setSnackbar(node), []);
   const sideBySide = footerSide && !!footer && size !== "phone";
   const columnStyle = { maxWidth: sideBySide ? undefined : wide ? contentWidth.wide : contentWidth.form };
 
@@ -94,6 +97,7 @@ export function ToolScreen({
       </View>
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <SnackbarSlotContext.Provider value={snackbarSlot}>
         <ToolScrollContext.Provider value={scrollRef}>
           {sideBySide ? (
             <View style={[styles.split, { maxWidth: wide ? contentWidth.wide + contentWidth.sidePanel : contentWidth.wide }]}>
@@ -107,6 +111,7 @@ export function ToolScreen({
           ) : (
             <>
               {scroll}
+              {snackbar ? <View style={styles.snackbarSlot}>{snackbar}</View> : null}
               {footer ? (
                 <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
                   <View style={[styles.footerColumn, { maxWidth: contentWidth.form }]}>{footer}</View>
@@ -114,7 +119,9 @@ export function ToolScreen({
               ) : null}
             </>
           )}
+          {sideBySide && snackbar ? <View style={styles.snackbarSlot}>{snackbar}</View> : null}
         </ToolScrollContext.Provider>
+        </SnackbarSlotContext.Provider>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -126,6 +133,10 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+  },
+  snackbarSlot: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
   },
   header: {
     height: 64,

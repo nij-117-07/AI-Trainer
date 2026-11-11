@@ -4,10 +4,10 @@
  * field, and Regenerate builds a new persona from the form values for this side.
  */
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Pencil, RefreshCw } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, Panel, TextField } from "@/components/tool/FormControls";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { ActionButton, Panel, TextField, pointerCursor } from "@/components/tool/FormControls";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { SelectField } from "@/components/tool/SelectField";
 import { STANCE_OPTIONS } from "../options";
@@ -84,7 +84,27 @@ export function PersonaCard({ side, persona, topic, busy, regenPending, onSave, 
         <View style={[styles.badge, { borderColor: colors.border }]}>
           <Text style={[styles.badgeText, { color: colors.foreground }]}>{isPro ? "Pro" : "Con"}</Text>
         </View>
-        <Text style={[styles.name, { color: colors.foreground }]}>{persona.personaName || "Unnamed persona"}</Text>
+        <Text numberOfLines={2} style={[styles.name, { color: colors.foreground }]}>
+          {persona.personaName || "Unnamed persona"}
+        </Text>
+        {!editing && (
+          <Pressable
+            onPress={startEdit}
+            disabled={busy}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit ${isPro ? "Pro" : "Con"} persona`}
+            accessibilityState={{ disabled: busy }}
+            style={({ pressed }) => [
+              styles.iconButton,
+              pointerCursor,
+              { borderColor: colors.border },
+              pressed && { backgroundColor: colors.muted },
+              busy && styles.disabled,
+            ]}
+          >
+            <Pencil size={20} color={colors.foreground} />
+          </Pressable>
+        )}
       </View>
       <Text style={[styles.note, { color: colors.mutedForeground }]}>
         {isPro ? "For" : "Against"}: <Text style={{ color: colors.foreground }}>{topic}</Text>
@@ -140,7 +160,6 @@ export function PersonaCard({ side, persona, topic, busy, regenPending, onSave, 
           <ListBlock title="Strategic priorities" items={textList(persona.strategicPriorities)} />
           <ListBlock title="Core values" items={textList(persona.coreValues)} />
           <ListBlock title="Linguistic quirks" items={textList(persona.linguisticQuirks)} />
-          <ActionButton label="Edit persona" icon={Pencil} variant="outline" disabled={busy} onPress={startEdit} />
           <ActionButton
             label={regenPending ? "Regenerating…" : "Regenerate with AI"}
             icon={RefreshCw}
@@ -185,32 +204,40 @@ const styles = StyleSheet.create({
   },
   badge: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   badgeText: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
   name: {
-    flexShrink: 1,
-    fontSize: 16,
-    fontWeight: "600",
+    flex: 1,
+    ...typeScale.title,
+  },
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderWidth: 1,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  disabled: {
+    opacity: 0.6,
   },
   note: {
-    fontSize: 13,
-    lineHeight: 19,
+    ...typeScale.label,
   },
   block: {
     gap: spacing.xs,
   },
   label: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
   body: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
 });

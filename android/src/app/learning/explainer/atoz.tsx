@@ -1,7 +1,12 @@
 // src/app/learning/explainer/atoz.tsx
-import { ResetButton } from "@/components/tool/ResetButton";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { TutorialFooter, TutorialResults, useTutorial } from "@/features/explainer/components/AtozTab";
+import {
+  TutorialFooter,
+  TutorialForm,
+  TutorialHeaderActions,
+  TutorialResults,
+  useTutorial,
+} from "@/features/explainer/components/AtozTab";
 
 export default function AtozRoute() {
   const state = useTutorial();
@@ -9,10 +14,10 @@ export default function AtozRoute() {
   return (
     <ToolScreen
       title="A-to-Z Tutorial"
-      headerRight={<ResetButton onPress={state.reset} />}
+      headerRight={<TutorialHeaderActions state={state} />}
       footer={<TutorialFooter state={state} />}
     >
-      <TutorialResults state={state} />
+      {state.editing ? <TutorialForm state={state} /> : <TutorialResults state={state} />}
     </ToolScreen>
   );
 }

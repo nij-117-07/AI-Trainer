@@ -1,9 +1,10 @@
 // src/app/practice/guess-game/index.tsx
 import { useRouter } from "expo-router";
-import { Gamepad2, Sparkles } from "lucide-react-native";
+import { ArrowRight, Gamepad2 } from "lucide-react-native";
 import { ActionButton } from "@/components/tool/FormControls";
 import { AnswerComposer } from "@/components/tool/AnswerComposer";
 import { EmptyHint } from "@/components/tool/EmptyHint";
+import { ResetButton } from "@/components/tool/ResetButton";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { confirmAction } from "@/features/chatbot/lib/confirm";
@@ -31,13 +32,14 @@ export default function GuessGameRoute() {
       "Start a new game?",
       "Your current game and its guesses will be replaced.",
       openSetup,
-      "Start new",
+      "Start new game",
     );
   }
 
   return (
     <ToolScreen
       title="Guess Game"
+      headerRight={playing ? <ResetButton onPress={requestNewGame} accessibilityLabel="Start a new game" /> : undefined}
       footer={
         playing ? (
           <AnswerComposer
@@ -47,24 +49,28 @@ export default function GuessGameRoute() {
             maxLength={GUESS_MAX_LENGTH}
             pending={game.pending === "guess"}
             error={game.error}
-            submitLabel={session.attempts.length > 0 ? "Guess again" : "Submit"}
+            submitLabel="Submit guess"
             onChangeText={game.changeDraft}
             onSubmit={() => void game.submitGuess()}
           />
         ) : (
-          <ActionButton label="New game" icon={Sparkles} onPress={requestNewGame} />
+          <ActionButton
+            label={session?.solved ? "Next round" : "Start game"}
+            icon={session?.solved ? ArrowRight : Gamepad2}
+            onPress={requestNewGame}
+          />
         )
       }
     >
       <Section>
         {session ? (
-          <GuessGameRoundView session={session} game={game} onNewGame={requestNewGame} />
+          <GuessGameRoundView session={session} game={game} />
         ) : (
           game.loaded && (
             <EmptyHint
               icon={Gamepad2}
               title="No game yet"
-              hint="Tap New game, choose a category and difficulty, then start."
+              hint="Choose a category and difficulty, then start."
             />
           )
         )}

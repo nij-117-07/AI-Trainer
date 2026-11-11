@@ -1,44 +1,55 @@
-// src/features/bias-inoculator/components/BiasResult.tsx
 /**
- * The generated training scenario: the bias being trained against, the stealthy setup, the
- * intuitive trap, the rational analysis, and a real-world tip.
+ * The generated training scenario. The setup shows at once. The intuitive trap, the rational
+ * analysis, and the real-world tip stay behind a reveal, so the user can commit to an answer first.
  */
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { Compass, Scale, ShieldExclamationPoint, Zap, type LucideIcon } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
-import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TARGET_BIAS_OPTIONS } from "../options";
 import type { BiasScenario } from "../types";
 
 export function BiasResult({ result }: { result: BiasScenario }) {
-  const colors = useThemeColors();
   const label = TARGET_BIAS_OPTIONS.find((option) => option.value === result.targetBias)?.label ?? result.targetBias;
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    setRevealed(false);
+  }, [result]);
+
   return (
     <View style={styles.stack}>
-      <ResultCallout icon={ShieldExclamationPoint} title={`Training against: ${label}`} tone="amber">
-        <Text style={[styles.hint, { color: colors.foreground }]}>
-          Commit to your gut answer before reading the trap and the analysis.
-        </Text>
-      </ResultCallout>
-      <BiasSection icon={ShieldExclamationPoint} title="Scenario Setup" content={result.scenarioSetup} />
-      <BiasSection icon={Zap} title="The Intuitive Trap" content={result.intuitiveTrap} />
-      <BiasSection icon={Scale} title="Rational Analysis" content={result.rationalAnalysis} />
-      <BiasSection icon={Compass} title="Real-World Application" content={result.realWorldApplication} />
+      <Panel>
+        <SectionTitle icon={ShieldExclamationPoint} title={`Training against: ${label}`} />
+        <MarkdownText content={result.scenarioSetup === "" ? "Nothing was returned." : result.scenarioSetup} />
+        <ListenButton text={result.scenarioSetup} label="scenario setup" />
+      </Panel>
+      <Disclosure
+        title={revealed ? "Hide the trap and analysis" : "Reveal the trap and analysis"}
+        summary="Commit to your own answer first."
+        open={revealed}
+        onToggle={setRevealed}
+      >
+        <BiasSection icon={Zap} title="Intuitive trap" content={result.intuitiveTrap} />
+        <BiasSection icon={Scale} title="Rational analysis" content={result.rationalAnalysis} />
+        <BiasSection icon={Compass} title="Real-world application" content={result.realWorldApplication} />
+      </Disclosure>
     </View>
   );
 }
 
 function BiasSection({ icon, title, content }: { icon: LucideIcon; title: string; content: string }) {
   return (
-    <Panel>
+    <View style={styles.section}>
       <SectionTitle icon={icon} title={title} />
-      {content === "" ? <MarkdownText content="Nothing was returned." /> : <MarkdownText content={content} />}
+      <MarkdownText content={content === "" ? "Nothing was returned." : content} />
       <ListenButton text={content} label={title} />
-    </Panel>
+    </View>
   );
 }
 
@@ -46,8 +57,7 @@ const styles = StyleSheet.create({
   stack: {
     gap: spacing.lg,
   },
-  hint: {
-    fontSize: 14,
-    lineHeight: 20,
+  section: {
+    gap: spacing.md,
   },
 });

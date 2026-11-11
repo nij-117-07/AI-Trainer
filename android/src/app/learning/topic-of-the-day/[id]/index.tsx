@@ -4,23 +4,25 @@
  * switches to selection mode, where rows are picked and deleted together from the footer.
  */
 import { useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { CalendarDays, Layers, Trash2 } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { ActionButton } from "@/components/tool/FormControls";
+import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
+import { UndoSnackbar } from "@/components/tool/UndoSnackbar";
 import { TopicRow } from "@/features/topic-of-the-day/components/TopicRow";
-import { showSaveError, useTopicLibrary } from "@/features/topic-of-the-day/hooks/usePersistedDraft";
+import { useTopicLibrary } from "@/features/topic-of-the-day/hooks/usePersistedDraft";
 import { deleteTopics, findBroadTopic, topicsFor } from "@/features/topic-of-the-day/lib/library";
 
 export default function BroadTopicRoute() {
   const router = useRouter();
   const colors = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { library, loaded, change } = useTopicLibrary();
+  const { library, loaded, pending, removeLater, undo, dismiss } = useTopicLibrary();
   const broad = findBroadTopic(library, id);
   const topics = broad ? topicsFor(library, broad.id) : [];
   const [selecting, setSelecting] = useState(false);
@@ -40,17 +42,14 @@ export default function BroadTopicRoute() {
     setSelected(allSelected ? [] : topics.map((topic) => topic.id));
   }
 
-  function confirmDelete() {
+  function deleteSelected() {
     const count = selected.length;
     const ids = selected;
-    Alert.alert(`Delete ${count} ${count === 1 ? "topic" : "topics"}?`, "This can't be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => void change((current) => deleteTopics(current, ids)).then(leaveSelection).catch(showSaveError),
-      },
-    ]);
+    removeLater({
+      message: `Deleted ${count} ${count === 1 ? "topic" : "topics"}`,
+      apply: (current) => deleteTopics(current, ids),
+    });
+    leaveSelection();
   }
 
   if (loaded && !broad) {
@@ -79,14 +78,14 @@ export default function BroadTopicRoute() {
       icon={Trash2}
       variant="outline"
       disabled={selected.length === 0}
-      onPress={confirmDelete}
+      onPress={deleteSelected}
     />
   ) : (
     <ActionButton label="New topic" icon={CalendarDays} onPress={() => router.push(`/learning/topic-of-the-day/${id}/new`)} />
   );
 
   return (
-    <ToolScreen title={broad?.name ?? "Topics"} headerRight={headerRight} footer={footer}>
+    <ToolScreen title={broad?.name ?? "Topics"} headerRight={headerRight} footer={footer} wide usesAi={false}>
       <Section>
         {selecting && topics.length > 0 ? (
           <View style={styles.selectBar}>
@@ -110,10 +109,10 @@ export default function BroadTopicRoute() {
           <EmptyHint
             icon={CalendarDays}
             title="No topics yet"
-            hint="Tap New topic, choose a focus and level, then generate."
+            hint="Get a focused topic for today inside this area."
           />
         ) : (
-          <View style={styles.list}>
+          <CardGrid>
             {topics.map((topic) => (
               <TopicRow
                 key={topic.id}
@@ -123,8 +122,10 @@ export default function BroadTopicRoute() {
                 onPress={() => (selecting ? toggle(topic.id) : router.push(`/learning/topic-of-the-day/${id}/${topic.id}`))}
               />
             ))}
-          </View>
+          </CardGrid>
         )}
+
+        {pending ? <UndoSnackbar message={pending.message} onUndo={undo} onDismiss={dismiss} /> : null}
       </Section>
     </ToolScreen>
   );
@@ -132,12 +133,12 @@ export default function BroadTopicRoute() {
 
 const styles = StyleSheet.create({
   headerAction: {
-    minHeight: 44,
+    minHeight: touchTarget,
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
   },
   headerActionText: {
-    fontSize: 16,
+    ...typeScale.label,
     fontWeight: "600",
   },
   selectBar: {
@@ -146,17 +147,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   selectAllButton: {
-    minHeight: 44,
+    minHeight: touchTarget,
     justifyContent: "center",
   },
   selectAll: {
-    fontSize: 15,
+    ...typeScale.label,
     fontWeight: "600",
   },
   count: {
-    fontSize: 13,
-  },
-  list: {
-    gap: spacing.sm,
+    ...typeScale.caption,
   },
 });

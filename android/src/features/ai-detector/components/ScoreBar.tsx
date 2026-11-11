@@ -1,16 +1,15 @@
 // src/features/ai-detector/components/ScoreBar.tsx
-/** Labelled 0–100% meter used for the AI likelihood and the pass-as-human confidence. */
+/** Labelled 0–100% meter for the AI likelihood score. */
 import { StyleSheet, Text, View } from "react-native";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors, type Tone } from "@/theme";
 
 interface ScoreBarProps {
   value: number;
   label: string;
-  caption?: string;
   tone: Tone;
 }
 
-export function ScoreBar({ value, label, caption, tone }: ScoreBarProps) {
+export function ScoreBar({ value, label, tone }: ScoreBarProps) {
   const colors = useThemeColors();
   const clamped = Math.min(1, Math.max(0, value));
   const percent = Math.round(clamped * 100);
@@ -29,7 +28,6 @@ export function ScoreBar({ value, label, caption, tone }: ScoreBarProps) {
       >
         <View style={[styles.fill, { backgroundColor: colors.tone[tone].fg, width: `${percent}%` }]} />
       </View>
-      {caption ? <Text style={[styles.caption, { color: colors.mutedForeground }]}>{caption}</Text> : null}
     </View>
   );
 }
@@ -45,24 +43,19 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   label: {
-    fontSize: 13,
-    fontWeight: "500",
+    ...typeScale.body,
   },
   value: {
-    fontSize: 20,
+    ...typeScale.title,
     fontWeight: "700",
   },
   track: {
     height: 8,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     overflow: "hidden",
   },
   fill: {
     height: "100%",
-    borderRadius: radius.full,
-  },
-  caption: {
-    fontSize: 13,
-    lineHeight: 18,
+    borderRadius: shape.full,
   },
 });

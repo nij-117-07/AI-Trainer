@@ -12,6 +12,7 @@ function toNextAction(raw: unknown): NextAction {
     goal: textOf(item.goal),
     reason: textOf(item.reason),
     minutes,
+    done: item.done === true,
   };
 }
 

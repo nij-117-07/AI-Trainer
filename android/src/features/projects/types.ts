@@ -11,6 +11,7 @@ export interface ProjectFormValues {
 }
 
 export interface ProjectIdea {
+  kept: boolean;
   title: string;
   description: string;
   keyConcepts: string[];

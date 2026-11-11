@@ -1,8 +1,8 @@
 /** Habit Tracker: tick today's habits, or open the dashboard for streaks and history. */
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Check, Plus, Trash2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Check, Circle, CircleCheck, Plus, Trash2 } from "lucide-react-native";
+import { cardPadding, shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ChoiceChips, Panel, TextField } from "@/components/tool/FormControls";
 import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
@@ -44,7 +44,7 @@ export function HabitTracker() {
 
 function LoadingHabits() {
   const colors = useThemeColors();
-  return <Text style={[styles.empty, { color: colors.mutedForeground }]}>Loading habits…</Text>;
+  return <Text style={[typeScale.body, styles.empty, { color: colors.mutedForeground }]}>Loading habits…</Text>;
 }
 
 type HabitStore = ReturnType<typeof useHabits>;
@@ -57,18 +57,20 @@ function TodayView({ store, today }: { store: HabitStore; today: string }) {
 
   return (
     <>
-      <Panel>
+      <View style={styles.summary}>
         <Text
           accessibilityLiveRegion="polite"
           accessibilityLabel={`${doneToday} of ${store.habits.length} habits done today`}
-          style={[styles.bigNumber, { color: colors.foreground }]}
+          style={[typeScale.headline, { color: colors.foreground }]}
         >
           {doneToday} / {store.habits.length}
         </Text>
-        <Text style={[styles.muted, { color: colors.mutedForeground }]}>
-          {store.habits.length === 0 ? "Add your first habit in the form to get started." : allDone ? "All done for today" : "habits done today"}
+        <Text style={[typeScale.caption, { color: colors.mutedForeground }]}>
+          {store.habits.length === 0 ? "No habits yet" : allDone ? "All done today" : "done today"}
         </Text>
-      </Panel>
+      </View>
+
+      <AddHabitForm store={store} disabled={full} />
 
       {store.habits.length > 0 ? (
         <CardGrid>
@@ -77,8 +79,6 @@ function TodayView({ store, today }: { store: HabitStore; today: string }) {
           ))}
         </CardGrid>
       ) : null}
-
-      <AddHabitForm store={store} disabled={full} />
     </>
   );
 }
@@ -89,27 +89,25 @@ function HabitRow({ habit, store, today }: { habit: Habit; store: HabitStore; to
   const streak = currentStreak(store.completions, habit.id, today);
 
   return (
-    <Pressable
-      onPress={() => store.toggleDay(habit.id, today)}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: done }}
-      accessibilityLabel={habit.name}
-      style={({ pressed }) => [
-        styles.row,
-        { backgroundColor: colors.card, borderColor: done ? colors.primary : colors.border },
-        pressed && { opacity: 0.8 },
-      ]}
-    >
-      <View style={[styles.tick, { borderColor: done ? colors.primary : colors.border, backgroundColor: done ? colors.primary : colors.background }]}>
-        {done && <Check size={16} color={colors.primaryForeground} />}
-      </View>
+    <View style={[styles.row, { backgroundColor: colors.card, borderColor: done ? colors.primary : colors.border }]}>
       <View style={styles.rowText}>
-        <Text style={[styles.habitName, { color: colors.foreground }, done && styles.struck]}>{habit.name}</Text>
-        <Text style={[styles.muted, { color: colors.mutedForeground }]}>
+        <Text numberOfLines={1} style={[typeScale.body, styles.habitName, { color: colors.foreground }, done && styles.struck]}>
+          {habit.name}
+        </Text>
+        <Text style={[typeScale.caption, { color: colors.mutedForeground }]}>
           {streak > 0 ? `${streak} day streak` : "No streak yet"}
         </Text>
       </View>
-    </Pressable>
+      <Pressable
+        onPress={() => store.toggleDay(habit.id, today)}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: done }}
+        accessibilityLabel={done ? `Mark ${habit.name} not done` : `Mark ${habit.name} done`}
+        style={({ pressed }) => [styles.iconButton, pressed && { backgroundColor: colors.muted }]}
+      >
+        {done ? <CircleCheck size={24} color={colors.primary} /> : <Circle size={24} color={colors.mutedForeground} />}
+      </Pressable>
+    </View>
   );
 }
 
@@ -133,6 +131,7 @@ function AddHabitForm({ store, disabled }: { store: HabitStore; disabled: boolea
         maxLength={NAME_MAX}
         onSubmitEditing={add}
         editable={!disabled}
+        style={styles.input}
       />
       <ActionButton label={disabled ? `Limit of ${MAX_HABITS} habits reached` : "Add habit"} icon={Plus} onPress={add} disabled={!canAdd} />
     </Panel>
@@ -165,7 +164,7 @@ function DashboardView({ store, today }: { store: HabitStore; today: string }) {
 
       <SectionTitle icon={Check} title={`Last ${HISTORY_DAYS} days`} />
       {store.habits.length === 0 ? (
-        <EmptyHint icon={Check} title="No habits yet" hint="Add habits on the Today tab to see your streaks here." />
+        <EmptyHint icon={Check} title="No habits yet" hint="Add a habit on the Today tab to see streaks here." />
       ) : (
         <CardGrid>
           {store.habits.map((habit) => {
@@ -173,14 +172,14 @@ function DashboardView({ store, today }: { store: HabitStore; today: string }) {
             const streak = currentStreak(store.completions, habit.id, today);
             const doneDays = days.filter((day) => isDone(store.completions, day, habit.id)).length;
             return (
-              <Panel key={habit.id}>
+              <View key={habit.id} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <View style={styles.dashHeader}>
-                  <Text style={[styles.habitName, { color: colors.foreground, flex: 1 }]} numberOfLines={1}>
+                  <Text numberOfLines={1} style={[typeScale.body, styles.habitName, { color: colors.foreground, flex: 1 }]}>
                     {habit.name}
                   </Text>
                   <Text
                     accessibilityLabel={`${rate} percent done in the last ${RATE_DAYS} days`}
-                    style={[styles.muted, { color: colors.mutedForeground }]}
+                    style={[typeScale.caption, { color: colors.mutedForeground }]}
                   >
                     {rate}%
                   </Text>
@@ -188,9 +187,9 @@ function DashboardView({ store, today }: { store: HabitStore; today: string }) {
                     onPress={() => store.removeOne(habit.id)}
                     accessibilityRole="button"
                     accessibilityLabel={`Delete ${habit.name}`}
-                    style={styles.deleteButton}
+                    style={({ pressed }) => [styles.iconButton, pressed && { backgroundColor: colors.muted }]}
                   >
-                    <Trash2 size={18} color={colors.destructive} />
+                    <Trash2 size={20} color={colors.destructive} />
                   </Pressable>
                 </View>
                 <View accessible accessibilityLabel={`${doneDays} of ${HISTORY_DAYS} days done`} style={styles.grid}>
@@ -204,10 +203,10 @@ function DashboardView({ store, today }: { store: HabitStore; today: string }) {
                     />
                   ))}
                 </View>
-                <Text style={[styles.muted, { color: colors.mutedForeground }]}>
+                <Text style={[typeScale.caption, { color: colors.mutedForeground }]}>
                   Streak: {streak} {streak === 1 ? "day" : "days"}
                 </Text>
-              </Panel>
+              </View>
             );
           })}
         </CardGrid>
@@ -220,26 +219,53 @@ function StatCard({ label, value }: { label: string; value: string }) {
   const colors = useThemeColors();
   return (
     <View style={[styles.stat, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <Text style={[styles.statValue, { color: colors.foreground }]}>{value}</Text>
-      <Text style={[styles.muted, { color: colors.mutedForeground }]}>{label}</Text>
+      <Text style={[typeScale.headline, { color: colors.foreground }]}>{value}</Text>
+      <Text style={[typeScale.caption, { color: colors.mutedForeground }]}>{label}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  bigNumber: { fontSize: 30, fontWeight: "700", letterSpacing: -0.5 },
-  muted: { fontSize: 13, lineHeight: 18 },
-  empty: { fontSize: 14, textAlign: "center", paddingVertical: spacing.md },
-  row: { flexDirection: "row", alignItems: "center", gap: spacing.md, borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg, minHeight: 44 },
-  tick: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  rowText: { flex: 1, gap: 2 },
-  habitName: { fontSize: 16, fontWeight: "600" },
+  summary: { gap: spacing.xs },
+  empty: { textAlign: "center", paddingVertical: spacing.md },
+  input: { minHeight: 56 },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    paddingLeft: cardPadding.compact,
+    paddingRight: spacing.sm,
+    paddingVertical: spacing.sm,
+    minHeight: 56,
+  },
+  rowText: { flex: 1, gap: spacing.xs },
+  habitName: { fontWeight: "600" },
   struck: { opacity: 0.6 },
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   statRow: { flexDirection: "row", gap: spacing.sm },
-  stat: { flex: 1, borderWidth: 1, borderRadius: radius.md, padding: spacing.md, gap: 2, alignItems: "center" },
-  statValue: { fontSize: 20, fontWeight: "700" },
+  stat: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    padding: spacing.md,
+    gap: spacing.xs,
+    alignItems: "center",
+  },
+  card: {
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    padding: cardPadding.compact,
+    gap: spacing.md,
+  },
   dashHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  deleteButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", borderRadius: radius.full },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
-  cell: { width: 18, height: 18, borderRadius: 4 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs },
+  cell: { width: 16, height: 16, borderRadius: shape.xs },
 });

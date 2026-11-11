@@ -123,7 +123,7 @@ export function PromptGeneratorTool() {
       </Disclosure>
 
       <ActionButton
-        label={request.pending ? "Crafting persona…" : "Generate persona"}
+        label={request.pending ? "Generating persona…" : "Generate persona"}
         icon={Sparkles}
         loading={request.pending}
         onPress={handleGenerate}
@@ -133,7 +133,7 @@ export function PromptGeneratorTool() {
       {result ? (
         <PromptGeneratorResultView result={result} />
       ) : (
-        <EmptyHint icon={Bot} title="No persona yet" hint="Enter a scenario, then tap Generate persona." />
+        <EmptyHint icon={Bot} title="No persona yet" hint="Generated personas appear here." />
       )}
 
       <ActionButton label="Reset all" icon={RefreshCcw} variant="outline" onPress={handleReset} />

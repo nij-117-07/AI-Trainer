@@ -1,9 +1,9 @@
 // src/features/tutor-chat/components/SessionList.tsx
 /** Saved tutor chat sessions. Tap one to continue it, or start a new one from the footer. */
 import { useState } from "react";
-import { Alert, StyleSheet, Text } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import { MessagesSquare } from "lucide-react-native";
-import { useThemeColors } from "@/theme";
+import { spacing } from "@/theme";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ErrorText } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
@@ -18,7 +18,6 @@ interface SessionListProps {
 }
 
 export function SessionList({ sessions, onOpen, onDelete }: SessionListProps) {
-  const colors = useThemeColors();
   const [listError, setListError] = useState<string | null>(null);
 
   function confirmDelete(session: TutorChatSession) {
@@ -43,31 +42,24 @@ export function SessionList({ sessions, onOpen, onDelete }: SessionListProps) {
 
   return (
     <Section>
-      <Text style={[styles.intro, { color: colors.mutedForeground }]}>
-        Pick a saved session to carry on, or start a new one in the form.
-      </Text>
-
       <SectionTitle icon={MessagesSquare} title="Saved sessions" />
       <ErrorText message={listError} />
 
       {sessions.length === 0 ? (
-        <EmptyHint
-          icon={MessagesSquare}
-          title="No sessions yet"
-          hint="Enter a master topic in the form and tap Start chatting."
-        />
+        <EmptyHint icon={MessagesSquare} title="No sessions yet" hint="Start a chat with the form below." />
       ) : (
-        sessions.map((session) => (
-          <SessionCard key={session.id} session={session} onOpen={onOpen} onDelete={confirmDelete} />
-        ))
+        <View style={styles.list}>
+          {sessions.map((session) => (
+            <SessionCard key={session.id} session={session} onOpen={onOpen} onDelete={confirmDelete} />
+          ))}
+        </View>
       )}
     </Section>
   );
 }
 
 const styles = StyleSheet.create({
-  intro: {
-    fontSize: 14,
-    lineHeight: 21,
+  list: {
+    gap: spacing.sm,
   },
 });

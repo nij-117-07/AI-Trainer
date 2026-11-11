@@ -12,7 +12,7 @@ export default function GuessGameNewRoute() {
   return (
     <ToolScreen
       title="New game"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton onPress={setup.reset} accessibilityLabel="Reset form" />}
       footer={<GuessGameFormFooter setup={setup} />}
     >
       <GuessGameFormFields setup={setup} />

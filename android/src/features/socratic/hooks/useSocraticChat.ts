@@ -15,6 +15,9 @@ import type { ChatMessage } from "../types";
 import { usePersistedDocument } from "./usePersistedDocument";
 import { useSocraticSettings } from "./useSocraticSettings";
 
+type RequestKind = "turn" | "summary";
+type Outcome = "done" | "stopped" | "failed";
+
 export function useSocraticChat() {
   const { settings } = useAiSettings();
   const socraticSettings = useSocraticSettings();
@@ -23,19 +26,65 @@ export function useSocraticChat() {
   const [draft, setDraft] = useState("");
   const challenge = useRequest(challengeStatement);
   const synthesis = useRequest(synthesizeDiscussion);
-  const activeRequest = useRef<AbortController | null>(null);
+  const activeRequest = useRef<{ controller: AbortController; kind: RequestKind } | null>(null);
 
-  useEffect(() => () => activeRequest.current?.abort(), []);
+  useEffect(() => () => activeRequest.current?.controller.abort(), []);
 
   const pending = challenge.pending || synthesis.pending;
   const error = challenge.error ?? synthesis.error;
   const canWrapUp = !pending && messages.value.length >= 2;
 
-  function startRequest(): AbortSignal {
-    activeRequest.current?.abort();
+  function startRequest(kind: RequestKind): AbortSignal {
+    activeRequest.current?.controller.abort();
     const controller = new AbortController();
-    activeRequest.current = controller;
+    activeRequest.current = { controller, kind };
     return controller.signal;
+  }
+
+  /** Stops the request in flight. The reply so far stays in the thread, marked as stopped. */
+  function stop() {
+    const active = activeRequest.current;
+    if (!active) return;
+    activeRequest.current = null;
+    active.controller.abort();
+    messages.setValue((current) => [...current, { role: "assistant", content: "", kind: active.kind, stopped: true }]);
+  }
+
+  async function answerTurn(history: ChatMessage[]): Promise<Outcome> {
+    const signal = startRequest("turn");
+    const result = await challenge.run(
+      settings,
+      {
+        statement: history[history.length - 1].content,
+        history: toHistory(history.slice(-HISTORY_LIMIT)),
+        confidence,
+        focus,
+      },
+      signal,
+    );
+    if (signal.aborted) {
+      challenge.reset();
+      return "stopped";
+    }
+    if (!result) return "failed";
+    messages.setValue((current) => [...current, { role: "assistant", content: formatChallenge(result), kind: "turn" }]);
+    return "done";
+  }
+
+  async function answerWrapUp(history: ChatMessage[]): Promise<Outcome> {
+    const signal = startRequest("summary");
+    const result = await synthesis.run(
+      settings,
+      { history: toHistory(history.slice(-HISTORY_LIMIT)), confidence },
+      signal,
+    );
+    if (signal.aborted) {
+      synthesis.reset();
+      return "stopped";
+    }
+    if (!result) return "failed";
+    messages.setValue((current) => [...current, { role: "assistant", content: formatSynthesis(result), kind: "summary" }]);
+    return "done";
   }
 
   async function send() {
@@ -43,43 +92,34 @@ export function useSocraticChat() {
     if (!text || pending) return;
     const next: ChatMessage[] = [...messages.value, { role: "user", content: text }];
     messages.setValue(next);
-    setDraft("");
-    const signal = startRequest();
-    const result = await challenge.run(
-      settings,
-      {
-        statement: text,
-        history: toHistory(next.slice(-HISTORY_LIMIT)),
-        confidence,
-        focus,
-      },
-      signal,
-    );
-    if (signal.aborted) return;
-    if (!result) {
-      // Keep the user's words so they can resend without retyping.
+    const outcome = await answerTurn(next);
+    if (outcome === "failed") {
+      // The draft was never cleared, so the words are still in the box for a retry.
       messages.setValue((current) => current.slice(0, -1));
-      setDraft(text);
       return;
     }
-    messages.setValue((current) => [...current, { role: "assistant", content: formatChallenge(result), kind: "turn" }]);
+    setDraft("");
   }
 
   async function wrapUp() {
     if (!canWrapUp) return;
-    const signal = startRequest();
-    const result = await synthesis.run(
-      settings,
-      { history: toHistory(messages.value.slice(-HISTORY_LIMIT)), confidence },
-      signal,
-    );
-    if (!result || signal.aborted) return;
-    messages.setValue((current) => [...current, { role: "assistant", content: formatSynthesis(result), kind: "summary" }]);
+    await answerWrapUp(messages.value);
+  }
+
+  /** Asks again for the reply that was stopped. The stopped mark comes back if the new attempt fails. */
+  async function regenerate() {
+    const current = messages.value;
+    const last = current[current.length - 1];
+    if (pending || !last?.stopped) return;
+    const base = current.slice(0, -1);
+    messages.setValue(base);
+    const outcome = last.kind === "summary" ? await answerWrapUp(base) : await answerTurn(base);
+    if (outcome === "failed") messages.setValue([...base, last]);
   }
 
   /** Starts a new discussion. The focus and confidence from the settings page are kept. */
   function reset() {
-    activeRequest.current?.abort();
+    activeRequest.current?.controller.abort();
     activeRequest.current = null;
     messages.setValue([]);
     setDraft("");
@@ -100,6 +140,8 @@ export function useSocraticChat() {
     error,
     canWrapUp,
     send,
+    stop,
+    regenerate,
     wrapUp,
     reset,
   };

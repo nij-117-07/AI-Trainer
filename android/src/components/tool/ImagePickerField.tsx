@@ -7,7 +7,7 @@ import { useState } from "react";
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { ImagePlus, X } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { resizeImage, type ImageInput } from "@/lib/image";
 import { ErrorText, Field } from "@/components/tool/FormControls";
 
@@ -17,14 +17,17 @@ interface ImagePickerFieldProps {
   disabled?: boolean;
   label?: string;
   hint?: string;
+  /** Names the picture in screen-reader labels, for example "answer image" or "photo". */
+  noun?: string;
 }
 
 export function ImagePickerField({
   value,
   onChange,
   disabled = false,
-  label = "Answer image (optional)",
+  label = "Image (optional)",
   hint = "PNG, JPG, or WEBP: a handwritten answer, diagram, or screenshot.",
+  noun = "image",
 }: ImagePickerFieldProps) {
   const colors = useThemeColors();
   const [processing, setProcessing] = useState(false);
@@ -53,12 +56,12 @@ export function ImagePickerField({
     <Field label={label} hint={hint}>
       {value ? (
         <View style={[styles.preview, { borderColor: colors.border }]}>
-          <Image source={{ uri: value.uri }} style={styles.image} resizeMode="contain" accessibilityLabel="Attached answer image" />
+          <Image source={{ uri: value.uri }} style={styles.image} resizeMode="contain" accessibilityLabel={`Attached ${noun}`} />
           <Pressable
             onPress={() => onChange(null)}
             disabled={busy}
             accessibilityRole="button"
-            accessibilityLabel="Remove image"
+            accessibilityLabel={`Remove ${noun}`}
             style={[styles.remove, { backgroundColor: colors.card, borderColor: colors.border }]}
           >
             <X size={16} color={colors.foreground} />
@@ -69,7 +72,7 @@ export function ImagePickerField({
           onPress={pick}
           disabled={busy}
           accessibilityRole="button"
-          accessibilityLabel="Choose answer image"
+          accessibilityLabel={`Choose ${noun}`}
           style={({ pressed }) => [
             styles.picker,
             { borderColor: colors.border, backgroundColor: colors.background },
@@ -100,7 +103,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     borderWidth: 1,
     borderStyle: "dashed",
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingVertical: spacing.lg,
   },
   pickerText: {
@@ -109,7 +112,7 @@ const styles = StyleSheet.create({
   },
   preview: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     overflow: "hidden",
   },
   image: {
@@ -122,7 +125,7 @@ const styles = StyleSheet.create({
     right: spacing.sm,
     width: 44,
     height: 44,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",

@@ -72,6 +72,8 @@ export function useForesightRun() {
       setChoiceError("Choose an option before you commit.");
       return;
     }
+    const option = current.options.find((item) => item.id === selected);
+    const label = selected === CUSTOM_CHOICE ? choice : (option?.title || "Untitled option");
     activeRequest.current?.abort();
     const controller = new AbortController();
     activeRequest.current = controller;
@@ -81,7 +83,7 @@ export function useForesightRun() {
       controller.signal,
     );
     if (!outcome || controller.signal.aborted) return;
-    setSession((prev) => (prev ? applyDecision(prev, outcome) : prev));
+    setSession((prev) => (prev ? applyDecision(prev, outcome, label) : prev));
     setSelected(null);
     setCustomChoice("");
     setReasoning("");

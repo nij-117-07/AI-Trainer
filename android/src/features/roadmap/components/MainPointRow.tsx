@@ -5,15 +5,14 @@
  */
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Check, ChevronDown, ChevronRight, ChevronUp, Flag, Pencil, Sparkles, Trash2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Check, ChevronDown, ChevronRight, ChevronUp, Pencil, Sparkles, Trash2, X } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, TextField } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
-import { ResultCallout } from "@/components/tool/ResultCallout";
 import { ROADMAP_LIMITS } from "../lib/validation";
 import type { StageStatus } from "../lib/progress";
 import type { RoadmapMainPoint } from "../types";
-import { AddRow, DoneToggle, InlineEdit } from "./ItemControls";
+import { AddRow, DoneToggle, IconButton, InlineEdit } from "./ItemControls";
 import { SubtopicRow } from "./SubtopicRow";
 
 const STATUS_LABEL: Record<StageStatus, string> = {
@@ -73,6 +72,8 @@ export function MainPointRow({
   const [customizing, setCustomizing] = useState(false);
   const [instructionDraft, setInstructionDraft] = useState("");
   const subtopicCount = point.subtopics.length;
+  const isCurrent = status === "current";
+  const generateLabel = subtopicCount > 0 ? "Regenerate subpoints" : "Generate subpoints";
 
   function closeSubtopicPrompt() {
     setAskingSubtopics(false);
@@ -84,7 +85,6 @@ export function MainPointRow({
     closeSubtopicPrompt();
     onGenerateSubtopics(instructions);
   }
-  const isCurrent = status === "current";
 
   return (
     <View
@@ -94,7 +94,7 @@ export function MainPointRow({
       ]}
     >
       <View style={styles.header}>
-        <DoneToggle done={point.done} label={`Mark "${point.title}" done`} onToggle={onToggleDone} />
+        <DoneToggle done={point.done} title={point.title} onToggle={onToggleDone} />
 
         {editing ? (
           <View style={styles.flex}>
@@ -137,9 +137,9 @@ export function MainPointRow({
               ) : null}
             </View>
             {expanded ? (
-              <ChevronDown size={18} color={colors.mutedForeground} />
+              <ChevronDown size={20} color={colors.mutedForeground} />
             ) : (
-              <ChevronRight size={18} color={colors.mutedForeground} />
+              <ChevronRight size={20} color={colors.mutedForeground} />
             )}
           </Pressable>
         )}
@@ -158,34 +158,38 @@ export function MainPointRow({
                 multiline
                 voice
               />
-              <ActionButton
-                label="Save milestone"
-                icon={Check}
-                onPress={() => {
-                  onSetMilestone(milestoneDraft.trim());
-                  setEditingMilestone(false);
-                }}
-              />
-              <ActionButton label="Cancel" variant="outline" onPress={() => setEditingMilestone(false)} />
+              <View style={styles.row}>
+                <View style={styles.flex}>
+                  <ActionButton
+                    label="Save milestone"
+                    icon={Check}
+                    onPress={() => {
+                      onSetMilestone(milestoneDraft.trim());
+                      setEditingMilestone(false);
+                    }}
+                  />
+                </View>
+                <IconButton icon={X} label="Cancel milestone edit" onPress={() => setEditingMilestone(false)} />
+              </View>
             </View>
           ) : (
-            <>
-              {point.milestone ? (
-                <ResultCallout icon={Flag} title="Milestone" tone="sky">
-                  <Text style={[styles.milestone, { color: colors.foreground }]}>{point.milestone}</Text>
-                  <ListenButton text={point.milestone} label="Milestone" />
-                </ResultCallout>
-              ) : null}
-              <ActionButton
-                label={point.milestone ? "Edit milestone" : "Add milestone"}
+            <View style={styles.row}>
+              <View style={styles.flex}>
+                <Text style={[styles.caption, { color: colors.mutedForeground }]}>Milestone</Text>
+                <Text style={[styles.milestone, { color: point.milestone ? colors.foreground : colors.mutedForeground }]}>
+                  {point.milestone || "No milestone yet"}
+                </Text>
+              </View>
+              {point.milestone ? <ListenButton text={point.milestone} label="Milestone" /> : null}
+              <IconButton
                 icon={Pencil}
-                variant="outline"
+                label={point.milestone ? "Edit milestone" : "Add milestone"}
                 onPress={() => {
                   setMilestoneDraft(point.milestone);
                   setEditingMilestone(true);
                 }}
               />
-            </>
+            </View>
           )}
 
           {subtopicCount > 0 ? (
@@ -207,11 +211,14 @@ export function MainPointRow({
 
           {askingSubtopics ? (
             <View style={[styles.prompt, { backgroundColor: colors.muted }]}>
-              <Text style={[styles.promptText, { color: colors.mutedForeground }]}>
-                {subtopicCount > 0
-                  ? `This replaces the ${subtopicCount} current subpoint${subtopicCount === 1 ? "" : "s"}. The AI sees them, so it avoids repeats.`
-                  : "The AI will write subpoints for this stage."}
-              </Text>
+              <View style={styles.row}>
+                <Text style={[styles.promptText, styles.flex, { color: colors.mutedForeground }]}>
+                  {subtopicCount > 0
+                    ? `This replaces the ${subtopicCount} current subpoint${subtopicCount === 1 ? "" : "s"}.`
+                    : "The AI will write subpoints for this stage."}
+                </Text>
+                <IconButton icon={X} label="Cancel subpoint generation" onPress={closeSubtopicPrompt} />
+              </View>
               {customizing ? (
                 <>
                   <TextField
@@ -224,24 +231,21 @@ export function MainPointRow({
                     voice
                   />
                   <ActionButton
-                    label="Generate subpoints"
+                    label={generateLabel}
                     icon={Sparkles}
                     onPress={() => generateSubtopics(instructionDraft.trim() || undefined)}
                   />
-                  <ActionButton label="Cancel" variant="outline" onPress={closeSubtopicPrompt} />
                 </>
               ) : (
                 <>
-                  <Text style={[styles.promptQuestion, { color: colors.foreground }]}>Customize it first?</Text>
-                  <ActionButton label="No, generate" icon={Sparkles} onPress={() => generateSubtopics()} />
-                  <ActionButton label="Yes, customize" variant="outline" onPress={() => setCustomizing(true)} />
-                  <ActionButton label="Cancel" variant="outline" onPress={closeSubtopicPrompt} />
+                  <ActionButton label={generateLabel} icon={Sparkles} onPress={() => generateSubtopics()} />
+                  <ActionButton label="Customize first" variant="outline" onPress={() => setCustomizing(true)} />
                 </>
               )}
             </View>
           ) : (
             <ActionButton
-              label={subtopicCount > 0 ? "Regenerate subpoints" : "Generate subpoints"}
+              label={generateLabel}
               icon={Sparkles}
               variant="outline"
               loading={generating}
@@ -257,32 +261,10 @@ export function MainPointRow({
           />
 
           <View style={styles.actions}>
-            <View style={styles.flex}>
-              <ActionButton label="Rename" icon={Pencil} variant="outline" onPress={() => setEditing(true)} />
-            </View>
-            <View style={styles.flex}>
-              <ActionButton label="Delete stage" icon={Trash2} variant="outline" onPress={onDelete} />
-            </View>
-          </View>
-          <View style={styles.actions}>
-            <View style={styles.flex}>
-              <ActionButton
-                label="Move up"
-                icon={ChevronUp}
-                variant="outline"
-                disabled={isFirst}
-                onPress={() => onMove(-1)}
-              />
-            </View>
-            <View style={styles.flex}>
-              <ActionButton
-                label="Move down"
-                icon={ChevronDown}
-                variant="outline"
-                disabled={isLast}
-                onPress={() => onMove(1)}
-              />
-            </View>
+            <IconButton icon={Pencil} label="Rename stage" onPress={() => setEditing(true)} />
+            <IconButton icon={Trash2} label={`Delete stage ${point.title}`} onPress={onDelete} />
+            <IconButton icon={ChevronUp} label="Move stage up" disabled={isFirst} onPress={() => onMove(-1)} />
+            <IconButton icon={ChevronDown} label="Move stage down" disabled={isLast} onPress={() => onMove(1)} />
           </View>
         </View>
       ) : null}
@@ -293,15 +275,16 @@ export function MainPointRow({
 const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     overflow: "hidden",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    gap: spacing.xs,
+    paddingLeft: spacing.xs,
+    paddingRight: spacing.md,
+    paddingVertical: spacing.xs,
   },
   flex: {
     flex: 1,
@@ -311,55 +294,60 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
+    minHeight: 48,
+    paddingVertical: spacing.xs,
   },
   titleText: {
     flex: 1,
     gap: 2,
   },
   stage: {
-    fontSize: 12,
+    ...typeScale.caption,
     fontWeight: "600",
   },
   title: {
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
   done: {
     textDecorationLine: "line-through",
   },
   count: {
-    fontSize: 12,
+    ...typeScale.caption,
   },
   body: {
     borderTopWidth: 1,
     padding: spacing.lg,
     gap: spacing.md,
   },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  caption: {
+    ...typeScale.caption,
+  },
   milestone: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
   milestoneEditor: {
     gap: spacing.sm,
   },
   prompt: {
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
     gap: spacing.sm,
   },
   promptText: {
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  promptQuestion: {
-    fontSize: 14,
-    fontWeight: "600",
+    ...typeScale.body,
   },
   subtopics: {
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   actions: {
     flexDirection: "row",
-    gap: spacing.sm,
+    justifyContent: "flex-end",
+    gap: spacing.xs,
   },
 });

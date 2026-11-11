@@ -1,13 +1,15 @@
 // src/features/testing-portal/components/AnswerResultView.tsx
 /** The saved expert answer, with the question it answers and the key concepts it covers. */
 import { StyleSheet, Text, View } from "react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
+import { CopyButton } from "@/components/tool/CopyButton";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { Panel } from "@/components/tool/FormControls";
 import type { SavedAnswer } from "../lib/persistence";
 
 export function AnswerResultView({ answer }: { answer: SavedAnswer }) {
   const colors = useThemeColors();
+  const divider = { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.lg };
 
   return (
     <Panel>
@@ -19,15 +21,20 @@ export function AnswerResultView({ answer }: { answer: SavedAnswer }) {
           </Text>
         </View>
       )}
-      <View style={[styles.section, answer.question !== "" && { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.lg }]}>
-        <Text style={[styles.heading, { color: colors.foreground }]}>Expert answer</Text>
+      <View style={[styles.section, answer.question !== "" && divider]}>
+        <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>
+          Answer
+        </Text>
         <Text selectable style={[styles.body, { color: colors.foreground }]}>
           {answer.answerText}
         </Text>
-        <ListenButton text={answer.answerText} label="Answer" />
+        <View style={styles.actions}>
+          <CopyButton text={answer.answerText} label="Copy answer" />
+          <ListenButton text={answer.answerText} label="Answer" />
+        </View>
       </View>
       {answer.keyConceptsCovered.length > 0 && (
-        <View style={[styles.section, { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.lg }]}>
+        <View style={[styles.section, divider]}>
           <Text style={[styles.label, { color: colors.mutedForeground }]}>Key concepts</Text>
           <View style={styles.chips}>
             {answer.keyConceptsCovered.map((concept, index) => (
@@ -50,23 +57,23 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   label: {
-    fontSize: 12,
+    ...typeScale.label,
     fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
   question: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
     fontWeight: "500",
   },
   heading: {
-    fontSize: 18,
-    fontWeight: "600",
+    ...typeScale.title,
   },
   body: {
-    fontSize: 15,
-    lineHeight: 23,
+    ...typeScale.body,
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   chips: {
     flexDirection: "row",
@@ -75,12 +82,12 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   chipText: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "500",
   },
 });

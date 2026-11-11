@@ -12,7 +12,7 @@ export default function ExecutiveEqNewRoute() {
   return (
     <ToolScreen
       title="New simulation"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton onPress={setup.reset} accessibilityLabel="Reset form" />}
       footer={<ExecutiveEqFormFooter setup={setup} />}
     >
       <ExecutiveEqFormFields setup={setup} />

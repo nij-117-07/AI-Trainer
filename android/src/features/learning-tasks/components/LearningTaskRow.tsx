@@ -1,14 +1,15 @@
 // src/features/learning-tasks/components/LearningTaskRow.tsx
 /** One task on the list: tick it, open it for details, or remove it. */
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { Check, ChevronDown, ChevronUp, Trash2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ChevronDown, ChevronUp, Circle, CircleCheck, Trash2 } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { TagList } from "@/components/tool/TagList";
 import type { GuideTask } from "@/features/guides/types";
 import type { LearningTask } from "../types";
+import { IconButton } from "./IconButton";
 
 export function TaskDetails({ task }: { task: GuideTask }) {
   const colors = useThemeColors();
@@ -28,7 +29,9 @@ export function TaskDetails({ task }: { task: GuideTask }) {
       ) : null}
       {task.learningOutcomes.length > 0 ? (
         <View style={styles.outcomes}>
-          <Text style={[styles.outcomesLabel, { color: colors.mutedForeground }]}>Learning outcomes</Text>
+          <Text accessibilityRole="header" style={[styles.outcomesLabel, { color: colors.mutedForeground }]}>
+            Learning outcomes
+          </Text>
           <TagList items={task.learningOutcomes} />
         </View>
       ) : null}
@@ -46,32 +49,16 @@ export function LearningTaskRow({ task, onToggle, onRemove }: LearningTaskRowPro
   const colors = useThemeColors();
   const [open, setOpen] = useState(false);
 
-  function confirmRemove() {
-    Alert.alert("Remove this task?", `"${task.title}" will be removed from your list.`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Remove", style: "destructive", onPress: onRemove },
-    ]);
-  }
-
   return (
     <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={styles.head}>
-        <Pressable
+        <IconButton
+          icon={task.done ? CircleCheck : Circle}
+          label={task.done ? `Mark "${task.title}" not done` : `Mark "${task.title}" done`}
+          checked={task.done}
+          color={task.done ? colors.primary : colors.mutedForeground}
           onPress={onToggle}
-          accessibilityRole="checkbox"
-          accessibilityLabel={`Mark "${task.title}" done`}
-          accessibilityState={{ checked: task.done }}
-          hitSlop={10}
-          style={[
-            styles.checkbox,
-            {
-              borderColor: task.done ? colors.primary : colors.border,
-              backgroundColor: task.done ? colors.primary : colors.background,
-            },
-          ]}
-        >
-          {task.done ? <Check size={14} color={colors.primaryForeground} /> : null}
-        </Pressable>
+        />
 
         <Pressable
           onPress={() => setOpen((value) => !value)}
@@ -81,7 +68,7 @@ export function LearningTaskRow({ task, onToggle, onRemove }: LearningTaskRowPro
           style={styles.titleArea}
         >
           <Text
-            numberOfLines={open ? undefined : 2}
+            numberOfLines={open ? undefined : 1}
             style={[
               styles.title,
               { color: task.done ? colors.mutedForeground : colors.foreground },
@@ -97,14 +84,7 @@ export function LearningTaskRow({ task, onToggle, onRemove }: LearningTaskRowPro
           )}
         </Pressable>
 
-        <Pressable
-          onPress={confirmRemove}
-          accessibilityRole="button"
-          accessibilityLabel={`Remove ${task.title}`}
-          style={styles.remove}
-        >
-          <Trash2 size={18} color={colors.mutedForeground} />
-        </Pressable>
+        <IconButton icon={Trash2} label={`Delete "${task.title}"`} color={colors.mutedForeground} onPress={onRemove} />
       </View>
 
       {open ? (
@@ -119,44 +99,30 @@ export function LearningTaskRow({ task, onToggle, onRemove }: LearningTaskRowPro
 const styles = StyleSheet.create({
   row: {
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     overflow: "hidden",
   },
   head: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    alignItems: "center",
-    justifyContent: "center",
+    minHeight: 56,
+    paddingHorizontal: spacing.xs,
   },
   titleArea: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 44,
+    minHeight: 48,
+    paddingHorizontal: spacing.xs,
   },
   title: {
+    ...typeScale.body,
     flex: 1,
-    fontSize: 15,
     fontWeight: "600",
   },
   done: {
     textDecorationLine: "line-through",
-  },
-  remove: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
   },
   body: {
     borderTopWidth: 1,
@@ -166,13 +132,13 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   meta: {
-    fontSize: 13,
+    ...typeScale.caption,
   },
   outcomes: {
     gap: spacing.sm,
   },
   outcomesLabel: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
 });

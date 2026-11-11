@@ -5,8 +5,8 @@
  */
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ArrowLeft, Check, Plus, RotateCcw, Save, Trash2, X } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Check, Plus, RotateCcw, Save, Trash2, TriangleExclamationPoint, X } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ChoiceChips, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { confirmAction } from "@/features/chatbot/lib/confirm";
@@ -159,40 +159,51 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
           onPress={goBack}
           accessibilityRole="button"
           accessibilityLabel="Back to tasks"
-          style={({ pressed }) => [styles.backRow, pressed && { opacity: 0.7 }]}
+          style={({ pressed }) => [styles.iconButton, pressed && { backgroundColor: colors.muted }]}
         >
-          <ArrowLeft size={18} color={colors.foreground} />
-          <Text style={[styles.backText, { color: colors.foreground }]}>All tasks</Text>
+          <X size={24} color={colors.foreground} />
         </Pressable>
-        <Pressable
-          onPress={() => void save()}
-          disabled={!dirty}
-          accessibilityRole="button"
-          accessibilityLabel={dirty ? "Save changes" : "All changes saved"}
-          accessibilityState={{ disabled: !dirty }}
-          accessibilityLiveRegion="polite"
-          style={({ pressed }) => [
-            styles.saveButton,
-            { backgroundColor: dirty ? colors.primary : colors.muted },
-            pressed && dirty && { opacity: 0.85 },
-          ]}
-        >
-          <Save size={16} color={dirty ? colors.primaryForeground : colors.mutedForeground} />
-          <Text style={[styles.saveText, { color: dirty ? colors.primaryForeground : colors.mutedForeground }]}>
-            {dirty ? "Save" : "Saved"}
-          </Text>
-        </Pressable>
+        <View style={styles.topActions}>
+          <Pressable
+            onPress={confirmDelete}
+            accessibilityRole="button"
+            accessibilityLabel="Delete task"
+            style={({ pressed }) => [styles.iconButton, pressed && { backgroundColor: colors.muted }]}
+          >
+            <Trash2 size={22} color={colors.destructive} />
+          </Pressable>
+          <Pressable
+            onPress={() => void save()}
+            disabled={!dirty}
+            accessibilityRole="button"
+            accessibilityLabel={dirty ? "Save task" : "All changes saved"}
+            accessibilityState={{ disabled: !dirty }}
+            accessibilityLiveRegion="polite"
+            style={({ pressed }) => [
+              styles.saveButton,
+              { backgroundColor: dirty ? colors.primary : colors.muted },
+              pressed && dirty && { opacity: 0.85 },
+            ]}
+          >
+            <Save size={18} color={dirty ? colors.primaryForeground : colors.mutedForeground} />
+            <Text style={[styles.saveText, { color: dirty ? colors.primaryForeground : colors.mutedForeground }]}>
+              {dirty ? "Save task" : "Saved"}
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <ErrorText message={error} />
       {notice ? (
-        <Text accessibilityLiveRegion="polite" style={[styles.hint, { color: colors.mutedForeground }]}>
-          {notice}
-        </Text>
+        <View style={[styles.notice, { backgroundColor: colors.tone.amber.bg, borderColor: colors.tone.amber.border }]}>
+          <TriangleExclamationPoint size={18} color={colors.tone.amber.fg} />
+          <Text accessibilityLiveRegion="polite" style={[styles.noticeText, { color: colors.foreground }]}>
+            {notice}
+          </Text>
+        </View>
       ) : null}
 
       <Panel>
-        <Text accessibilityRole="header" style={[styles.heading, { color: colors.mutedForeground }]}>Details</Text>
         <TextField label="Title" value={draft.title} onChangeText={(value) => update({ title: value })} maxLength={200} />
         <TextField
           label="Notes"
@@ -236,7 +247,7 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
       </Panel>
 
       <Panel>
-        <Text accessibilityRole="header" style={[styles.heading, { color: colors.mutedForeground }]}>Schedule</Text>
+        <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>Schedule</Text>
         <Text style={[styles.label, { color: colors.foreground }]}>Due date</Text>
         <ChoiceChips
           options={dueDateOptions(new Date())}
@@ -259,7 +270,6 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
 
         <DateTimeField
           label="Remind me at"
-          hint="Reminders work on the Android app."
           mode="datetime"
           value={reminderDate}
           placeholder="Choose a date and time"
@@ -273,7 +283,7 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
       </Panel>
 
       <Panel>
-        <Text accessibilityRole="header" style={[styles.heading, { color: colors.mutedForeground }]}>Subtasks</Text>
+        <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>Subtasks</Text>
         {draft.subtasks.length === 0 ? (
           <Text style={[styles.hint, { color: colors.mutedForeground }]}>No subtasks yet.</Text>
         ) : null}
@@ -325,26 +335,15 @@ export function TaskEditor({ task, projects, labels, today, onBack, onSave, onTo
         <ActionButton label="Add subtask" icon={Plus} variant="outline" onPress={addSubtask} />
       </Panel>
 
-      <Panel>
-        <ActionButton
-          label={task.completed ? "Reopen task" : task.recurrence !== "none" ? "Done for this round" : "Mark complete"}
-          icon={task.completed ? RotateCcw : Check}
-          variant="outline"
-          onPress={() => {
-            onToggle();
-            onBack();
-          }}
-        />
-        <Pressable
-          onPress={confirmDelete}
-          accessibilityRole="button"
-          accessibilityLabel="Delete task"
-          style={({ pressed }) => [styles.deleteAction, pressed && { opacity: 0.7 }]}
-        >
-          <Trash2 size={18} color={colors.destructive} />
-          <Text style={[styles.deleteText, { color: colors.destructive }]}>Delete task</Text>
-        </Pressable>
-      </Panel>
+      <ActionButton
+        label={task.completed ? "Reopen task" : task.recurrence !== "none" ? "Done for this round" : "Mark complete"}
+        icon={task.completed ? RotateCcw : Check}
+        variant="outline"
+        onPress={() => {
+          onToggle();
+          onBack();
+        }}
+      />
     </Section>
   );
 }
@@ -356,44 +355,55 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing.md,
   },
-  backRow: {
+  topActions: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 44,
   },
-  backText: {
-    fontSize: 15,
-    fontWeight: "600",
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
   saveButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 44,
+    minHeight: touchTarget,
     paddingHorizontal: spacing.lg,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
   },
   saveText: {
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
+  notice: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    padding: spacing.lg,
+  },
+  noticeText: {
+    ...typeScale.caption,
+    flex: 1,
+  },
   heading: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
+    ...typeScale.body,
+    fontWeight: "600",
   },
   notes: {
     minHeight: 100,
   },
   label: {
-    fontSize: 14,
+    ...typeScale.body,
     fontWeight: "600",
   },
   hint: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
   chipRow: {
     flexDirection: "row",
@@ -410,37 +420,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    minHeight: 44,
+    minHeight: touchTarget,
   },
   subtaskTitle: {
+    ...typeScale.body,
     flex: 1,
-    fontSize: 15,
   },
   removeButton: {
-    width: 44,
-    height: 44,
+    width: touchTarget,
+    height: touchTarget,
     alignItems: "center",
     justifyContent: "center",
-  },
-  deleteAction: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-    minHeight: 44,
-  },
-  deleteText: {
-    fontSize: 16,
-    fontWeight: "600",
   },
   strike: {
     textDecorationLine: "line-through",
   },
   checkbox: {
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
     borderWidth: 2,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },

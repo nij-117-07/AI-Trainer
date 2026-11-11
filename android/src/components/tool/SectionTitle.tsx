@@ -2,7 +2,7 @@
 /** Icon and heading shown at the top of a result panel. */
 import { StyleSheet, Text, View } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 
 interface SectionTitleProps {
   icon: LucideIcon;
@@ -28,7 +28,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   title: {
-    fontSize: 16,
-    fontWeight: "600",
+    ...typeScale.title,
   },
 });

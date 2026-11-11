@@ -1,23 +1,30 @@
-/** Header button that clears the form or the current round. Pass a label to show text beside the icon when one button is not enough to tell the resets apart. */
+/** Header button that clears the form or the current round. Icon only by default. Pass a label to show text beside the icon when one button is not enough to tell the resets apart. accessibilityLabel names the object being reset, for example "Reset form". */
 import { Pressable, StyleSheet, Text } from "react-native";
 import { RefreshCcw } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 
-export function ResetButton({ onPress, label }: { onPress: () => void; label?: string }) {
+export function ResetButton({
+  onPress,
+  label,
+  accessibilityLabel,
+}: {
+  onPress: () => void;
+  label?: string;
+  accessibilityLabel?: string;
+}) {
   const colors = useThemeColors();
-  const text = label ?? "Reset";
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={text}
+      accessibilityLabel={accessibilityLabel ?? label ?? "Reset"}
       style={({ pressed }) => [
         label ? styles.labeled : styles.button,
         { borderColor: colors.border },
         pressed && { backgroundColor: colors.muted },
       ]}
     >
-      <RefreshCcw size={18} color={colors.foreground} />
+      <RefreshCcw size={20} color={colors.foreground} />
       {label ? <Text style={[styles.text, { color: colors.foreground }]}>{label}</Text> : null}
     </Pressable>
   );
@@ -25,24 +32,24 @@ export function ResetButton({ onPress, label }: { onPress: () => void; label?: s
 
 const styles = StyleSheet.create({
   button: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   labeled: {
-    height: 44,
+    minHeight: touchTarget,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     borderWidth: 1,
     paddingHorizontal: spacing.md,
   },
   text: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
 });

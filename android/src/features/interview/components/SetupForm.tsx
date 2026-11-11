@@ -4,8 +4,8 @@
  * error and the start button.
  */
 import { StyleSheet, Text, View } from "react-native";
-import { Briefcase } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Briefcase, TriangleAlert } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { CountSlider } from "@/components/tool/CountSlider";
@@ -42,7 +42,6 @@ export function SetupFormFields({ setup }: { setup: InterviewSetupState }) {
       />
       <TextField
         label="Skills"
-        hint="Comma-separated"
         placeholder="e.g. Python, AWS, Kafka"
         value={form.candidateSkills}
         onChangeText={(text) => onChange("candidateSkills", text)}
@@ -69,7 +68,6 @@ export function SetupFormFields({ setup }: { setup: InterviewSetupState }) {
       />
       <TextField
         label="Required skills (optional)"
-        hint="Comma-separated"
         placeholder="e.g. Python, AWS, Distributed systems"
         value={form.positionSkills}
         onChangeText={(text) => onChange("positionSkills", text)}
@@ -134,6 +132,7 @@ export function SetupFormFields({ setup }: { setup: InterviewSetupState }) {
 
       {hasSession ? (
         <View style={[styles.warning, { borderColor: colors.tone.amber.border, backgroundColor: colors.tone.amber.bg }]}>
+          <TriangleAlert size={16} color={colors.tone.amber.fg} />
           <Text style={[styles.warningText, { color: colors.tone.amber.fg }]}>
             Starting again will replace the active interview session.
           </Text>
@@ -149,7 +148,7 @@ export function SetupFormFooter({ setup }: { setup: InterviewSetupState }) {
     <>
       <ErrorText message={setup.error} />
       <ActionButton
-        label={isPending ? "Deciding the first move…" : setup.hasSession ? "Start a new interview" : "Start interview"}
+        label={isPending ? "Deciding the first move…" : setup.hasSession ? "Start new interview" : "Start interview"}
         icon={Briefcase}
         loading={isPending}
         onPress={() => void setup.start()}
@@ -169,18 +168,19 @@ function GroupTitle({ text }: { text: string }) {
 
 const styles = StyleSheet.create({
   groupTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    ...typeScale.overline,
     marginTop: spacing.sm,
   },
   warning: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
   },
   warningText: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.body,
+    flex: 1,
   },
 });

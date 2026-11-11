@@ -35,7 +35,7 @@ export default function JokeLabRoute() {
 
   return (
     <ToolScreen
-      title="Joke Lab"
+      title="Joke Coach"
       footer={
         round ? (
           <AnswerComposer
@@ -45,7 +45,7 @@ export default function JokeLabRoute() {
             maxLength={JOKE_MAX}
             pending={game.pending === "evaluate"}
             error={game.error}
-            submitLabel={round.attempts.length > 0 ? "Resubmit" : "Submit"}
+            submitLabel={round.attempts.length > 0 ? "Resubmit joke" : "Submit joke"}
             onChangeText={game.changeDraft}
             onSubmit={() => void game.submitJoke()}
           />
@@ -62,7 +62,7 @@ export default function JokeLabRoute() {
             <EmptyHint
               icon={Laugh}
               title="No scenario yet"
-              hint="Tap New scenario, choose a language and an optional theme, then generate."
+              hint="Get a scenario to write a joke for."
             />
           )
         )}

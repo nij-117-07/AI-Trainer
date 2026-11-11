@@ -84,12 +84,12 @@ export function IngredientsFormFields({ ingredients }: { ingredients: Ingredient
         onChange={setImage}
         disabled={pending}
         label="Ingredients photo"
-        hint="PNG, JPG, or WEBP: a clear photo of the ingredients list."
+        noun="photo"
       />
       <TextField
         label="Manual text (optional)"
         placeholder="e.g. water, sugar, citric acid"
-        hint="Paste the ingredient list if the photo is blurry."
+        hint="Use this if the photo is blurry."
         value={form.manualText}
         onChangeText={setManualText}
         editable={!pending}

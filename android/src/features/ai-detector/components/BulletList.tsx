@@ -1,7 +1,7 @@
 // src/features/ai-detector/components/BulletList.tsx
 /** Bullet list of flagged patterns or suggested changes. The enclosing disclosure gives it a title. */
 import { StyleSheet, Text, View } from "react-native";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors, type Tone } from "@/theme";
 
 interface BulletListProps {
   tone: Tone;
@@ -30,17 +30,15 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: "row",
     gap: spacing.sm,
-    borderRadius: radius.lg,
+    borderRadius: shape.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   dot: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
   text: {
+    ...typeScale.body,
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
   },
 });

@@ -64,10 +64,11 @@ export function sanitizeMessages(saved: unknown): ChatMessage[] {
     .filter(isRecord)
     .map((item): ChatMessage | null => {
       const content = textOf(item.content);
-      if (!content) return null;
+      const stopped = item.role === "assistant" && item.stopped === true;
+      if (!content && !stopped) return null;
       if (item.role !== "user" && item.role !== "assistant") return null;
       const kind = item.kind === "summary" ? "summary" : "turn";
-      return { role: item.role, content, kind };
+      return stopped ? { role: item.role, content, kind, stopped } : { role: item.role, content, kind };
     })
     .filter((message): message is ChatMessage => message !== null);
 }

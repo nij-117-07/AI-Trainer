@@ -1,7 +1,7 @@
 // src/features/tasks/components/ToggleChip.tsx
 /** A chip that can be selected on its own or together with others. */
 import { Pressable, StyleSheet, Text } from "react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 
 interface ToggleChipProps {
   label: string;
@@ -33,15 +33,15 @@ export function ToggleChip({ label, selected = false, onPress }: ToggleChipProps
 
 const styles = StyleSheet.create({
   chip: {
-    minHeight: 44,
+    minHeight: touchTarget,
     justifyContent: "center",
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   text: {
-    fontSize: 14,
+    ...typeScale.body,
     fontWeight: "500",
   },
   pressed: {

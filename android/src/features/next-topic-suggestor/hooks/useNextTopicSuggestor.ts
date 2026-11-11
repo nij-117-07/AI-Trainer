@@ -4,15 +4,20 @@ import { useEffect, useState } from "react";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "@/hooks/useRequest";
 import { loadDocument, saveDocument } from "@/lib/document-store";
+import { keptCount } from "@/lib/kept";
 import { DEFAULT_NEXT_TOPIC_FORM, NEXT_TOPIC_DRAFT_KEY, normalizeNextTopicDraft } from "../lib/draft";
 import { suggestNextTopics } from "../lib/generator";
+import { mergeTopicBatch, toggleTopicKept } from "../lib/result";
 import type { NextTopicFormValues, NextTopicResult } from "../types";
+
+const SAVE_FAILED_MESSAGE = "Changes couldn't be saved. They'll try again.";
 
 export function useNextTopicSuggestor() {
   const { settings } = useAiSettings();
   const [form, setForm] = useState<NextTopicFormValues>(DEFAULT_NEXT_TOPIC_FORM);
   const [result, setResult] = useState<NextTopicResult | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const request = useRequest(suggestNextTopics);
 
   useEffect(() => {
@@ -35,7 +40,10 @@ export function useNextTopicSuggestor() {
 
   useEffect(() => {
     if (!hydrated) return;
-    saveDocument(NEXT_TOPIC_DRAFT_KEY, { form, result }).catch(() => undefined);
+    saveDocument(NEXT_TOPIC_DRAFT_KEY, { form, result }).then(
+      () => setSaveFailed(false),
+      () => setSaveFailed(true),
+    );
   }, [hydrated, form, result]);
 
   function update<K extends keyof NextTopicFormValues>(key: K, value: NextTopicFormValues[K]) {
@@ -44,7 +52,11 @@ export function useNextTopicSuggestor() {
 
   async function suggest() {
     const next = await request.run(settings, form);
-    if (next) setResult(next);
+    if (next) setResult((prev) => mergeTopicBatch(prev, next));
+  }
+
+  function toggleKept(index: number) {
+    setResult((prev) => (prev ? toggleTopicKept(prev, index) : prev));
   }
 
   function reset() {
@@ -56,10 +68,12 @@ export function useNextTopicSuggestor() {
   return {
     form,
     pending: request.pending,
-    error: request.error,
+    error: request.error ?? (saveFailed ? SAVE_FAILED_MESSAGE : null),
     result,
+    keptCount: keptCount(result?.recommendations ?? []),
     update,
     suggest,
+    toggleKept,
     reset,
   };
 }

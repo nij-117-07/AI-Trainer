@@ -39,7 +39,9 @@ export function formatSynthesis(synthesis: SocraticSynthesis): string {
 }
 
 export function toHistory(messages: ChatMessage[]): string[] {
-  return messages.map((message) => (message.role === "user" ? `User: ${message.content}` : `AI: ${message.content}`));
+  return messages
+    .filter((message) => message.content)
+    .map((message) => (message.role === "user" ? `User: ${message.content}` : `AI: ${message.content}`));
 }
 
 export function formatHistory(lines: string[]): string {

@@ -19,10 +19,10 @@ export default function SocialPostsRoute() {
 
   return (
     <ToolScreen
-      title="Social Media Post Generator"
+      title="Social posts"
       footer={
         <ActionButton
-          label="New posts"
+          label="Write posts"
           icon={Sparkles}
           onPress={() => router.push("/tools/social-posts/new")}
         />
@@ -35,7 +35,7 @@ export default function SocialPostsRoute() {
           <EmptyHint
             icon={Megaphone}
             title="No posts yet"
-            hint="Tap New posts, describe the platform and topic, then generate."
+            hint="Pick a platform and describe your topic to get started."
           />
         )}
       </Section>

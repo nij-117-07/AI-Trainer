@@ -1,28 +1,39 @@
 // src/features/skill-architect/components/SkillTreeDetail.tsx
 /**
- * Detail view for one saved tree: topic, progress, edit and delete actions, the latest AI update,
- * and the level breakdown with tickable root skills. Edit mode swaps the breakdown for TreeEditor.
+ * Detail view for one saved tree. Phones show the levels as a list, and a skill opens its own page.
+ * Tablet and desktop show the levels beside the selected skill. Edit mode swaps the levels for TreeEditor.
  */
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Check, Pencil, Sparkles, Trash2 } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel } from "@/components/tool/FormControls";
+import { MousePointerClick, Sparkles } from "lucide-react-native";
+import { spacing, typeScale, useLayout, useThemeColors } from "@/theme";
+import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
-import { ListenButton } from "@/components/tool/ListenButton";
 import { Section } from "@/components/tool/Section";
-import { TagList } from "@/components/tool/TagList";
 import type { SkillTreeState } from "../hooks/useSkillTree";
 import type { TreeUpdate } from "../types";
 import { treeProgress } from "../lib/progress";
-import { shortDate, treeStats } from "../lib/trees";
+import { findSkill, skillStatus, type SkillRef } from "../lib/selection";
+import { LevelCard } from "./LevelCard";
 import { SkillArchitectResult } from "./SkillArchitectResult";
+import { SkillPage } from "./SkillPage";
 import { TreeEditor } from "./TreeEditor";
 
-export function SkillTreeDetail({ state }: { state: SkillTreeState }) {
+interface SkillTreeDetailProps {
+  state: SkillTreeState;
+  selected: SkillRef | null;
+  /** True on a phone with a skill open: the skill page replaces the levels. */
+  skillPage: boolean;
+  onSelect: (ref: SkillRef) => void;
+}
+
+export function SkillTreeDetail({ state, selected, skillPage, onSelect }: SkillTreeDetailProps) {
   const colors = useThemeColors();
   const router = useRouter();
+  const { size } = useLayout();
 
   if (!state.loaded) {
     return <Text style={[styles.muted, { color: colors.mutedForeground }]}>Loading skill tree…</Text>;
@@ -46,62 +57,72 @@ export function SkillTreeDetail({ state }: { state: SkillTreeState }) {
     );
   }
 
-  const stats = treeStats(tree);
+  if (state.editing) {
+    return <TreeEditor levels={state.draftLevels} onChange={state.setDraftLevels} />;
+  }
+
+  const levels = tree.response.skillTreeLevels;
   const progress = treeProgress(tree);
+  const picked = findSkill(levels, selected);
+  const page = picked ? (
+    <SkillPage
+      level={picked.level}
+      levelIndex={picked.levelIndex}
+      skill={picked.skill}
+      status={skillStatus(picked.level, picked.skill, tree.completedSkills)}
+      onToggle={() => state.toggle(picked.skill)}
+    />
+  ) : null;
 
-  async function handleDelete() {
-    if (await state.remove()) router.replace("/learning/skill-architect" as never);
-  }
+  if (skillPage && page) return page;
 
-  function confirmDelete() {
-    Alert.alert(
-      "Delete this skill tree?",
-      `"${tree?.topic}" and its generated skill levels will be permanently removed.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => void handleDelete() },
-      ],
-    );
-  }
+  const levelList = (
+    <View style={styles.levels}>
+      <Text style={[styles.summary, { color: colors.mutedForeground }]}>
+        {progress.done} of {progress.total} skills learned
+      </Text>
+      {levels.length === 0 ? (
+        <Text style={[styles.muted, { color: colors.mutedForeground }]}>No skill tree levels returned.</Text>
+      ) : (
+        levels.map((level, levelIndex) => (
+          <LevelCard
+            key={`${level.levelName}-${levelIndex}`}
+            level={level}
+            index={levelIndex}
+            completedSkills={tree.completedSkills}
+            selectedSkill={picked?.levelIndex === levelIndex ? picked.skillIndex : null}
+            onOpenSkill={(skillIndex) => onSelect({ level: levelIndex, skill: skillIndex })}
+            onToggleSkill={state.toggle}
+          />
+        ))
+      )}
+    </View>
+  );
+
+  const wide = size !== "phone";
 
   return (
     <Section>
-      <Panel>
-        <Text style={[styles.title, { color: colors.foreground }]}>{tree.topic}</Text>
-        <TagList
-          items={[
-            `${stats.levelCount} level${stats.levelCount === 1 ? "" : "s"}`,
-            `${stats.rootSkillCount} root skill${stats.rootSkillCount === 1 ? "" : "s"}`,
-            `${progress.done} of ${progress.total} done`,
-            `Updated ${shortDate(tree.updatedAt)}`,
-          ]}
-        />
+      {tree.lastUpdate && <LatestUpdate update={tree.lastUpdate} />}
 
-        {state.editing ? (
-          <>
-            <ActionButton label="Save changes" icon={Check} onPress={() => void state.saveEdit()} />
-            <ActionButton label="Cancel" variant="outline" onPress={state.cancelEdit} />
-          </>
-        ) : (
-          <>
-            <ActionButton label="Edit tree" icon={Pencil} variant="outline" onPress={state.startEdit} />
-            <ActionButton label="Delete skill tree" icon={Trash2} variant="outline" onPress={confirmDelete} />
-          </>
-        )}
-        {state.editing && <ErrorText message={state.error} />}
-      </Panel>
-
-      {!state.editing && tree.lastUpdate && <LatestUpdate update={tree.lastUpdate} />}
-
-      {state.editing ? (
-        <TreeEditor levels={state.draftLevels} onChange={state.setDraftLevels} />
+      {wide ? (
+        <View style={styles.split}>
+          <View style={size === "desktop" ? styles.listDesktop : styles.listTablet}>{levelList}</View>
+          <View style={styles.pane}>
+            {page ?? (
+              <EmptyHint
+                icon={MousePointerClick}
+                title="Select a skill"
+                hint="Its level, how it works, and proof of mastery show here."
+              />
+            )}
+          </View>
+        </View>
       ) : (
-        <SkillArchitectResult
-          response={tree.response}
-          completedSkills={tree.completedSkills}
-          onToggleSkill={state.toggle}
-        />
+        levelList
       )}
+
+      <SkillArchitectResult response={tree.response} />
     </Section>
   );
 }
@@ -127,19 +148,39 @@ function LatestUpdate({ update }: { update: TreeUpdate }) {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: spacing.xs,
+    ...typeScale.title,
   },
   muted: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...typeScale.body,
+  },
+  summary: {
+    ...typeScale.caption,
+    fontWeight: "600",
+  },
+  levels: {
+    gap: spacing.sm,
+  },
+  split: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.lg,
+  },
+  listTablet: {
+    flex: 2,
+    minWidth: 0,
+  },
+  listDesktop: {
+    width: 360,
+  },
+  pane: {
+    flex: 1,
+    minWidth: 0,
   },
   next: {
     gap: spacing.sm,
   },
   label: {
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
 });

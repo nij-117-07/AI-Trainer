@@ -1,11 +1,9 @@
 // src/features/interview/components/SessionHeader.tsx
-/** Session status row: question counter, time left, performance trend, and the End interview control. */
+/** Session status line: the role, time left, performance trend, and how far through the questions the session is. */
 import { StyleSheet, Text, View } from "react-native";
-import { Flag, Minus, Timer, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
-import { ActionButton } from "@/components/tool/FormControls";
+import { Minus, Timer, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors, type Tone } from "@/theme";
 import type { InterviewSessionState, PerformanceTrend } from "../types";
-import { BadgeRow, StageBadge } from "./StagePanel";
 
 const TREND_META: Record<PerformanceTrend, { label: string; icon: LucideIcon; tone: Tone }> = {
   improving: { label: "Improving", icon: TrendingUp, tone: "emerald" },
@@ -15,34 +13,30 @@ const TREND_META: Record<PerformanceTrend, { label: string; icon: LucideIcon; to
 
 interface SessionHeaderProps {
   state: InterviewSessionState;
-  isPending: boolean;
-  onEnd: () => void;
 }
 
-export function SessionHeader({ state, isPending, onEnd }: SessionHeaderProps) {
+export function SessionHeader({ state }: SessionHeaderProps) {
   const colors = useThemeColors();
   const trend = TREND_META[state.performanceTrend];
   const TrendIcon = trend.icon;
   const minutes = Math.max(0, state.timeRemainingMinutes);
-  const questionNumber = Math.min(state.questionsAsked + 1, state.setup.maxQuestions);
   const answeredPercent = Math.round(Math.min(100, (state.questionsAsked / Math.max(1, state.setup.maxQuestions)) * 100));
 
   return (
-    <View style={[styles.box, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <BadgeRow>
-        <StageBadge label={`Question ${questionNumber} of ${state.setup.maxQuestions}`} />
-        <View style={[styles.inline, { borderColor: colors.border }]}>
-          <Timer size={14} color={colors.mutedForeground} />
-          <Text style={[styles.inlineText, { color: colors.foreground }]}>{minutes} min left</Text>
-        </View>
-        <View style={[styles.inline, { borderColor: colors.tone[trend.tone].border, backgroundColor: colors.tone[trend.tone].bg }]}>
-          <TrendIcon size={14} color={colors.tone[trend.tone].fg} />
-          <Text style={[styles.inlineText, { color: colors.tone[trend.tone].fg }]}>{trend.label}</Text>
-        </View>
-      </BadgeRow>
+    <View style={styles.box}>
       <Text style={[styles.meta, { color: colors.mutedForeground }]}>
         {state.setup.positionRole} · {state.setup.positionLevel}
       </Text>
+      <View style={styles.row}>
+        <View style={styles.inline}>
+          <Timer size={16} color={colors.mutedForeground} />
+          <Text style={[styles.inlineText, { color: colors.foreground }]}>{minutes} min left</Text>
+        </View>
+        <View style={styles.inline}>
+          <TrendIcon size={16} color={colors.tone[trend.tone].fg} />
+          <Text style={[styles.inlineText, { color: colors.tone[trend.tone].fg }]}>{trend.label}</Text>
+        </View>
+      </View>
       <View
         accessibilityRole="progressbar"
         accessibilityLabel="Questions answered"
@@ -51,37 +45,35 @@ export function SessionHeader({ state, isPending, onEnd }: SessionHeaderProps) {
       >
         <View style={[styles.fill, { backgroundColor: colors.primary, width: `${answeredPercent}%` }]} />
       </View>
-      <ActionButton label="End interview" icon={Flag} variant="outline" loading={isPending} onPress={onEnd} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   box: {
-    borderWidth: 1,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: spacing.md,
   },
   inline: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
-    borderWidth: 1,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
   },
   inlineText: {
-    fontSize: 12,
+    ...typeScale.body,
     fontWeight: "600",
   },
   meta: {
-    fontSize: 13,
+    ...typeScale.caption,
   },
   track: {
     height: 6,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     overflow: "hidden",
   },
   fill: {

@@ -1,7 +1,7 @@
 // src/components/tool/AnswerComposer.tsx
 /** Answer box pinned to a screen footer: text input, submit button, and voice input. */
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { appendTranscript } from "@/features/chatbot/lib/voice-text";
 import { ErrorText } from "./FormControls";
 import { VoiceInputRow } from "./VoiceInputRow";
@@ -17,6 +17,7 @@ interface AnswerComposerProps {
   /** Lets an empty message submit, for modes where the text is optional. */
   allowEmpty?: boolean;
   onChangeText: (text: string) => void;
+  onBlur?: () => void;
   onSubmit: () => void;
 }
 
@@ -30,6 +31,7 @@ export function AnswerComposer({
   submitLabel,
   allowEmpty = false,
   onChangeText,
+  onBlur,
   onSubmit,
 }: AnswerComposerProps) {
   const colors = useThemeColors();
@@ -44,6 +46,7 @@ export function AnswerComposer({
           multiline
           value={value}
           onChangeText={onChangeText}
+          onBlur={onBlur}
           editable={!pending}
           maxLength={maxLength}
           placeholder={placeholder}
@@ -91,24 +94,24 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 48,
+    minHeight: touchTarget,
     maxHeight: 120,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     fontSize: 16,
   },
   submit: {
-    minHeight: 48,
+    minHeight: touchTarget,
     minWidth: 96,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.lg,
   },
   submitText: {
-    fontSize: 15,
+    ...typeScale.label,
     fontWeight: "600",
   },
 });

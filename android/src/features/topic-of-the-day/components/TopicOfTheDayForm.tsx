@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { CalendarDays } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Field, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
@@ -149,11 +149,11 @@ const styles = StyleSheet.create({
   },
   broad: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
   broadText: {
-    fontSize: 16,
+    ...typeScale.body,
   },
 });

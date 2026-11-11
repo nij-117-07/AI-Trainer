@@ -16,6 +16,7 @@ export interface LearnedTopic {
 export interface Subtopic {
   name: string;
   description: string;
+  kept: boolean;
 }
 
 export interface SubtopicResult {

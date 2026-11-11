@@ -1,10 +1,11 @@
 // src/features/topic-of-the-day/components/BroadTopicRow.tsx
-/** One broader topic in the list: opens its topics, with round buttons to rename or delete it. */
+/** One broader topic in the list: a name and count that open its topics, with icon buttons to rename or delete it. */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ChevronRight, Pencil, Trash2 } from "lucide-react-native";
-import type { LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
+import { pointerCursor } from "@/components/tool/FormControls";
 import type { BroadTopic } from "../types";
+import { IconAction } from "./IconAction";
 
 interface BroadTopicRowProps {
   broad: BroadTopic;
@@ -23,72 +24,49 @@ export function BroadTopicRow({ broad, count, onOpen, onEdit, onDelete }: BroadT
         onPress={onOpen}
         accessibilityRole="button"
         accessibilityLabel={`Open ${broad.name}`}
-        style={({ pressed }) => [styles.open, pressed && { backgroundColor: colors.muted }]}
+        style={({ pressed }) => [styles.open, pointerCursor, pressed && { backgroundColor: colors.muted }]}
       >
         <View style={styles.text}>
           <Text numberOfLines={2} style={[styles.name, { color: colors.foreground }]}>
             {broad.name}
           </Text>
-          <Text style={[styles.count, { color: colors.mutedForeground }]}>
-            {count === 1 ? "1 topic" : `${count} topics`}
-          </Text>
+          <Text style={[styles.count, { color: colors.mutedForeground }]}>{count === 1 ? "1 topic" : `${count} topics`}</Text>
         </View>
-        <ChevronRight size={18} color={colors.mutedForeground} />
+        <ChevronRight size={20} color={colors.mutedForeground} />
       </Pressable>
-      <IconButton icon={Pencil} label={`Edit ${broad.name}`} onPress={onEdit} />
-      <IconButton icon={Trash2} label={`Delete ${broad.name}`} onPress={onDelete} />
+      <IconAction icon={Pencil} label={`Edit broader topic ${broad.name}`} onPress={onEdit} />
+      <IconAction icon={Trash2} label={`Delete broader topic ${broad.name}`} onPress={onDelete} destructive />
     </View>
-  );
-}
-
-function IconButton({ icon: Icon, label, onPress }: { icon: LucideIcon; label: string; onPress: () => void }) {
-  const colors = useThemeColors();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={({ pressed }) => [styles.iconButton, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
-    >
-      <Icon size={18} color={colors.foreground} />
-    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
+    minHeight: 72,
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     flexDirection: "row",
     alignItems: "center",
-    padding: spacing.xs,
-    gap: spacing.xs,
+    paddingRight: spacing.xs,
   },
   open: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.lg,
+    paddingLeft: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: shape.lg,
   },
   text: {
     flex: 1,
     gap: spacing.xs,
   },
   name: {
-    fontSize: 16,
+    ...typeScale.label,
     fontWeight: "600",
   },
   count: {
-    fontSize: 13,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    ...typeScale.caption,
   },
 });

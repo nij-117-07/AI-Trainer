@@ -4,7 +4,7 @@
  */
 import { StyleSheet, Switch, Text, View } from "react-native";
 import { PlugZap, Save } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import type { FeedFormState } from "../../hooks/useFeedForm";
@@ -31,7 +31,7 @@ export function FeedFormFields({ form }: { form: FeedFormState }) {
       <TextField
         label="Feed URL"
         accessibilityLabel="Feed URL"
-        hint="The RSS or Atom address. It must start with https:// or http://."
+        hint="Must start with https:// or http://"
         placeholder="e.g. https://news.ycombinator.com/rss"
         value={draft.url}
         onChangeText={(text) => update("url", text)}
@@ -59,7 +59,6 @@ export function FeedFormFields({ form }: { form: FeedFormState }) {
       <TextField
         label="Category"
         accessibilityLabel="Category"
-        hint="Used to group channels in the viewer."
         placeholder="e.g. Tech"
         value={draft.category}
         onChangeText={(text) => update("category", text)}
@@ -78,14 +77,12 @@ export function FeedFormFields({ form }: { form: FeedFormState }) {
       <ErrorText message={errors.refreshIntervalMinutes ?? null} />
 
       <View style={[styles.switchRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={styles.switchText}>
-          <Text style={[styles.label, { color: colors.foreground }]}>Enabled</Text>
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>Disabled feeds are hidden from the viewer.</Text>
-        </View>
+        <Text style={[styles.label, { color: colors.foreground }]}>Enabled</Text>
         <Switch
           value={draft.enabled}
           onValueChange={(value) => update("enabled", value)}
           disabled={pending}
+          accessibilityRole="switch"
           accessibilityLabel="Enabled"
           trackColor={{ false: colors.border, true: colors.primary }}
         />
@@ -99,7 +96,7 @@ export function FeedFormFooter({ form }: { form: FeedFormState }) {
     <View style={styles.footer}>
       <ErrorText message={form.saveError} />
       <ActionButton
-        label={form.pending ? "Saving…" : form.editing ? "Save changes" : "Add feed"}
+        label={form.pending ? "Saving…" : form.editing ? "Save feed" : "Add feed"}
         icon={Save}
         loading={form.pending}
         onPress={() => void form.save()}
@@ -113,24 +110,21 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   hint: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
   switchRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
+    minHeight: 56,
     borderWidth: 1,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-  },
-  switchText: {
-    flex: 1,
-    gap: spacing.xs,
+    borderRadius: shape.lg,
+    paddingHorizontal: spacing.lg,
   },
   label: {
-    fontSize: 15,
+    ...typeScale.body,
+    flex: 1,
     fontWeight: "600",
   },
 });

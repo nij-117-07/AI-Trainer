@@ -12,7 +12,7 @@ export default function JokeLabNewRoute() {
   return (
     <ToolScreen
       title="New scenario"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton onPress={setup.reset} accessibilityLabel="Reset form" />}
       footer={<JokeLabFormFooter setup={setup} />}
     >
       <JokeLabFormFields setup={setup} />

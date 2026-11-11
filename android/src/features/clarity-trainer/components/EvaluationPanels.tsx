@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Award, Check, Gauge, GitCompareArrows, Lightbulb, Scissors, Trophy, type LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -172,7 +172,9 @@ function Labeled({ title, icon, children }: { title: string; icon?: LucideIcon; 
       {icon ? (
         <SectionTitle icon={icon} title={title} />
       ) : (
-        <Text style={[styles.label, { color: colors.mutedForeground }]}>{title}</Text>
+        <Text accessibilityRole="header" style={[styles.label, { color: colors.mutedForeground }]}>
+          {title}
+        </Text>
       )}
       {children}
     </View>
@@ -192,31 +194,30 @@ const styles = StyleSheet.create({
   },
   pill: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   pillText: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
   labeled: {
     gap: spacing.sm,
   },
   label: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
   body: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
   italic: {
     fontStyle: "italic",
   },
   note: {
-    fontSize: 13,
-    lineHeight: 19,
+    ...typeScale.label,
+    fontWeight: "400",
   },
   scoreHeader: {
     flexDirection: "row",
@@ -225,12 +226,11 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   bigScore: {
-    fontSize: 28,
-    fontWeight: "700",
+    ...typeScale.display,
   },
   track: {
     height: 8,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     overflow: "hidden",
   },
   fill: {

@@ -1,8 +1,9 @@
 // src/features/tutor/components/TutorResults.tsx
-/** Tutor body: the latest answer, its version controls, and the memory line for the next question. */
+/** Tutor body: the answer first, the analogy under a disclosure, and the note for the next question. */
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ChevronLeft, ChevronRight, HelpCircle, History, Lightbulb, Presentation, Trash2, type LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { ChevronLeft, ChevronRight, HelpCircle, Lightbulb, Presentation, Trash2, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -26,19 +27,12 @@ export function TutorResults({ active, activeIndex, total, lastTopic, onGoTo, on
   const colors = useThemeColors();
 
   if (!active) {
-    return (
-      <EmptyHint
-        icon={Presentation}
-        title="No lesson yet"
-        hint="Type your question in the form and tap Explain it to me. You get an explanation, an analogy, and a question to answer."
-      />
-    );
+    return <EmptyHint icon={Presentation} title="No answer yet" hint="Tap New question to start a lesson." />;
   }
 
   return (
     <Section>
       <View style={[styles.versionBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <History size={16} color={colors.mutedForeground} />
         <Text style={[styles.versionText, { color: colors.mutedForeground }]}>
           Answer {activeIndex + 1} of {total}
         </Text>
@@ -65,23 +59,22 @@ export function TutorResults({ active, activeIndex, total, lastTopic, onGoTo, on
         <ListenButton text={active.adaptedExplanation} label="Explanation" />
       </Panel>
 
-      {active.conceptAnalogy ? (
-        <ResultCallout icon={Lightbulb} title="Analogy" tone="amber">
-          <MarkdownText content={active.conceptAnalogy} />
-          <ListenButton text={active.conceptAnalogy} label="Analogy" />
-        </ResultCallout>
-      ) : null}
-
       {active.tutorFeedback ? (
         <ResultCallout icon={HelpCircle} title="Your turn" tone="sky">
           <MarkdownText content={active.tutorFeedback} />
           <ListenButton text={active.tutorFeedback} label="Your turn" />
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>Type your answer in the form to keep going.</Text>
         </ResultCallout>
       ) : null}
 
+      {active.conceptAnalogy ? (
+        <Disclosure icon={Lightbulb} title="Analogy" summary={plainPreview(active.conceptAnalogy)}>
+          <MarkdownText content={active.conceptAnalogy} />
+          <ListenButton text={active.conceptAnalogy} label="Analogy" />
+        </Disclosure>
+      ) : null}
+
       {lastTopic ? (
-        <View style={[styles.memory, { borderColor: colors.border }]}>
+        <View style={styles.memory}>
           <Text style={[styles.memoryText, { color: colors.mutedForeground }]} numberOfLines={2}>
             Next answer builds on: {lastTopic}
           </Text>
@@ -97,6 +90,10 @@ export function TutorResults({ active, activeIndex, total, lastTopic, onGoTo, on
       ) : null}
     </Section>
   );
+}
+
+function plainPreview(markdown: string): string {
+  return markdown.replace(/[*_`#>]/g, "").replace(/\s+/g, " ").trim();
 }
 
 function IconButton({
@@ -125,7 +122,7 @@ function IconButton({
         disabled && styles.disabled,
       ]}
     >
-      <Icon size={16} color={colors.foreground} />
+      <Icon size={20} color={colors.foreground} />
     </Pressable>
   );
 }
@@ -136,22 +133,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     borderWidth: 1,
-    borderRadius: radius.xl,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    borderRadius: shape.lg,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.xs,
   },
   versionText: {
     flex: 1,
-    fontSize: 13,
+    ...typeScale.label,
   },
   versionActions: {
     flexDirection: "row",
     gap: spacing.xs,
   },
   iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -159,29 +156,24 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.4,
   },
-  hint: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
   memory: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    borderTopWidth: 1,
-    paddingTop: spacing.md,
+    paddingHorizontal: spacing.xs,
   },
   memoryText: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.label,
+    fontWeight: "400",
   },
   freshButton: {
-    minHeight: 44,
+    minHeight: touchTarget,
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
   },
   freshText: {
-    fontSize: 14,
+    ...typeScale.label,
     fontWeight: "600",
   },
 });

@@ -2,7 +2,8 @@
 /** One saved topic in the list. Tapping opens it, or picks it while selecting. Selection shows a check mark, not colour alone. */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Check, ChevronRight } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
+import { pointerCursor } from "@/components/tool/FormControls";
 import type { SavedTopic } from "../types";
 
 interface TopicRowProps {
@@ -21,10 +22,11 @@ export function TopicRow({ topic, selecting, selected, onPress }: TopicRowProps)
     <Pressable
       onPress={onPress}
       accessibilityRole={selecting ? "checkbox" : "button"}
-      accessibilityLabel={title}
+      accessibilityLabel={selecting ? title : `Open topic ${title}`}
       accessibilityState={selecting ? { checked: selected } : undefined}
       style={({ pressed }) => [
         styles.row,
+        pointerCursor,
         {
           backgroundColor: selected ? colors.muted : colors.card,
           borderColor: selected ? colors.primary : colors.border,
@@ -55,24 +57,26 @@ export function TopicRow({ topic, selecting, selected, onPress }: TopicRowProps)
           </Text>
         ) : null}
       </View>
-      {selecting ? null : <ChevronRight size={18} color={colors.mutedForeground} />}
+      {selecting ? null : <ChevronRight size={20} color={colors.mutedForeground} />}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
+    minHeight: 72,
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    padding: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   check: {
     width: 24,
     height: 24,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -82,10 +86,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   title: {
-    fontSize: 16,
+    ...typeScale.label,
     fontWeight: "600",
   },
   meta: {
-    fontSize: 13,
+    ...typeScale.caption,
   },
 });

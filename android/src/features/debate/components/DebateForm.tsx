@@ -41,8 +41,7 @@ export function DebateFormFields({ setup }: { setup: DebateSetupState }) {
       />
       <TextField
         label="Influences"
-        hint="Comma-separated"
-        placeholder="e.g. Sartre, Game Theory"
+        placeholder="e.g. Sartre, Game Theory (comma-separated)"
         value={form.influences}
         onChangeText={(text) => update("influences", text)}
         editable={!pending}

@@ -1,10 +1,10 @@
 // src/features/web-search/components/SearchForm.tsx
 /** Search form: query, engine, result count, and a collapsible panel of advanced filters. */
 import { useState, type Dispatch, type SetStateAction } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ChevronDown, ChevronUp, Search } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ChoiceChips, ErrorText, Field, Panel, TextField } from "@/components/tool/FormControls";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ChevronDown, ChevronUp, Search, X } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { ActionButton, ChoiceChips, ErrorText, Field, Panel, pointerCursor } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import {
   ENGINE_OPTIONS,
@@ -37,39 +37,56 @@ export function SearchForm({ form, setForm, searxngUrl, onSearxngUrlChange, pend
 
   return (
     <Panel>
-      <TextField
-        label="Search the web"
-        accessibilityLabel="Search query"
-        placeholder="Search the web…"
-        value={form.query}
-        onChangeText={(text) => update("query", text)}
-        onSubmitEditing={onSubmit}
-        returnKeyType="search"
-        editable={!pending}
-        maxLength={300}
-        autoCorrect={false}
-      />
+      <Field label="Search query">
+        <View style={[styles.queryRow, { borderColor: colors.border, backgroundColor: colors.background }]}>
+          <TextInput
+            accessibilityLabel="Search query"
+            placeholder="e.g. trail running shoes"
+            placeholderTextColor={colors.mutedForeground}
+            value={form.query}
+            onChangeText={(text) => update("query", text)}
+            onSubmitEditing={onSubmit}
+            returnKeyType="search"
+            editable={!pending}
+            maxLength={300}
+            autoCorrect={false}
+            style={[styles.queryInput, { color: colors.foreground }]}
+          />
+          {form.query && !pending ? (
+            <Pressable
+              onPress={() => update("query", "")}
+              accessibilityRole="button"
+              accessibilityLabel="Clear search query"
+              style={({ pressed }) => [styles.clearButton, pointerCursor, pressed && { backgroundColor: colors.muted }]}
+            >
+              <X size={20} color={colors.mutedForeground} />
+            </Pressable>
+          ) : null}
+        </View>
+      </Field>
 
       <Field label="Engine">
         <ChoiceChips options={ENGINE_OPTIONS} value={form.engine} onChange={(value) => update("engine", value)} />
       </Field>
 
       {form.engine === "searxng" && (
-        <TextField
-          label="SearXNG address"
-          accessibilityLabel="SearXNG address"
-          placeholder="http://192.168.1.20:8888"
-          hint="Your SearXNG instance, reachable from this phone. Saved on this device."
-          value={searxngUrl}
-          onChangeText={onSearxngUrlChange}
-          editable={!pending}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="url"
-        />
+        <Field label="SearXNG address" hint="Saved on this device.">
+          <TextInput
+            accessibilityLabel="SearXNG address"
+            placeholder="http://192.168.1.20:8888"
+            placeholderTextColor={colors.mutedForeground}
+            value={searxngUrl}
+            onChangeText={onSearxngUrlChange}
+            editable={!pending}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+            style={[styles.queryInput, styles.urlInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+          />
+        </Field>
       )}
 
-      <Field label="Number of results">
+      <Field label="Results per search">
         <ChoiceChips
           options={RESULT_COUNT_OPTIONS}
           value={form.resultCount}
@@ -80,12 +97,13 @@ export function SearchForm({ form, setForm, searxngUrl, onSearxngUrlChange, pend
       <Pressable
         onPress={() => setShowFilters((open) => !open)}
         accessibilityRole="button"
+        accessibilityLabel="Advanced filters"
         accessibilityState={{ expanded: showFilters }}
-        style={({ pressed }) => [styles.filterToggle, pressed && { opacity: 0.85 }]}
+        style={({ pressed }) => [styles.filterToggle, pointerCursor, pressed && { opacity: 0.85 }]}
       >
         <Text style={[styles.filterTitle, { color: colors.foreground }]}>Advanced filters</Text>
-        {filtersActive && <Text style={[styles.badge, { color: colors.primary, borderColor: colors.primary }]}>active</Text>}
-        {showFilters ? <ChevronUp size={18} color={colors.mutedForeground} /> : <ChevronDown size={18} color={colors.mutedForeground} />}
+        {filtersActive && <Text style={[styles.badge, { color: colors.primary, borderColor: colors.primary }]}>Active</Text>}
+        {showFilters ? <ChevronUp size={20} color={colors.mutedForeground} /> : <ChevronDown size={20} color={colors.mutedForeground} />}
       </Pressable>
 
       {showFilters && (
@@ -103,45 +121,69 @@ export function SearchForm({ form, setForm, searxngUrl, onSearxngUrlChange, pend
           <Field label="Safe search">
             <ChoiceChips options={SAFE_SEARCH_OPTIONS} value={form.safeSearch} onChange={(value) => update("safeSearch", value)} />
           </Field>
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-            Filters apply to the whole search, including pages loaded with “Load more”.
-          </Text>
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>Also applies to Load more.</Text>
         </View>
       )}
 
-      <ActionButton label={pending ? "Searching…" : "Search"} icon={Search} loading={pending} onPress={onSubmit} />
+      <ActionButton label={pending ? "Searching…" : "Search web"} icon={Search} loading={pending} onPress={onSubmit} />
       <ErrorText message={error} />
     </Panel>
   );
 }
 
 const styles = StyleSheet.create({
+  queryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: 56,
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.sm,
+  },
+  queryInput: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    ...typeScale.body,
+  },
+  urlInput: {
+    minHeight: 56,
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    paddingHorizontal: spacing.lg,
+  },
+  clearButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   filterToggle: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 44,
+    minHeight: touchTarget,
   },
   filterTitle: {
-    fontSize: 14,
+    ...typeScale.label,
     fontWeight: "600",
   },
   badge: {
-    fontSize: 11,
+    ...typeScale.caption,
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: 1,
     overflow: "hidden",
   },
   filters: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
     gap: spacing.md,
   },
   hint: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
 });

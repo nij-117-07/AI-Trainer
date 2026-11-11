@@ -6,8 +6,9 @@
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { RefreshCcw, Trophy } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import type { McqItem, OptionKey } from "../types";
+import type { McqAnswers } from "../lib/persistence";
 import { ActionButton, ChoiceChips, Panel } from "@/components/tool/FormControls";
 import { StepNavigator } from "@/components/tool/StepNavigator";
 import { McqQuestionCard } from "./McqQuestionCard";
@@ -22,21 +23,27 @@ const VIEW_MODES: { value: ViewMode; label: string }[] = [
 interface McqQuizProps {
   questions: McqItem[];
   contextSetting?: string;
+  answers: McqAnswers;
+  onSelect: (index: number, option: OptionKey) => void;
+  onRetry: () => void;
 }
 
-export function McqQuiz({ questions, contextSetting }: McqQuizProps) {
+export function McqQuiz({ questions, contextSetting, answers, onSelect, onRetry }: McqQuizProps) {
   const colors = useThemeColors();
   const [mode, setMode] = useState<ViewMode>("list");
   const [activeIndex, setActiveIndex] = useState(0);
-  const [answers, setAnswers] = useState<Partial<Record<number, OptionKey>>>({});
 
   const total = questions.length;
-  const score = questions.reduce((sum, question, index) => sum + (answers[index] === question.correctAnswer ? 1 : 0), 0);
-  const allAnswered = total > 0 && questions.every((_, index) => answers[index] !== undefined);
+  const selectedAt = (index: number) => {
+    const answer = answers[index];
+    return answer?.checked ? answer.selected : undefined;
+  };
+  const score = questions.reduce((sum, question, index) => sum + (selectedAt(index) === question.correctAnswer ? 1 : 0), 0);
+  const allAnswered = total > 0 && questions.every((_, index) => selectedAt(index) !== undefined);
   const isStep = mode === "step";
 
   function reset() {
-    setAnswers({});
+    onRetry();
     setActiveIndex(0);
   }
 
@@ -65,8 +72,8 @@ export function McqQuiz({ questions, contextSetting }: McqQuizProps) {
           <McqQuestionCard
             index={index}
             question={question}
-            selected={answers[index]}
-            onSelect={(option) => setAnswers((prev) => ({ ...prev, [index]: option }))}
+            selected={selectedAt(index)}
+            onSelect={(option) => onSelect(index, option)}
             contextSetting={contextSetting}
           />
         </View>
@@ -80,7 +87,7 @@ export function McqQuiz({ questions, contextSetting }: McqQuizProps) {
               You answered {score} of {total} correctly.
             </Text>
           </View>
-          <ActionButton label="Try again" icon={RefreshCcw} variant="outline" onPress={reset} />
+          <ActionButton label="Retry all questions" icon={RefreshCcw} variant="outline" onPress={reset} />
         </Panel>
       )}
     </View>
@@ -100,12 +107,12 @@ const styles = StyleSheet.create({
   },
   scorePill: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   scoreText: {
-    fontSize: 14,
+    ...typeScale.label,
     fontWeight: "600",
   },
   summary: {
@@ -115,7 +122,7 @@ const styles = StyleSheet.create({
   },
   summaryText: {
     flex: 1,
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "500",
   },
 });

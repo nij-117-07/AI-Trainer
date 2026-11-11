@@ -7,7 +7,7 @@
 import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ChevronDown, ChevronUp, type LucideIcon } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { Panel } from "./FormControls";
 
 interface DisclosureProps {
@@ -42,7 +42,7 @@ export function Disclosure({ title, icon: Icon, summary, defaultOpen = false, op
         <View style={styles.titleBlock}>
           <View style={styles.titleRow}>
             {Icon && <Icon size={16} color={colors.primary} />}
-            <Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>
+            <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>{title}</Text>
           </View>
           {summary ? (
             <Text numberOfLines={2} style={[styles.summary, { color: colors.mutedForeground }]}>
@@ -73,12 +73,10 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   title: {
-    fontSize: 16,
-    fontWeight: "600",
+    ...typeScale.title,
   },
   summary: {
-    fontSize: 13,
-    lineHeight: 19,
+    ...typeScale.caption,
   },
   body: {
     gap: spacing.lg,

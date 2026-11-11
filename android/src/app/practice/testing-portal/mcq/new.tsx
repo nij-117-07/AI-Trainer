@@ -12,7 +12,7 @@ export default function McqNewRoute() {
   return (
     <ToolScreen
       title="New MCQs"
-      headerRight={<ResetButton label="Reset form" onPress={setup.reset} />}
+      headerRight={<ResetButton accessibilityLabel="Reset form" onPress={setup.reset} />}
       footer={<McqFormFooter setup={setup} />}
     >
       <McqFormFields setup={setup} />

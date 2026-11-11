@@ -4,12 +4,10 @@
  * are fixed choices, so the dropdowns have no Custom entry. Each change saves as it is made.
  */
 import { StyleSheet, Text } from "react-native";
-import { Scale } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
-import { SectionTitle } from "@/components/tool/SectionTitle";
 import { CONFIDENCE_OPTIONS, FOCUS_OPTIONS } from "../options";
 import type { SocraticSettingsState } from "../hooks/useSocraticSettings";
 import type { SocraticFocus } from "../types";
@@ -21,7 +19,6 @@ export function SocraticSettingsFields({ settings }: { settings: SocraticSetting
   return (
     <Section>
       <Panel>
-        <SectionTitle icon={Scale} title="How the challenger pushes" />
         <SelectField
           label="What should the challenger do?"
           options={FOCUS_OPTIONS}
@@ -47,8 +44,7 @@ export function SocraticSettingsFields({ settings }: { settings: SocraticSetting
 
 const styles = StyleSheet.create({
   hint: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
     paddingHorizontal: spacing.xs,
   },
 });

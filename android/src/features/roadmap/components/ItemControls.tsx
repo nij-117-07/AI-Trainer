@@ -1,36 +1,30 @@
 // src/features/roadmap/components/ItemControls.tsx
-/** Small controls shared by roadmap rows: done toggle, icon button, inline rename, and add row. */
+/** Small controls shared by roadmap rows: done button, icon button, inline rename, and add row. */
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { Check, Plus, X, type LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Check, Circle, CircleCheck, Plus, X, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 
 interface DoneToggleProps {
   done: boolean;
-  label: string;
+  title: string;
   disabled?: boolean;
   onToggle: () => void;
 }
 
-export function DoneToggle({ done, label, disabled, onToggle }: DoneToggleProps) {
+export function DoneToggle({ done, title, disabled, onToggle }: DoneToggleProps) {
   const colors = useThemeColors();
+  const Icon = done ? CircleCheck : Circle;
   return (
     <Pressable
       onPress={onToggle}
       disabled={disabled}
-      accessibilityRole="checkbox"
-      accessibilityLabel={label}
-      accessibilityState={{ checked: done, disabled }}
-      hitSlop={10}
-      style={[
-        styles.checkbox,
-        {
-          borderColor: done ? colors.primary : colors.border,
-          backgroundColor: done ? colors.primary : colors.background,
-        },
-      ]}
+      accessibilityRole="button"
+      accessibilityLabel={done ? `Mark "${title}" not done` : `Mark "${title}" done`}
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => [styles.touch, pressed && { opacity: 0.6 }, disabled && { opacity: 0.4 }]}
     >
-      {done ? <Check size={14} color={colors.primaryForeground} /> : null}
+      <Icon size={24} color={done ? colors.tone.emerald.fg : colors.mutedForeground} />
     </Pressable>
   );
 }
@@ -50,10 +44,10 @@ export function IconButton({ icon: Icon, label, onPress, disabled }: IconButtonP
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
-      hitSlop={6}
-      style={({ pressed }) => [styles.iconButton, pressed && { opacity: 0.6 }, disabled && { opacity: 0.4 }]}
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => [styles.touch, pressed && { opacity: 0.6 }, disabled && { opacity: 0.4 }]}
     >
-      <Icon size={16} color={colors.mutedForeground} />
+      <Icon size={20} color={colors.mutedForeground} />
     </Pressable>
   );
 }
@@ -83,8 +77,10 @@ export function InlineEdit({ initialValue, maxLength, onSave, onCancel }: Inline
         autoFocus
         maxLength={maxLength}
         returnKeyType="done"
+        accessibilityLabel="Name"
         style={[
           styles.input,
+          styles.flex,
           { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background },
         ]}
       />
@@ -123,6 +119,7 @@ export function AddRow({ placeholder, label, maxLength, disabled, onAdd }: AddRo
         onSubmitEditing={submit}
         placeholder={placeholder}
         placeholderTextColor={colors.mutedForeground}
+        accessibilityLabel={label}
         maxLength={maxLength}
         returnKeyType="done"
         editable={!disabled}
@@ -137,57 +134,43 @@ export function AddRow({ placeholder, label, maxLength, disabled, onAdd }: AddRo
         disabled={blocked}
         accessibilityRole="button"
         accessibilityLabel={label}
+        accessibilityState={{ disabled: blocked }}
         style={[styles.addButton, { backgroundColor: colors.primary }, blocked && { opacity: 0.5 }]}
       >
-        <Plus size={16} color={colors.primaryForeground} />
-        <Text style={[styles.addText, { color: colors.primaryForeground }]}>{label}</Text>
+        <Plus size={20} color={colors.primaryForeground} />
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
+  touch: {
+    width: touchTarget,
+    height: touchTarget,
     alignItems: "center",
     justifyContent: "center",
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   flex: {
     flex: 1,
   },
   input: {
-    flex: 1,
-    minHeight: 44,
+    minHeight: touchTarget,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    fontSize: 15,
+    ...typeScale.body,
   },
   addButton: {
-    flexDirection: "row",
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     alignItems: "center",
-    gap: spacing.xs,
-    minHeight: 44,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-  },
-  addText: {
-    fontSize: 14,
-    fontWeight: "600",
+    justifyContent: "center",
   },
 });

@@ -4,8 +4,8 @@
  * the risk factors, and the analysis summary.
  */
 import { StyleSheet, Text } from "react-native";
-import { FileText, Gauge, ShieldAlert } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { FileText, Gauge, ScanText, ShieldAlert } from "lucide-react-native";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
 import { CardGrid } from "@/components/tool/CardGrid";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -28,7 +28,7 @@ export function IngredientsResult({ result }: { result: IngredientAnalysis }) {
 
       <CardGrid>
         <Panel>
-          <SectionTitle icon={FileText} title="Detected ingredients" />
+          <SectionTitle icon={ScanText} title="Detected ingredients" />
           {result.extractedIngredients.length > 0 ? (
             <TagList items={result.extractedIngredients} />
           ) : (
@@ -55,12 +55,10 @@ export function IngredientsResult({ result }: { result: IngredientAnalysis }) {
 
 const styles = StyleSheet.create({
   levelText: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
     marginTop: spacing.xs,
   },
   empty: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
 });

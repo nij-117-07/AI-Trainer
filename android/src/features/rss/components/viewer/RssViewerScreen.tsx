@@ -1,18 +1,19 @@
-/** RSS Viewer: the filters and the articles from the chosen channels, newest first. Refresh is in the footer, and Reset clears the filters. */
+/** RSS Viewer: the filters and the articles from the chosen channels, newest first. Refresh and clear-filters are icon buttons in the top bar. */
 import { useCallback, useState } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "expo-router";
-import { Newspaper, RefreshCw } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { Newspaper, RefreshCw, X } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { ActionButton, ErrorText } from "@/components/tool/FormControls";
-import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
-import { ResetButton } from "@/components/tool/ResetButton";
 import { Section } from "@/components/tool/Section";
 import { useFeedViewer } from "../../hooks/useFeedViewer";
 import { useRssFeeds } from "../../hooks/useRssFeeds";
+import { DEFAULT_VIEWER_FILTERS } from "../../lib/viewer-filters";
 import { VIEWER_PAGE_SIZE } from "../../options";
+import type { RssViewerFilters } from "../../types";
+import { RssIconButton } from "../RssIconButton";
 import { RssTabs } from "../RssTabs";
 import { FeedItemCard } from "./FeedItemCard";
 import { ViewerFilters } from "./ViewerFilters";
@@ -31,23 +32,31 @@ export function RssViewerScreen() {
 
   const total = viewer.items.length;
   const anyEnabled = (feeds ?? []).some((feed) => feed.enabled);
+  const filtersActive = (Object.keys(DEFAULT_VIEWER_FILTERS) as (keyof RssViewerFilters)[]).some(
+    (key) => viewer.filters[key] !== DEFAULT_VIEWER_FILTERS[key],
+  );
 
   return (
     <ToolScreen
       title="RSS Viewer"
       usesAi={false}
       wide
-      footerSide={false}
-      headerRight={<ResetButton onPress={viewer.resetFilters} />}
-      footer={
-        viewer.hasFeeds ? (
-          <ActionButton
-            label={viewer.refreshing ? "Refreshing…" : "Refresh articles"}
-            icon={RefreshCw}
-            loading={viewer.refreshing}
-            onPress={() => void viewer.refresh()}
+      headerRight={
+        <View style={styles.headerActions}>
+          <RssIconButton
+            label="Clear filters"
+            icon={X}
+            onPress={viewer.resetFilters}
+            disabled={!filtersActive}
           />
-        ) : null
+          <RssIconButton
+            label="Refresh feeds"
+            icon={RefreshCw}
+            onPress={() => void viewer.refresh()}
+            disabled={!viewer.hasFeeds}
+            loading={viewer.refreshing}
+          />
+        </View>
       }
     >
       <RssTabs active="viewer" />
@@ -61,11 +70,7 @@ export function RssViewerScreen() {
             </Text>
           )
         ) : !viewer.hasFeeds ? (
-          <EmptyHint
-            icon={Newspaper}
-            title="No feeds yet"
-            hint="Open the Manager tab to add a feed. Then come back here to read its articles."
-          />
+          <EmptyHint icon={Newspaper} title="No feeds yet" hint="Add a feed in the Manager tab to read its articles here." />
         ) : (
           <>
             <ViewerFilters feeds={feeds} filters={viewer.filters} categories={viewer.categories} onChange={viewer.setFilter} />
@@ -85,10 +90,10 @@ export function RssViewerScreen() {
                 title="No articles match"
                 hint={
                   !anyEnabled
-                    ? "All feeds are disabled. Enable one in the Manager to load articles."
+                    ? "All feeds are disabled. Enable one in the Manager tab."
                     : viewer.filters.search
-                      ? "Try a different search term, or widen the time range."
-                      : "Your channels have no posts for the current filters."
+                      ? "Try a different search term or a wider time range."
+                      : "Your feeds have no posts for the current filters."
                 }
               />
             ) : (
@@ -96,11 +101,11 @@ export function RssViewerScreen() {
                 <Text accessibilityLiveRegion="polite" style={[styles.note, { color: colors.mutedForeground }]}>
                   {total} {total === 1 ? "article" : "articles"}
                 </Text>
-                <CardGrid>
-                  {viewer.items.slice(0, shown).map((item) => (
-                    <FeedItemCard key={`${item.feedId}-${item.guid}`} item={item} />
+                <View style={[styles.group, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  {viewer.items.slice(0, shown).map((item, index) => (
+                    <FeedItemCard key={`${item.feedId}-${item.guid}`} item={item} divider={index > 0} />
                   ))}
-                </CardGrid>
+                </View>
                 {total > shown ? (
                   <ActionButton
                     label={`Show more (${total - shown} left)`}
@@ -118,9 +123,17 @@ export function RssViewerScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerActions: {
+    flexDirection: "row",
+    gap: spacing.xs,
+  },
   note: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
     paddingHorizontal: spacing.xs,
+  },
+  group: {
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    overflow: "hidden",
   },
 });

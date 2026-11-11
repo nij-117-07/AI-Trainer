@@ -5,12 +5,11 @@
  * is kept on the device and shown after the form.
  */
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { ImagePlus, Sparkles } from "lucide-react-native";
-import { spacing } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
-import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { useRequest } from "@/hooks/useRequest";
 import type { ImageInput } from "@/lib/image";
@@ -89,16 +88,22 @@ export function VisionConverterForm({ vision }: { vision: VisionConverterState }
 }
 
 export function VisionConverterResults({ vision }: { vision: VisionConverterState }) {
+  const colors = useThemeColors();
+
   return (
     <Section>
       {vision.markdownOutput !== null ? (
         <ConvertedMarkdown markdown={vision.markdownOutput} />
       ) : (
-        <EmptyHint
-          icon={ImagePlus}
-          title="No Markdown yet"
-          hint="Choose an image in the form, add an optional instruction, then tap Convert to Markdown."
-        />
+        <Panel>
+          <View style={styles.empty}>
+            <ImagePlus size={20} color={colors.mutedForeground} />
+            <View style={styles.emptyText}>
+              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No Markdown yet</Text>
+              <Text style={[styles.emptyHint, { color: colors.mutedForeground }]}>Convert an image to see it here.</Text>
+            </View>
+          </View>
+        </Panel>
       )}
     </Section>
   );
@@ -111,7 +116,7 @@ export function VisionConverterFooter({ vision }: { vision: VisionConverterState
     <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Converting image…" : "Convert to Markdown"}
+        label={pending ? "Converting…" : "Convert image"}
         icon={Sparkles}
         loading={pending}
         onPress={submit}
@@ -123,5 +128,21 @@ export function VisionConverterFooter({ vision }: { vision: VisionConverterState
 const styles = StyleSheet.create({
   footer: {
     gap: spacing.md,
+  },
+  empty: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
+  },
+  emptyText: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  emptyTitle: {
+    ...typeScale.label,
+    fontWeight: "600",
+  },
+  emptyHint: {
+    ...typeScale.body,
   },
 });

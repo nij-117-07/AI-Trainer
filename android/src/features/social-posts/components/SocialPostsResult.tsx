@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Lightbulb, Megaphone, Pencil } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { CardGrid } from "@/components/tool/CardGrid";
 import { CopyButton } from "@/components/tool/CopyButton";
@@ -31,7 +31,7 @@ export function SocialPostsResult({ result, onEdit }: { result: SocialPostResult
 
   function renderThread(post: SocialPost, depth: number): ReactNode {
     return (
-      <View key={post.id} style={{ marginLeft: Math.min(depth, MAX_INDENT_DEPTH) * spacing.lg, gap: spacing.lg }}>
+      <View key={post.id} style={{ marginLeft: Math.min(depth, MAX_INDENT_DEPTH) * spacing.md, gap: spacing.lg }}>
         <PostCard post={post} onEdit={onEdit} />
         {branchOf(post.id).map((revision) => renderThread(revision, depth + 1))}
       </View>
@@ -81,9 +81,7 @@ function PostCard({ post, onEdit }: { post: SocialPost; onEdit: (post: SocialPos
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: spacing.xs,
+    ...typeScale.title,
   },
   actions: {
     flexDirection: "row",
@@ -92,7 +90,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   empty: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
 });

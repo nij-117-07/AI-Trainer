@@ -2,8 +2,8 @@
 /** Create, rename, and delete projects and labels. Deleting one removes it from the tasks that use it. */
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Plus, Trash2, X } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { CardGrid } from "@/components/tool/CardGrid";
 import { ActionButton, Panel, TextField } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
@@ -21,17 +21,16 @@ export function ManageLists({ store, onBack }: { store: TaskStore; onBack: () =>
         onPress={onBack}
         accessibilityRole="button"
         accessibilityLabel="Back to tasks"
-        style={({ pressed }) => [styles.backRow, pressed && { opacity: 0.7 }]}
+        style={({ pressed }) => [styles.backButton, pressed && { backgroundColor: colors.muted }]}
       >
-        <ArrowLeft size={18} color={colors.foreground} />
-        <Text style={[styles.backText, { color: colors.foreground }]}>All tasks</Text>
+        <X size={24} color={colors.foreground} />
       </Pressable>
 
       <CardGrid>
         <NamedListPanel
           title="Projects"
           noun="project"
-          hint="Group tasks, like Work or Home. Deleting a project keeps its tasks."
+          hint="Group tasks, like Work or Home."
           items={store.projects}
           onAdd={store.addProject}
           onRename={store.renameProject}
@@ -40,7 +39,7 @@ export function ManageLists({ store, onBack }: { store: TaskStore; onBack: () =>
         <NamedListPanel
           title="Labels"
           noun="label"
-          hint="Tag tasks across projects. Deleting a label removes it from every task."
+          hint="Tag tasks across projects."
           items={store.labels}
           onAdd={store.addLabel}
           onRename={store.renameLabel}
@@ -153,41 +152,36 @@ function NamedRow({
 }
 
 const styles = StyleSheet.create({
-  backRow: {
-    flexDirection: "row",
+  backButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     alignItems: "center",
-    gap: spacing.sm,
-    minHeight: 44,
-  },
-  backText: {
-    fontSize: 15,
-    fontWeight: "600",
+    justifyContent: "center",
   },
   title: {
-    fontSize: 17,
-    fontWeight: "700",
+    ...typeScale.title,
   },
   hint: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingLeft: spacing.lg,
   },
   input: {
     flex: 1,
-    minHeight: 44,
-    fontSize: 16,
+    minHeight: touchTarget,
+    ...typeScale.body,
     paddingVertical: spacing.md,
   },
   removeButton: {
-    width: 44,
-    height: 44,
+    width: touchTarget,
+    height: touchTarget,
     alignItems: "center",
     justifyContent: "center",
   },

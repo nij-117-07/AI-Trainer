@@ -2,9 +2,10 @@
 /** One note in the list. Tap to open it, or tap the pin to keep it at the top. */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Pin } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import type { Note } from "../types";
 import { displayTitle, formatUpdated, noteTags } from "../lib/notes";
+import { IconAction } from "./IconAction";
 
 interface NoteRowProps {
   note: Note;
@@ -45,16 +46,16 @@ export function NoteRow({ note, onOpen, onTogglePin }: NoteRowProps) {
           </Text>
         ) : null}
       </View>
-      <Pressable
-        onPress={onTogglePin}
-        hitSlop={8}
-        accessibilityRole="button"
-        accessibilityLabel={`${note.pinned ? "Unpin" : "Pin"} note ${title}`}
-        accessibilityState={{ selected: note.pinned }}
-        style={styles.pin}
-      >
-        <Pin size={18} color={note.pinned ? colors.primary : colors.mutedForeground} fill={note.pinned ? colors.primary : "none"} />
-      </Pressable>
+      <View style={styles.pinSlot}>
+        <IconAction
+          icon={Pin}
+          label={`${note.pinned ? "Unpin" : "Pin"} note ${title}`}
+          onPress={onTogglePin}
+          color={note.pinned ? colors.primary : colors.mutedForeground}
+          filled={note.pinned}
+          selected={note.pinned}
+        />
+      </View>
     </Pressable>
   );
 }
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: spacing.md,
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     padding: spacing.lg,
   },
   main: {
@@ -73,23 +74,19 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   title: {
-    fontSize: 16,
+    ...typeScale.body,
     fontWeight: "600",
   },
   preview: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
   },
   meta: {
-    fontSize: 12,
+    ...typeScale.caption,
     marginTop: spacing.xs,
   },
-  pin: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: -spacing.xs,
+  pinSlot: {
+    marginTop: -spacing.sm,
     marginEnd: -spacing.sm,
   },
 });

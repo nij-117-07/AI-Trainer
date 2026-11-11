@@ -1,6 +1,6 @@
 // src/features/ai-detector/components/AiDetectorTool.tsx
 /**
- * AI Detector: the text form sits at the top of the page, the Detect button stays in the footer,
+ * AI Detector: the text form sits at the top of the page, the Check text button stays in the footer,
  * and the last result is kept on the device and shown after the form.
  */
 import { StyleSheet, View } from "react-native";
@@ -20,8 +20,8 @@ export function AiDetectorForm({ detector }: { detector: AiDetectorState }) {
     <Panel>
       <TextField
         label="Text to analyze"
-        placeholder="Paste the paragraph, essay, or post you want checked…"
-        hint="Up to 50,000 characters. The text is sent to your AI provider and saved on this device until you reset."
+        placeholder="Paste an essay, post, or paragraph"
+        hint={`${form.textToCheck.length.toLocaleString("en-US")} / ${TEXT_MAX.toLocaleString("en-US")}. Sent to your AI provider and saved on this device until you reset.`}
         value={form.textToCheck}
         onChangeText={(text) => update("textToCheck", text)}
         editable={!pending}
@@ -55,7 +55,7 @@ export function AiDetectorResults({ detector }: { detector: AiDetectorState }) {
         <EmptyHint
           icon={ShieldCheck}
           title="No analysis yet"
-          hint="Paste text in the form, then tap Detect AI content to see the AI score and the patterns behind it."
+          hint="Paste text in the form, then tap Check text."
         />
       )}
     </Section>
@@ -69,7 +69,7 @@ export function AiDetectorFooter({ detector }: { detector: AiDetectorState }) {
     <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Analyzing…" : "Detect AI content"}
+        label={pending ? "Checking…" : "Check text"}
         icon={ShieldCheck}
         loading={pending}
         onPress={submit}

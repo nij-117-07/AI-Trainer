@@ -1,12 +1,13 @@
 // src/features/tutor-chat/components/TutorChatScreen.tsx
 /**
  * Tutor Chat. With no session open, the body lists saved sessions and the footer starts a new one.
- * With a session open, the body holds the conversation and the footer holds the message box.
+ * With a session open, the top bar shows its name and the body holds the conversation.
  */
 import { useState, type ReactNode } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { spacing, useThemeColors } from "@/theme";
-import { ErrorText } from "@/components/tool/FormControls";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Plus, Trash2, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, touchTarget, useThemeColors } from "@/theme";
+import { ErrorText, pointerCursor } from "@/components/tool/FormControls";
 import { ResetButton } from "@/components/tool/ResetButton";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { usePersistedState } from "@/hooks/usePersistedState";
@@ -27,6 +28,7 @@ export function TutorChatScreen() {
   const [createError, setCreateError] = useState<string | null>(null);
 
   const listView = chat.loaded && !chat.active;
+  const savedTopic = chat.settingsDraft?.masterTopic || chat.active?.masterTopic || "";
 
   async function startChat() {
     setCreateError(null);
@@ -45,6 +47,27 @@ export function TutorChatScreen() {
     setCreateForm((prev) => ({ ...prev, ...patch }));
   }
 
+  function confirmDelete() {
+    const sessionId = chat.active?.id;
+    if (!sessionId) return;
+    Alert.alert(
+      "Delete this session?",
+      `"${savedTopic || "This session"}" and its chat history will be permanently removed.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            chat.deleteSession(sessionId).catch((error: unknown) => {
+              Alert.alert("Could not delete", error instanceof Error ? error.message : "Please try again.");
+            });
+          },
+        },
+      ],
+    );
+  }
+
   let footer: ReactNode = null;
   if (chat.loaded) {
     footer = chat.active ? (
@@ -57,6 +80,18 @@ export function TutorChatScreen() {
         creating={creating}
         error={createError}
       />
+    );
+  }
+
+  let headerRight: ReactNode = undefined;
+  if (listView) {
+    headerRight = <ResetButton onPress={() => setCreateForm(EMPTY)} />;
+  } else if (chat.active) {
+    headerRight = (
+      <>
+        <HeaderIconButton icon={Plus} label="New chat" disabled={chat.pending} onPress={chat.closeSession} />
+        <HeaderIconButton icon={Trash2} label="Delete session" disabled={chat.pending} onPress={confirmDelete} />
+      </>
     );
   }
 
@@ -82,13 +117,44 @@ export function TutorChatScreen() {
 
   return (
     <ToolScreen
-      title="Tutor Chat"
-      headerRight={listView ? <ResetButton onPress={() => setCreateForm(EMPTY)} /> : undefined}
+      title={chat.active ? savedTopic || "Untitled session" : "Tutor Chat"}
+      headerRight={headerRight}
       footer={footer}
       footerSide={false}
     >
       {body}
     </ToolScreen>
+  );
+}
+
+function HeaderIconButton({
+  icon: Icon,
+  label,
+  disabled,
+  onPress,
+}: {
+  icon: LucideIcon;
+  label: string;
+  disabled: boolean;
+  onPress: () => void;
+}) {
+  const colors = useThemeColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => [
+        styles.headerButton,
+        pointerCursor,
+        pressed && { backgroundColor: colors.muted },
+        disabled && styles.disabled,
+      ]}
+    >
+      <Icon size={22} color={colors.foreground} />
+    </Pressable>
   );
 }
 
@@ -101,5 +167,15 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
+  },
+  headerButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  disabled: {
+    opacity: 0.4,
   },
 });

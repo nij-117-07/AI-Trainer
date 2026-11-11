@@ -1,9 +1,9 @@
 // src/features/motivation/components/MotivationTool.tsx
-/** Motivation & Reflection body: tab switcher at the top, with the active tab's results below it. */
-import { ChoiceChips } from "@/components/tool/FormControls";
+/** Motivation & Reflection body: view switcher at the top, with the active view's results and options below it. */
 import { Section } from "@/components/tool/Section";
-import { QuoteResults, type QuoteTabState } from "./QuoteTab";
-import { ReflectResults, type ReflectTabState } from "./ReflectTab";
+import { QuoteForm, QuoteResults, type QuoteTabState } from "./QuoteTab";
+import { ReflectForm, ReflectResults, type ReflectTabState } from "./ReflectTab";
+import { ViewSegments } from "./ViewSegments";
 
 export type MotivationTab = "quote" | "reflect";
 
@@ -22,8 +22,18 @@ interface MotivationToolProps {
 export function MotivationTool({ tab, onTabChange, quote, reflect }: MotivationToolProps) {
   return (
     <Section>
-      <ChoiceChips options={TAB_OPTIONS} value={tab} onChange={onTabChange} wrap={false} />
-      {tab === "quote" ? <QuoteResults state={quote} /> : <ReflectResults state={reflect} />}
+      <ViewSegments label="Motivation view" options={TAB_OPTIONS} value={tab} onChange={onTabChange} />
+      {tab === "quote" ? (
+        <>
+          <QuoteResults state={quote} />
+          <QuoteForm state={quote} />
+        </>
+      ) : (
+        <>
+          <ReflectResults state={reflect} />
+          <ReflectForm state={reflect} />
+        </>
+      )}
     </Section>
   );
 }

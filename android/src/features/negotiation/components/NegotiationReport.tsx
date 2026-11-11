@@ -1,8 +1,8 @@
 // src/features/negotiation/components/NegotiationReport.tsx
 /** Performance report for a finished negotiation: overall score, category bars, and feedback lists. */
 import { StyleSheet, Text, View } from "react-native";
-import { Trophy } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { BookOpen, Lightbulb, Target, ThumbsUp, Trophy } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -30,7 +30,7 @@ export function NegotiationReport({ report, outcome }: { report: SessionReport; 
           <Text style={[styles.caption, { color: colors.mutedForeground }]}>Session score</Text>
           <Text style={[styles.total, { color: colors.foreground }]}>
             {report.overallScore}
-            <Text style={[styles.totalMax, { color: colors.mutedForeground }]}>/100</Text>
+            <Text style={[styles.caption, { color: colors.mutedForeground }]}>/100</Text>
           </Text>
         </View>
         <Text style={[styles.outcome, { color: colors.mutedForeground }]}>{outcome}</Text>
@@ -58,16 +58,16 @@ export function NegotiationReport({ report, outcome }: { report: SessionReport; 
         })}
       </View>
 
-      <SectionTitle icon={Trophy} title="Strengths" />
+      <SectionTitle icon={ThumbsUp} title="Strengths" />
       <MarkdownText content={toBullets(report.strengths)} />
-      <ListenButton text={toBullets(report.strengths)} label="Strengths" />
-      <SectionTitle icon={Trophy} title="Areas for improvement" />
+      <ListenButton text={toBullets(report.strengths)} label="strengths" />
+      <SectionTitle icon={Target} title="Areas for improvement" />
       <MarkdownText content={toBullets(report.areasForImprovement)} />
-      <ListenButton text={toBullets(report.areasForImprovement)} label="Areas for improvement" />
-      <SectionTitle icon={Trophy} title="Key takeaways" />
+      <ListenButton text={toBullets(report.areasForImprovement)} label="areas for improvement" />
+      <SectionTitle icon={Lightbulb} title="Key takeaways" />
       <MarkdownText content={toBullets(report.keyTakeaways)} />
-      <ListenButton text={toBullets(report.keyTakeaways)} label="Key takeaways" />
-      <SectionTitle icon={Trophy} title="Suggested resources" />
+      <ListenButton text={toBullets(report.keyTakeaways)} label="key takeaways" />
+      <SectionTitle icon={BookOpen} title="Suggested resources" />
       <MarkdownText content={toBullets(report.suggestedResources)} />
     </Panel>
   );
@@ -83,26 +83,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
   },
   scoreText: {
     gap: spacing.xs,
   },
   caption: {
-    fontSize: 13,
+    ...typeScale.body,
   },
   total: {
-    fontSize: 26,
-    fontWeight: "700",
-  },
-  totalMax: {
-    fontSize: 14,
-    fontWeight: "400",
+    ...typeScale.headline,
   },
   outcome: {
+    ...typeScale.body,
     flex: 1,
-    fontSize: 13,
     textAlign: "right",
   },
   categories: {
@@ -116,12 +111,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   categoryValue: {
-    fontSize: 14,
+    ...typeScale.body,
     fontWeight: "600",
   },
   track: {
     height: 6,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     overflow: "hidden",
   },
   fill: {

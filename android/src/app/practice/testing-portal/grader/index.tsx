@@ -1,6 +1,6 @@
 // src/app/practice/testing-portal/grader/index.tsx
 import { useRouter } from "expo-router";
-import { ShieldCheck } from "lucide-react-native";
+import { Plus, ShieldCheck } from "lucide-react-native";
 import { ActionButton } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
@@ -18,8 +18,8 @@ export default function GraderRoute() {
       title="Performance Grader"
       footer={
         <ActionButton
-          label={grader.grade ? "New grade" : "Grade my answer"}
-          icon={ShieldCheck}
+          label="New grading"
+          icon={Plus}
           onPress={() => router.push("/practice/testing-portal/grader/new")}
         />
       }
@@ -30,8 +30,8 @@ export default function GraderRoute() {
         ) : grader.loaded ? (
           <EmptyHint
             icon={ShieldCheck}
-            title="No grade yet"
-            hint="Tap Grade my answer, describe the task and objective, then grade your answer."
+            title="No grading yet"
+            hint="Add the objective and your answer to get a score."
           />
         ) : (
           <PortalLoading />

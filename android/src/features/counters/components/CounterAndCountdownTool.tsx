@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { StyleSheet, Text } from "react-native";
 import { Plus, Timer } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ChoiceChips } from "@/components/tool/FormControls";
@@ -50,7 +50,7 @@ function CounterList({ store }: { store: CounterStore }) {
       <EmptyHint
         icon={Plus}
         title="No counters yet"
-        hint={'Fill in the form and tap Add counter. For example, "Drink water" with a target of 8.'}
+        hint={'For example, "Drink water" with a target of 8.'}
       />
     );
   }
@@ -75,7 +75,7 @@ function CountdownList({ store }: { store: CounterStore }) {
       <EmptyHint
         icon={Timer}
         title="No countdowns yet"
-        hint={'Fill in the form and tap Add countdown. For example, "Read" for 25 minutes.'}
+        hint={'For example, "Read" for 25 minutes.'}
       />
     );
   }
@@ -99,8 +99,7 @@ function CountdownList({ store }: { store: CounterStore }) {
 
 const styles = StyleSheet.create({
   hint: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
     paddingHorizontal: spacing.xs,
   },
 });

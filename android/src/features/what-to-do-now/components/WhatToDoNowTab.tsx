@@ -1,68 +1,29 @@
 // src/features/what-to-do-now/components/WhatToDoNowTab.tsx
-/** What To Do Now: goals, time, and situation go in the footer; the next actions show above. */
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { Ban, Clock, Compass, Flag, Lightbulb, ListChecks } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+/** What To Do Now: the form fields sit in the body and Get next actions in the footer; the result is a checklist of next actions. */
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Ban, Check, Clock, Compass, Flag, Lightbulb, ListChecks } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { ActionButton, ErrorText, Panel, pointerCursor, TextField } from "@/components/tool/FormControls";
+import { CopyButton } from "@/components/tool/CopyButton";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { EmptyHint } from "@/components/tool/EmptyHint";
-import { Section } from "@/components/tool/Section";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { ResultCallout } from "@/components/tool/ResultCallout";
+import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
 import type { WhatToDoNowState } from "../hooks/useWhatToDoNow";
 import { EXTRA_INFO_MAX, GOALS_MAX, SITUATION_MAX } from "../lib/validate";
-import type { NextAction } from "../types";
+import type { NextAction, WhatToDoNowResult } from "../types";
 
-export function WhatToDoNowResults({ state }: { state: WhatToDoNowState }) {
-  const colors = useThemeColors();
-  const { result, pending } = state;
-
-  if (!result) {
-    return (
-      <EmptyHint
-        icon={Compass}
-        title={pending ? "Thinking…" : "Decide your next step"}
-        hint={pending ? "This can take a moment." : "Describe your goals and how you are doing in the form, then tap What should I do now?"}
-      />
-    );
-  }
+export function WhatToDoNowForm({ state }: { state: WhatToDoNowState }) {
+  const { form, pending, update } = state;
+  const [extraOpen, setExtraOpen] = useState(false);
 
   return (
     <Section>
-      {result.timeContext.trim() !== "" && (
-        <ResultCallout icon={Clock} title="Time check" tone="sky">
-          <Text style={[styles.text, { color: colors.foreground }]}>{result.timeContext.trim()}</Text>
-        </ResultCallout>
-      )}
-
-      <SectionTitle icon={ListChecks} title="Do this now" />
-      {result.doNow.length === 0 ? (
-        <Text style={[styles.empty, { color: colors.mutedForeground }]}>No actions returned. Try again.</Text>
-      ) : (
-        result.doNow.map((item, index) => <ActionCard key={`${item.action}-${index}`} item={item} index={index} />)
-      )}
-
-      {result.avoid.length > 0 && (
-        <ResultCallout icon={Ban} title="Avoid right now" tone="rose">
-          <TagList items={result.avoid} />
-        </ResultCallout>
-      )}
-
-      {result.nextCheckpoint.trim() !== "" && (
-        <ResultCallout icon={Flag} title="Next checkpoint" tone="emerald">
-          <Text style={[styles.text, { color: colors.foreground }]}>{result.nextCheckpoint.trim()}</Text>
-        </ResultCallout>
-      )}
-    </Section>
-  );
-}
-
-export function WhatToDoNowFooter({ state }: { state: WhatToDoNowState }) {
-  const { form, pending, error, update, submit } = state;
-
-  return (
-    <View style={styles.footer}>
-      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
+      <Panel>
         <TextField
           label="Goals"
           placeholder={"Finish the Android report by Friday\nLearn React Native navigation"}
@@ -73,6 +34,8 @@ export function WhatToDoNowFooter({ state }: { state: WhatToDoNowState }) {
           maxLength={GOALS_MAX}
           voice
         />
+      </Panel>
+      <Panel>
         <TextField
           label="Date and time (optional)"
           hint="Leave empty to use now."
@@ -91,19 +54,36 @@ export function WhatToDoNowFooter({ state }: { state: WhatToDoNowState }) {
           maxLength={SITUATION_MAX}
           voice
         />
+      </Panel>
+      <Disclosure
+        title="Additional info (optional)"
+        summary={form.extraInfo.trim() || "Commitments, place, or resources"}
+        open={extraOpen}
+        onToggle={setExtraOpen}
+      >
         <TextField
-          label="Additional info (optional)"
+          label="Constraints or context (optional)"
           placeholder="Dinner at 19:00. Laptop only."
           value={form.extraInfo}
           onChangeText={(text) => update("extraInfo", text)}
           editable={!pending}
           multiline
           maxLength={EXTRA_INFO_MAX}
+          voice
         />
-      </ScrollView>
+      </Disclosure>
+    </Section>
+  );
+}
+
+export function WhatToDoNowFooter({ state }: { state: WhatToDoNowState }) {
+  const { pending, error, submit } = state;
+
+  return (
+    <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Thinking…" : "What should I do now?"}
+        label={pending ? "Getting next actions…" : "Get next actions"}
         icon={Compass}
         loading={pending}
         onPress={submit}
@@ -112,50 +92,173 @@ export function WhatToDoNowFooter({ state }: { state: WhatToDoNowState }) {
   );
 }
 
-function ActionCard({ item, index }: { item: NextAction; index: number }) {
+export function WhatToDoNowResults({ state, onToggle }: { state: WhatToDoNowState; onToggle: (index: number) => void }) {
   const colors = useThemeColors();
+  const { result } = state;
+
+  if (!result) {
+    return <EmptyHint icon={Compass} title="No next actions yet" hint="Tap New plan to tell it your goals and time." />;
+  }
+
+  const plainText = toPlainText(result);
+  const hasReasons = result.doNow.some((item) => item.goal.trim() !== "" || item.reason.trim() !== "");
+
   return (
-    <Panel>
-      <View style={styles.cardHeader}>
-        <View style={[styles.badge, { backgroundColor: colors.muted }]}>
-          <Text style={[styles.badgeText, { color: colors.primary }]}>{index + 1}</Text>
+    <Section>
+      <View style={styles.header}>
+        <View style={styles.headerTitle}>
+          <SectionTitle icon={ListChecks} title="Next actions" />
         </View>
-        <Text style={[styles.cardTitle, { color: colors.foreground }]}>{item.action}</Text>
-        {item.minutes !== null && (
-          <View style={[styles.minutes, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-            <Clock size={12} color={colors.mutedForeground} />
-            <Text style={[styles.minutesText, { color: colors.mutedForeground }]}>{item.minutes} min</Text>
-          </View>
-        )}
+        <CopyButton text={plainText} label="Copy next actions" />
+        <ListenButton text={plainText} label="next actions" />
       </View>
-      {item.goal.trim() !== "" && (
-        <View style={styles.row}>
-          <Flag size={14} color={colors.mutedForeground} />
-          <Text style={[styles.meta, { color: colors.mutedForeground }]}>{item.goal}</Text>
+
+      {result.doNow.length === 0 ? (
+        <Text style={[styles.body, { color: colors.mutedForeground }]}>No actions came back. Tap New plan to try again.</Text>
+      ) : (
+        <View style={[styles.list, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {result.doNow.map((item, index) => (
+            <ActionRow
+              key={`${item.action}-${index}`}
+              item={item}
+              index={index}
+              checked={item.done}
+              onToggle={() => onToggle(index)}
+            />
+          ))}
         </View>
       )}
-      {item.reason.trim() !== "" && (
-        <View style={styles.row}>
-          <Lightbulb size={14} color={colors.mutedForeground} />
-          <Text style={[styles.meta, { color: colors.mutedForeground }]}>{item.reason}</Text>
-        </View>
+
+      {hasReasons && (
+        <Disclosure title="Why these steps" icon={Lightbulb}>
+          <View style={styles.reasons}>
+            {result.doNow.map((item, index) => (
+              <View key={`why-${item.action}-${index}`} style={styles.reason}>
+                <Text style={[styles.body, styles.strong, { color: colors.foreground }]}>
+                  {index + 1}. {item.goal.trim() || item.action}
+                </Text>
+                {item.reason.trim() !== "" && <Text style={[styles.body, { color: colors.mutedForeground }]}>{item.reason}</Text>}
+              </View>
+            ))}
+          </View>
+        </Disclosure>
       )}
-    </Panel>
+
+      {result.timeContext.trim() !== "" && (
+        <ResultCallout icon={Clock} title="Time check" tone="sky">
+          <Text style={[styles.body, { color: colors.foreground }]}>{result.timeContext.trim()}</Text>
+        </ResultCallout>
+      )}
+
+      {result.avoid.length > 0 && (
+        <ResultCallout icon={Ban} title="Avoid right now" tone="rose">
+          <TagList items={result.avoid} />
+        </ResultCallout>
+      )}
+
+      {result.nextCheckpoint.trim() !== "" && (
+        <ResultCallout icon={Flag} title="Next checkpoint" tone="emerald">
+          <Text style={[styles.body, { color: colors.foreground }]}>{result.nextCheckpoint.trim()}</Text>
+        </ResultCallout>
+      )}
+    </Section>
   );
 }
 
+function ActionRow({
+  item,
+  index,
+  checked,
+  onToggle,
+}: {
+  item: NextAction;
+  index: number;
+  checked: boolean;
+  onToggle: () => void;
+}) {
+  const colors = useThemeColors();
+  const label = `${index + 1}. ${item.action}`;
+
+  return (
+    <Pressable
+      onPress={onToggle}
+      accessibilityRole="checkbox"
+      accessibilityLabel={label}
+      accessibilityState={{ checked }}
+      style={({ pressed }) => [
+        styles.row,
+        pointerCursor,
+        index > 0 && { borderTopWidth: 1, borderTopColor: colors.border },
+        pressed && { backgroundColor: colors.muted },
+      ]}
+    >
+      <View
+        style={[
+          styles.box,
+          { borderColor: checked ? colors.primary : colors.border, backgroundColor: checked ? colors.primary : colors.background },
+        ]}
+      >
+        {checked && <Check size={16} color={colors.primaryForeground} />}
+      </View>
+      <View style={styles.rowText}>
+        <Text style={[styles.body, styles.strong, { color: checked ? colors.mutedForeground : colors.foreground }, checked && styles.done]}>
+          {label}
+        </Text>
+        {index === 0 && !checked && <Text style={[styles.caption, { color: colors.primary }]}>Start here</Text>}
+        {item.minutes !== null && (
+          <View style={[styles.minutes, { borderColor: colors.border, backgroundColor: colors.muted }]}>
+            <Clock size={12} color={colors.mutedForeground} />
+            <Text style={[styles.caption, { color: colors.mutedForeground }]}>{item.minutes} min</Text>
+          </View>
+        )}
+      </View>
+    </Pressable>
+  );
+}
+
+function toPlainText(result: WhatToDoNowResult): string {
+  const lines = result.doNow.map((item, index) => `${index + 1}. ${item.action}${item.minutes !== null ? ` (${item.minutes} min)` : ""}`);
+  if (result.nextCheckpoint.trim() !== "") lines.push("", `Checkpoint: ${result.nextCheckpoint.trim()}`);
+  return lines.join("\n");
+}
+
 const styles = StyleSheet.create({
-  footer: { gap: spacing.md },
-  fields: { maxHeight: 340 },
-  fieldsContent: { gap: spacing.md },
-  text: { fontSize: 15, lineHeight: 23 },
-  empty: { fontSize: 14, textAlign: "center", paddingVertical: spacing.md },
-  cardHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
-  badge: { width: 28, height: 28, borderRadius: radius.full, alignItems: "center", justifyContent: "center" },
-  badgeText: { fontSize: 14, fontWeight: "700" },
-  cardTitle: { flex: 1, fontSize: 17, fontWeight: "600" },
-  minutes: { flexDirection: "row", alignItems: "center", gap: spacing.xs, borderWidth: 1, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
-  minutesText: { fontSize: 12, fontWeight: "500" },
-  row: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
-  meta: { flex: 1, fontSize: 14, lineHeight: 21 },
+  footer: { gap: spacing.sm },
+  header: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  headerTitle: { flex: 1 },
+  list: { borderWidth: 1, borderRadius: shape.lg, overflow: "hidden" },
+  row: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
+    minHeight: touchTarget,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  box: {
+    width: 24,
+    height: 24,
+    marginTop: 1,
+    borderWidth: 1,
+    borderRadius: shape.xs,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rowText: { flex: 1, gap: spacing.xs },
+  body: { ...typeScale.body },
+  strong: { fontWeight: "600" },
+  done: { textDecorationLine: "line-through" },
+  caption: { ...typeScale.caption },
+  minutes: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderRadius: shape.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  reasons: { gap: spacing.lg },
+  reason: { gap: spacing.xs },
 });

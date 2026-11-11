@@ -12,7 +12,7 @@ export default function BattlegroundNewRoute() {
   return (
     <ToolScreen
       title="New battle"
-      headerRight={<ResetButton onPress={setup.reset} />}
+      headerRight={<ResetButton accessibilityLabel="Reset form" onPress={setup.reset} />}
       footer={<BattleFormFooter setup={setup} />}
     >
       <BattleFormFields setup={setup} />

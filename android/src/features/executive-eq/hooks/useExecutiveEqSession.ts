@@ -11,6 +11,7 @@ import { useRequest } from "@/hooks/useRequest";
 import { loadDocument, saveDocument } from "@/lib/document-store";
 import { respondToMove } from "../lib/generators";
 import { EQ_STORAGE_KEYS, restoreSession } from "../lib/persistence";
+import { formatEvaluation } from "../lib/transcript";
 import type { ExecutiveEqSession } from "../types";
 
 export function useExecutiveEqSession() {
@@ -67,10 +68,7 @@ export function useExecutiveEqSession() {
             log: [
               ...prev.log,
               { role: "user", content: text },
-              {
-                role: "assistant",
-                content: `**Coach's evaluation**\n\nSubtext: ${evaluation.subtextAccuracy}\nStatus: ${evaluation.statusImpact} · Strategic grade: **${evaluation.strategicGrade}**\n\n**Rewritten pro move:** ${evaluation.theRewrittenProMove}\n\n**Tip:** ${evaluation.coachingTip}`,
-              },
+              { role: "assistant", content: formatEvaluation(evaluation) },
               { role: "assistant", content: nextMove.npcDialogue },
             ],
             grades: [...prev.grades, evaluation],

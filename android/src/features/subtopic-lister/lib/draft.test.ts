@@ -15,7 +15,7 @@ describe("subtopic-lister draft", () => {
       form: {},
       result: { subtopics: [{ name: "Linear equations", description: "Solve for x." }, { name: "" }] },
     });
-    expect(draft.result).toEqual({ subtopics: [{ name: "Linear equations", description: "Solve for x." }] });
+    expect(draft.result).toEqual({ subtopics: [{ name: "Linear equations", description: "Solve for x.", kept: false }] });
   });
 
   it("returns defaults for unreadable data", () => {

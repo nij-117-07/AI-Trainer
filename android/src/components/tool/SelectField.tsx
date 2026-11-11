@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Check, ChevronDown } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { Field, pointerCursor } from "@/components/tool/FormControls";
 
 const CUSTOM = "__custom__";
@@ -134,9 +134,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    minHeight: 44,
+    minHeight: touchTarget,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     fontSize: 16,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   sheet: {
     borderWidth: 1,
-    borderRadius: radius["2xl"],
+    borderRadius: shape.lg,
     padding: spacing.lg,
     maxHeight: 420,
   },
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
   },

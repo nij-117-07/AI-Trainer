@@ -12,7 +12,7 @@ export default function RoadmapNewRoute() {
   return (
     <ToolScreen
       title="New roadmap"
-      headerRight={<ResetButton onPress={state.reset} />}
+      headerRight={<ResetButton onPress={state.reset} accessibilityLabel="Reset form" />}
       footer={<RoadmapCreateFooter state={state} />}
     >
       <RoadmapCreateBody state={state} />

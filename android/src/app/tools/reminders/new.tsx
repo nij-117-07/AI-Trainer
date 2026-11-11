@@ -14,7 +14,7 @@ export default function RemindersNewRoute() {
     <ToolScreen
       title="New reminder"
       usesAi={false}
-      headerRight={<ResetButton onPress={form.reset} />}
+      headerRight={<ResetButton label="Reset" onPress={form.reset} />}
       footer={<ReminderFormFooter form={form} />}
     >
       <Section>

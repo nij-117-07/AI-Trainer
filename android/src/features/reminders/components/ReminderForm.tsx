@@ -4,7 +4,7 @@
  */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Plus } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ChoiceChips, ErrorText, Field, TextField } from "@/components/tool/FormControls";
 import type { ReminderFormState } from "../hooks/useReminderForm";
 import { UNIT_OPTIONS, WEEKDAY_ORDER } from "../lib/labels";
@@ -60,9 +60,7 @@ export function ReminderFormFields({ form }: { form: ReminderFormState }) {
           />
         </View>
       </View>
-      <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-        24-hour time. Reminders only fire inside this window. A window like 22:00 to 06:00 is allowed.
-      </Text>
+      <Text style={[styles.hint, { color: colors.mutedForeground }]}>24-hour time. Windows can cross midnight, such as 22:00 to 06:00.</Text>
       <Field label="Days">
         <View style={styles.days}>
           {WEEKDAY_ORDER.map((day) => {
@@ -116,8 +114,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hint: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
   days: {
     flexDirection: "row",
@@ -125,16 +122,16 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   day: {
-    minWidth: 44,
-    minHeight: 44,
+    minWidth: touchTarget,
+    minHeight: touchTarget,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
   },
   dayText: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
 });

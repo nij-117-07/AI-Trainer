@@ -1,10 +1,10 @@
 // src/app/practice/testing-portal/theoretical/index.tsx
-import { Alert } from "react-native";
+import { Alert, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { BookOpen, Sparkles } from "lucide-react-native";
+import { BookOpen, Sparkles, Trash2 } from "lucide-react-native";
+import { shape, touchTarget, useThemeColors } from "@/theme";
 import { ActionButton } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
-import { ResetButton } from "@/components/tool/ResetButton";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { PortalLoading } from "@/features/testing-portal/components/PortalLoading";
@@ -27,10 +27,10 @@ export default function TheoreticalRoute() {
   return (
     <ToolScreen
       title="Theoretical"
-      headerRight={hasQuestions ? <ResetButton label="Clear all" onPress={confirmClear} /> : undefined}
+      headerRight={hasQuestions ? <ClearAllButton onPress={confirmClear} /> : undefined}
       footer={
         <ActionButton
-          label={hasQuestions ? "Generate more" : "Generate questions"}
+          label={hasQuestions ? "Generate more questions" : "Generate questions"}
           icon={Sparkles}
           onPress={() => router.push("/practice/testing-portal/theoretical/new")}
         />
@@ -43,13 +43,12 @@ export default function TheoreticalRoute() {
             questions={questions}
             contextSetting={theoretical.result.contextSetting}
             difficultyLevel={theoretical.result.difficultyLevel}
+            answers={theoretical.answers}
+            failedIndex={theoretical.failedIndex}
+            onAnswerChange={theoretical.updateAnswer}
           />
         ) : theoretical.loaded ? (
-          <EmptyHint
-            icon={BookOpen}
-            title="No questions yet"
-            hint="Tap Generate questions, choose a topic and context, then generate."
-          />
+          <EmptyHint icon={BookOpen} title="No questions yet" hint="Generate a set to start writing answers." />
         ) : (
           <PortalLoading />
         )}
@@ -57,3 +56,32 @@ export default function TheoreticalRoute() {
     </ToolScreen>
   );
 }
+
+function ClearAllButton({ onPress }: { onPress: () => void }) {
+  const colors = useThemeColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="Clear all questions"
+      style={({ pressed }) => [
+        styles.clearButton,
+        { borderColor: colors.border },
+        pressed && { backgroundColor: colors.muted },
+      ]}
+    >
+      <Trash2 size={20} color={colors.foreground} />
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  clearButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderWidth: 1,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

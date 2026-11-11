@@ -22,7 +22,7 @@ export function useWhatToDoNow() {
   const { settings } = useAiSettings();
   const draft = useSavedDraft<WhatToDoNowFormValues, WhatToDoNowResult>(STORAGE_KEY, DEFAULTS, parseDraft);
   const request = useRequest(whatToDoNow);
-  const { form, setForm, setResult } = draft;
+  const { form, setForm, setResult, saveResultNow } = draft;
 
   function update<K extends keyof WhatToDoNowFormValues>(key: K, value: WhatToDoNowFormValues[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -31,6 +31,12 @@ export function useWhatToDoNow() {
   async function submit() {
     const next = await request.run(settings, form);
     if (next) setResult(next);
+  }
+
+  function toggleDone(index: number) {
+    if (!draft.result) return;
+    const doNow = draft.result.doNow.map((item, i) => (i === index ? { ...item, done: !item.done } : item));
+    saveResultNow({ ...draft.result, doNow });
   }
 
   function reset() {
@@ -42,9 +48,10 @@ export function useWhatToDoNow() {
     form,
     pending: request.pending,
     error: request.error,
-    result: request.data ?? draft.result,
+    result: draft.result,
     update,
     submit,
+    toggleDone,
     reset,
   };
 }

@@ -5,7 +5,7 @@
  */
 import { StyleSheet, Text, View } from "react-native";
 import { BookOpen } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { difficultyOptions, responseFormatOptions } from "../options";
@@ -20,7 +20,7 @@ export function AnswerFormFields({ setup }: { setup: AnswerSetupState }) {
     <>
       {hasAnswer && (
         <Text style={[styles.note, { color: colors.mutedForeground }]}>
-          A new answer replaces the one you have.
+          This replaces your saved answer.
         </Text>
       )}
       <TextField
@@ -56,7 +56,7 @@ export function AnswerFormFields({ setup }: { setup: AnswerSetupState }) {
         allowCustom={false}
       />
       <TextField
-        label="User instructions (optional)"
+        label="Instructions (optional)"
         placeholder="e.g. Include a short code example"
         value={form.customInstructions}
         onChangeText={(text) => update("customInstructions", text)}
@@ -87,8 +87,8 @@ export function AnswerFormFooter({ setup }: { setup: AnswerSetupState }) {
 
 const styles = StyleSheet.create({
   note: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
   },
   footer: {
     gap: spacing.md,

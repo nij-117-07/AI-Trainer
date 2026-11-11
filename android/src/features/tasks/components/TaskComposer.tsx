@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Plus } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { ChoiceChips } from "@/components/tool/FormControls";
 import type { useTasks } from "../hooks/useTasks";
 import { createTask, dueDateOptions, PRIORITY_OPTIONS } from "../lib/tasks";
@@ -83,7 +83,7 @@ export function TaskComposer({ store }: { store: TaskStore }) {
             pressed && canAdd && { opacity: 0.85 },
           ]}
         >
-          <Plus size={22} color={canAdd ? colors.primaryForeground : colors.mutedForeground} />
+          <Plus size={24} color={canAdd ? colors.primaryForeground : colors.mutedForeground} />
         </Pressable>
       </View>
     </View>
@@ -104,16 +104,16 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 50,
+    minHeight: touchTarget + spacing.sm,
     borderWidth: 1,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.xl,
-    fontSize: 16,
+    borderRadius: shape.lg,
+    paddingHorizontal: spacing.lg,
+    ...typeScale.body,
   },
   addButton: {
-    width: 50,
-    height: 50,
-    borderRadius: radius.full,
+    width: touchTarget + spacing.sm,
+    height: touchTarget + spacing.sm,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { StyleSheet, Text } from "react-native";
 import { NotebookPen } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { ChoiceChips, TextField } from "@/components/tool/FormControls";
 import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
@@ -67,8 +67,8 @@ export function NotesList({ store, onOpen }: NotesListProps) {
 
 const styles = StyleSheet.create({
   hint: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
     paddingHorizontal: spacing.xs,
   },
 });

@@ -1,19 +1,48 @@
 // src/features/memory-helper/components/MemoryHelperTab.tsx
-/** Memory Helper: a why-it-works note, concept-to-hook mnemonics, and a 3-step retention plan. The form sits in the footer. */
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { Brain, Lightbulb, ListChecks, Sparkles } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+/** Memory Helper: concept-to-hook memory aids, a why-it-works note, and a retention plan. The form and the result are separate pages. */
+import { StyleSheet, Text, View } from "react-native";
+import { Brain, Lightbulb, ListChecks, Plus, Sparkles } from "lucide-react-native";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { CopyButton } from "@/components/tool/CopyButton";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { SelectField } from "@/components/tool/SelectField";
 import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
-import { ResultCallout } from "@/components/tool/ResultCallout";
 import { ListenButton } from "@/components/tool/ListenButton";
-import { SectionTitle } from "@/components/tool/SectionTitle";
 import type { MemoryHelperState } from "../hooks/useMemoryHelper";
 import { techniqueOptions } from "../lib/options";
 import { CONTENT_MAX, CONTENT_MIN, isMemoryTechnique } from "../lib/types";
+
+export function MemoryHelperForm({ state }: { state: MemoryHelperState }) {
+  const { form, pending, update } = state;
+
+  return (
+    <Panel>
+      <TextField
+        label="Facts to memorize"
+        placeholder="e.g. The planets in order from the sun"
+        hint={`At least ${CONTENT_MIN} characters.`}
+        value={form.topic}
+        onChangeText={(text) => update("topic", text)}
+        editable={!pending}
+        maxLength={CONTENT_MAX}
+        multiline
+        voice
+      />
+      <SelectField
+        label="Mnemonic technique"
+        options={techniqueOptions}
+        value={form.technique}
+        onChange={(value) => {
+          if (isMemoryTechnique(value)) update("technique", value);
+        }}
+        allowCustom={false}
+      />
+    </Panel>
+  );
+}
 
 export function MemoryHelperResults({ state }: { state: MemoryHelperState }) {
   const colors = useThemeColors();
@@ -23,80 +52,64 @@ export function MemoryHelperResults({ state }: { state: MemoryHelperState }) {
     return (
       <EmptyHint
         icon={Brain}
-        title="Turn facts into memory aids"
-        hint="Paste what you need to remember in the form, then tap Create mnemonics."
+        title="No memory aid yet"
+        hint="Describe what to remember, then tap Create memory aid."
       />
     );
   }
 
   return (
     <Section>
-      {result.explanation.trim() !== "" && (
-        <ResultCallout icon={Lightbulb} title="Why this technique works" tone="sky">
-          <MarkdownText content={result.explanation} />
-          <ListenButton text={result.explanation} label="Explanation" />
-        </ResultCallout>
+      {result.memoryHooks.length === 0 ? (
+        <Text style={[styles.empty, { color: colors.mutedForeground }]}>No memory aids returned. Try again.</Text>
+      ) : (
+        result.memoryHooks.map((item, index) => (
+          <Panel key={`${item.concept}-${index}`}>
+            <View style={styles.aid}>
+              <Text accessibilityRole="header" style={[styles.concept, { color: colors.primary }]}>
+                {index + 1}. {item.concept}
+              </Text>
+              <MarkdownText content={item.hook} />
+            </View>
+            <View style={styles.actions}>
+              <ListenButton text={item.hook} label={`Memory aid ${index + 1}`} />
+              <CopyButton text={item.hook} label={`Copy memory aid ${index + 1}`} />
+            </View>
+          </Panel>
+        ))
       )}
 
-      <Panel>
-        <SectionTitle icon={Brain} title="Memory hooks" />
-        {result.memoryHooks.length === 0 ? (
-          <Text style={[styles.empty, { color: colors.mutedForeground }]}>No memory hooks returned. Try again.</Text>
-        ) : (
-          <View style={styles.hooks}>
-            {result.memoryHooks.map((item, index) => (
-              <View key={`${item.concept}-${index}`} style={[styles.hook, { borderColor: colors.border }]}>
-                <Text style={[styles.hookConcept, { color: colors.primary }]}>
-                  {index + 1}. {item.concept}
-                </Text>
-                <MarkdownText content={item.hook} />
-                <ListenButton text={item.hook} label="Memory hook" />
-              </View>
-            ))}
+      {result.explanation.trim() !== "" && (
+        <Disclosure title="Why this works" icon={Lightbulb} summary={firstLine(result.explanation)}>
+          <MarkdownText content={result.explanation} />
+          <View style={styles.actions}>
+            <ListenButton text={result.explanation} label="Explanation" />
+            <CopyButton text={result.explanation} label="Copy explanation" />
           </View>
-        )}
-      </Panel>
+        </Disclosure>
+      )}
 
       {result.retentionPlan.trim() !== "" && (
-        <ResultCallout icon={ListChecks} title="Retention plan" tone="emerald">
+        <Disclosure title="Review plan" icon={ListChecks} summary={firstLine(result.retentionPlan)}>
           <MarkdownText content={result.retentionPlan} />
-          <ListenButton text={result.retentionPlan} label="Retention plan" />
-        </ResultCallout>
+          <View style={styles.actions}>
+            <ListenButton text={result.retentionPlan} label="Review plan" />
+            <CopyButton text={result.retentionPlan} label="Copy review plan" />
+          </View>
+        </Disclosure>
       )}
     </Section>
   );
 }
 
 export function MemoryHelperFooter({ state }: { state: MemoryHelperState }) {
-  const { form, pending, error, update, submit } = state;
+  const { pending, error, submit } = state;
 
   return (
     <View style={styles.footer}>
-      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
-        <TextField
-          label="Facts to memorize"
-          placeholder="e.g. The planets in order from the sun, or the steps of the Krebs cycle"
-          hint={`At least ${CONTENT_MIN} characters.`}
-          value={form.topic}
-          onChangeText={(text) => update("topic", text)}
-          editable={!pending}
-          maxLength={CONTENT_MAX}
-          multiline
-          voice
-        />
-        <SelectField
-          label="Mnemonic technique"
-          options={techniqueOptions}
-          value={form.technique}
-          onChange={(value) => {
-            if (isMemoryTechnique(value)) update("technique", value);
-          }}
-          allowCustom={false}
-        />
-      </ScrollView>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Building memory hooks…" : "Create mnemonics"}
+        label={pending ? "Creating memory aid…" : "Create memory aid"}
         icon={Sparkles}
         loading={pending}
         onPress={submit}
@@ -105,30 +118,37 @@ export function MemoryHelperFooter({ state }: { state: MemoryHelperState }) {
   );
 }
 
+export function MemoryHelperResultFooter({ onNew }: { onNew: () => void }) {
+  return <ActionButton label="New memory aid" icon={Plus} onPress={onNew} />;
+}
+
+/** The first non-empty line of Markdown text, with formatting marks removed, for a one-line summary. */
+function firstLine(text: string): string {
+  return (
+    text
+      .split("\n")
+      .map((line) => line.replace(/^\s*(?:[-+*#>]|\d+\.)\s*/, "").replace(/[*_`]/g, "").trim())
+      .find((line) => line !== "") ?? ""
+  );
+}
+
 const styles = StyleSheet.create({
   footer: {
     gap: spacing.md,
   },
-  fields: {
-    maxHeight: 340,
-  },
-  fieldsContent: {
-    gap: spacing.md,
-  },
-  empty: {
-    fontSize: 14,
-  },
-  hooks: {
-    gap: spacing.md,
-  },
-  hook: {
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: spacing.md,
+  aid: {
     gap: spacing.sm,
   },
-  hookConcept: {
-    fontSize: 15,
+  concept: {
+    ...typeScale.label,
     fontWeight: "600",
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
+  empty: {
+    ...typeScale.label,
   },
 });

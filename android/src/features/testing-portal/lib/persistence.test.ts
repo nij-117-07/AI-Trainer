@@ -2,8 +2,10 @@
 import {
   sanitizeAnswerResult,
   sanitizeGraderResult,
+  sanitizeMcqAnswers,
   sanitizeMcqResult,
   sanitizeSolverResult,
+  sanitizeTheoreticalAnswers,
   sanitizeTheoreticalResult,
 } from "./persistence";
 
@@ -87,6 +89,7 @@ describe("sanitizeGraderResult", () => {
     });
     expect(result).toEqual({
       questionAsked: "How would you respond?",
+      targetObjective: "",
       userAnswerText: "",
       hadImage: true,
       grade: {
@@ -100,8 +103,63 @@ describe("sanitizeGraderResult", () => {
     });
   });
 
+  it("keeps the graded objective", () => {
+    expect(
+      sanitizeGraderResult({ questionAsked: "Q", targetObjective: " Calm the customer ", grade: { score: 5 } })?.targetObjective,
+    ).toBe("Calm the customer");
+  });
+
   it("returns null when there is no grade", () => {
     expect(sanitizeGraderResult({ questionAsked: "Q" })).toBeNull();
+  });
+});
+
+describe("sanitizeMcqAnswers", () => {
+  it("keeps valid selections and drops damaged ones", () => {
+    expect(
+      sanitizeMcqAnswers({
+        0: { selected: "B", checked: true },
+        1: { selected: "E", checked: true },
+        x: { selected: "A", checked: true },
+        2: "A",
+      }),
+    ).toEqual({ 0: { selected: "B", checked: true } });
+  });
+
+  it("returns no answers for unreadable data", () => {
+    expect(sanitizeMcqAnswers(null)).toEqual({});
+  });
+});
+
+describe("sanitizeTheoreticalAnswers", () => {
+  it("keeps the typed answer, grade, and model answer, and drops the rest", () => {
+    expect(
+      sanitizeTheoreticalAnswers({
+        0: {
+          answer: "My answer",
+          gradedText: "My answer",
+          grade: { score: 6, strengths: ["Clear"], isTargetMet: true },
+          expert: { answerText: " Model ", keyConceptsCovered: ["CAP", ""] },
+        },
+        1: { answer: "Draft", gradedText: null, grade: null, expert: { answerText: " " } },
+        bad: { answer: "Ignored" },
+      }),
+    ).toEqual({
+      0: {
+        answer: "My answer",
+        gradedText: "My answer",
+        grade: {
+          combinedAnalysis: "",
+          score: 6,
+          strengths: ["Clear"],
+          weaknesses: [],
+          detailedFeedback: "",
+          isTargetMet: true,
+        },
+        expert: { answerText: "Model", keyConceptsCovered: ["CAP"] },
+      },
+      1: { answer: "Draft", gradedText: null, grade: null, expert: null },
+    });
   });
 });
 

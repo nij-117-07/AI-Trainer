@@ -1,86 +1,93 @@
 // src/features/tutor/components/TutorForm.tsx
-/** Tutor question form, pinned to the footer: the question first, then four settings with defaults. */
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Sparkles } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
-import { SelectField, type SelectOption } from "@/components/tool/SelectField";
+/** Tutor question form: the question, the teaching style, two presets, and an optional scenario sit in the body. */
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pencil, Sparkles } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { ActionButton, ChoiceChips, ErrorText, Field, Panel, TextField, pointerCursor } from "@/components/tool/FormControls";
+import type { SelectOption } from "@/components/tool/SelectField";
 import type { PromptTemplate, TutorFormValues } from "../types";
 import { learningStyleOptions, studentLevelOptions } from "../lib/options";
+
+const CUSTOM = "__custom__";
 
 interface TutorFormProps {
   form: TutorFormValues;
   personas: PromptTemplate[];
   onChange: (patch: Partial<TutorFormValues>) => void;
-  onSubmit: () => void;
   onManagePersonas: () => void;
   pending: boolean;
-  error: string | null;
 }
 
-export function TutorForm({ form, personas, onChange, onSubmit, onManagePersonas, pending, error }: TutorFormProps) {
+export function TutorForm({ form, personas, onChange, onManagePersonas, pending }: TutorFormProps) {
   const colors = useThemeColors();
-  const personaOptions: SelectOption[] = personas.map((persona) => ({
-    value: persona.name,
-    label: persona.source === "built-in" ? `${persona.name} (built-in)` : persona.name,
-  }));
+  const teachingStyleOptions: SelectOption[] = personas.map((persona) => ({ value: persona.name, label: persona.name }));
 
   return (
-    <View style={styles.footer}>
-      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
-        <TextField
-          label="Your question"
-          placeholder="e.g. Why does water boil at a lower temperature on a mountain?"
-          value={form.userQuery}
-          onChangeText={(text) => onChange({ userQuery: text })}
-          editable={!pending}
-          maxLength={2000}
-          multiline
-          voice
-        />
-        <SelectField
-          label="Persona"
-          options={personaOptions}
+    <Panel>
+      <TextField
+        label="Your question"
+        placeholder="e.g. Why does water boil at a lower temperature on a mountain?"
+        value={form.userQuery}
+        onChangeText={(text) => onChange({ userQuery: text })}
+        editable={!pending}
+        maxLength={2000}
+        multiline
+        voice
+      />
+      <View style={styles.teachingStyle}>
+        <View style={styles.labelRow}>
+          <Text style={[styles.label, { color: colors.foreground }]}>Teaching style</Text>
+          <Pressable
+            onPress={onManagePersonas}
+            accessibilityRole="button"
+            accessibilityLabel="Edit teaching styles"
+            style={({ pressed }) => [styles.iconButton, pointerCursor, pressed && { backgroundColor: colors.muted }]}
+          >
+            <Pencil size={18} color={colors.foreground} />
+          </Pressable>
+        </View>
+        <ChoiceChips
+          options={teachingStyleOptions}
           value={form.persona}
           onChange={(value) => onChange({ persona: value })}
-          allowCustom={false}
+          disabled={pending}
         />
-        <Pressable
-          onPress={onManagePersonas}
-          accessibilityRole="button"
-          accessibilityLabel="Manage personas"
-          style={({ pressed }) => [styles.link, pressed && { opacity: 0.6 }]}
-        >
-          <Text style={[styles.linkText, { color: colors.primary }]}>Manage personas</Text>
-        </Pressable>
-        <SelectField
-          label="Student level"
-          options={studentLevelOptions}
-          value={form.studentLevel}
-          onChange={(value) => onChange({ studentLevel: value })}
-          customLabel="Other / custom"
-          customPlaceholder="e.g. Year 9 student"
-        />
-        <SelectField
-          label="Learning style"
-          options={learningStyleOptions}
-          value={form.learningStyle}
-          onChange={(value) => onChange({ learningStyle: value })}
-          customLabel="Other / custom"
-          customPlaceholder="e.g. Socratic questions"
-        />
-        <TextField
-          label="Scenario (optional)"
-          placeholder="e.g. preparing for an exam"
-          value={form.currentScenario}
-          onChangeText={(text) => onChange({ currentScenario: text })}
-          editable={!pending}
-          maxLength={500}
-        />
-      </ScrollView>
+      </View>
+      <PresetField
+        label="Student level"
+        options={studentLevelOptions}
+        value={form.studentLevel}
+        customPlaceholder="e.g. Year 9 student"
+        disabled={pending}
+        onChange={(value) => onChange({ studentLevel: value })}
+      />
+      <PresetField
+        label="Learning style"
+        options={learningStyleOptions}
+        value={form.learningStyle}
+        customPlaceholder="e.g. Socratic questions"
+        disabled={pending}
+        onChange={(value) => onChange({ learningStyle: value })}
+      />
+      <TextField
+        label="Scenario (optional)"
+        placeholder="e.g. preparing for an exam"
+        value={form.currentScenario}
+        onChangeText={(text) => onChange({ currentScenario: text })}
+        editable={!pending}
+        maxLength={500}
+      />
+    </Panel>
+  );
+}
+
+export function TutorFormFooter({ pending, error, onSubmit }: { pending: boolean; error: string | null; onSubmit: () => void }) {
+  return (
+    <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Preparing your lesson…" : "Explain it to me"}
+        label={pending ? "Asking tutor…" : "Ask tutor"}
         icon={Sparkles}
         loading={pending}
         onPress={onSubmit}
@@ -89,24 +96,67 @@ export function TutorForm({ form, personas, onChange, onSubmit, onManagePersonas
   );
 }
 
+interface PresetFieldProps {
+  label: string;
+  options: SelectOption[];
+  value: string;
+  customPlaceholder: string;
+  disabled: boolean;
+  onChange: (value: string) => void;
+}
+
+/** Preset chips plus a Custom chip that reveals a text box, for values the presets do not cover. */
+function PresetField({ label, options, value, customPlaceholder, disabled, onChange }: PresetFieldProps) {
+  const [customSelected, setCustomSelected] = useState(false);
+  const isPreset = options.some((option) => option.value === value);
+  const customMode = !isPreset && (customSelected || value !== "");
+
+  return (
+    <Field label={label}>
+      <ChoiceChips
+        options={[...options, { value: CUSTOM, label: "Custom" }]}
+        value={customMode ? CUSTOM : value}
+        disabled={disabled}
+        onChange={(choice) => {
+          setCustomSelected(choice === CUSTOM);
+          onChange(choice === CUSTOM ? "" : choice);
+        }}
+      />
+      {customMode ? (
+        <TextField
+          label={`Custom ${label.toLowerCase()}`}
+          placeholder={customPlaceholder}
+          value={value}
+          onChangeText={onChange}
+          editable={!disabled}
+          maxLength={100}
+        />
+      ) : null}
+    </Field>
+  );
+}
+
 const styles = StyleSheet.create({
   footer: {
     gap: spacing.md,
   },
-  fields: {
-    maxHeight: 340,
+  teachingStyle: {
+    gap: spacing.sm,
   },
-  fieldsContent: {
-    gap: spacing.md,
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  link: {
-    minHeight: 44,
-    justifyContent: "center",
-    alignSelf: "flex-end",
-    paddingHorizontal: spacing.sm,
-  },
-  linkText: {
-    fontSize: 14,
+  label: {
+    ...typeScale.body,
     fontWeight: "600",
+  },
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

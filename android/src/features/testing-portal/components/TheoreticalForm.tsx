@@ -5,7 +5,7 @@
  */
 import { StyleSheet, Text, View } from "react-native";
 import { Sparkles } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
 import { CountSlider } from "@/components/tool/CountSlider";
 import { Disclosure } from "@/components/tool/Disclosure";
@@ -26,7 +26,7 @@ export function TheoreticalFormFields({ setup }: { setup: TheoreticalSetupState 
     <>
       {existingCount > 0 && (
         <Text style={[styles.note, { color: colors.mutedForeground }]}>
-          New questions are added after the {existingCount} you already have. Use Clear all on the Theoretical page to start over.
+          Adds to your {existingCount} saved questions.
         </Text>
       )}
       <TextField
@@ -87,7 +87,7 @@ export function TheoreticalFormFields({ setup }: { setup: TheoreticalSetupState 
       {history.length > 0 && (
         <Disclosure
           title="Past questions"
-          summary={`${history.length} of ${PAST_QUESTIONS_LIMIT} kept. Sent with the next request so the model avoids repeats.`}
+          summary={`${history.length} of ${PAST_QUESTIONS_LIMIT} kept to avoid repeats.`}
         >
           <View style={styles.list}>
             {history.map((question, index) => (
@@ -120,8 +120,7 @@ export function TheoreticalFormFooter({ setup }: { setup: TheoreticalSetupState 
 
 const styles = StyleSheet.create({
   note: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
   },
   footer: {
     gap: spacing.md,
@@ -131,10 +130,10 @@ const styles = StyleSheet.create({
   },
   item: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
   },
 });

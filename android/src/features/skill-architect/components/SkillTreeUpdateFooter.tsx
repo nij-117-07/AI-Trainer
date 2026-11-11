@@ -19,6 +19,7 @@ export function SkillTreeUpdateFooter({ state }: { state: SkillTreeState }) {
         multiline
         maxLength={SKILL_LIMITS.progressNote}
         voice
+        style={styles.note}
       />
       <ErrorText message={state.error} />
       <ActionButton
@@ -34,5 +35,8 @@ export function SkillTreeUpdateFooter({ state }: { state: SkillTreeState }) {
 const styles = StyleSheet.create({
   footer: {
     gap: spacing.md,
+  },
+  note: {
+    minHeight: 80,
   },
 });

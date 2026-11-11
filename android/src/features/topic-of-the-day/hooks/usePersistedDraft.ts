@@ -1,6 +1,6 @@
 // src/features/topic-of-the-day/hooks/usePersistedDraft.ts
 /** Keeps the topic form on the device, and loads the topic library each time its page is focused. */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { loadDocument, saveDocument } from "@/lib/document-store";
@@ -39,32 +39,85 @@ export function usePersistedForm<TForm extends object>(defaults: TForm) {
   return { form, setForm, reset };
 }
 
+let libraryQueue: Promise<unknown> = Promise.resolve();
+
+function queueLibrary<T>(task: () => Promise<T>): Promise<T> {
+  const run = libraryQueue.then(task);
+  libraryQueue = run.catch(() => undefined);
+  return run;
+}
+
+export interface PendingLibraryDelete {
+  message: string;
+  apply: (library: TopicLibrary) => TopicLibrary;
+}
+
+/**
+ * Topic library for one page. A delete is hidden at once and kept as pending until the undo
+ * snackbar dismisses, a new delete replaces it, or the page loses focus.
+ */
 export function useTopicLibrary() {
-  const [library, setLibrary] = useState<TopicLibrary>(EMPTY_TOPIC_LIBRARY);
+  const [saved, setSaved] = useState<TopicLibrary>(EMPTY_TOPIC_LIBRARY);
+  const [pending, setPending] = useState<PendingLibraryDelete | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const pendingRef = useRef<PendingLibraryDelete | null>(null);
+
+  const commitPending = useCallback(() => {
+    const item = pendingRef.current;
+    if (!item) return;
+    pendingRef.current = null;
+    setPending(null);
+    setSaved((current) => item.apply(current));
+    queueLibrary(() => changeTopicLibrary(item.apply))
+      .then(setSaved)
+      .catch(showSaveError);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      loadTopicLibrary()
+      queueLibrary(loadTopicLibrary)
         .then((next) => {
           if (!active) return;
-          setLibrary(next);
+          setSaved(next);
           setLoaded(true);
         })
         .catch(() => undefined);
       return () => {
         active = false;
+        commitPending();
       };
-    }, []),
+    }, [commitPending]),
   );
 
   const change = useCallback(async (edit: (current: TopicLibrary) => TopicLibrary) => {
-    const next = await changeTopicLibrary(edit);
-    setLibrary(next);
+    const next = await queueLibrary(() => changeTopicLibrary(edit));
+    setSaved(next);
   }, []);
 
-  return { library, loaded, change };
+  const removeLater = useCallback(
+    (item: PendingLibraryDelete) => {
+      commitPending();
+      pendingRef.current = item;
+      setPending(item);
+    },
+    [commitPending],
+  );
+
+  const undo = useCallback(() => {
+    pendingRef.current = null;
+    setPending(null);
+  }, []);
+
+  return {
+    library: pending ? pending.apply(saved) : saved,
+    loaded,
+    pending,
+    change,
+    removeLater,
+    undo,
+    dismiss: commitPending,
+  };
 }
 
 export function showSaveError() {

@@ -1,7 +1,7 @@
 // src/features/interview/components/InterviewView.tsx
 /**
  * Session page body: the current stage with its secondary actions, or the final report. Each
- * stage's primary action is in InterviewFooter.
+ * stage's primary action is in InterviewFooter, and the question count and End control are in the top bar.
  */
 import type { ReactNode } from "react";
 import { Briefcase, RotateCcw } from "lucide-react-native";
@@ -26,7 +26,7 @@ const BUSY_LABELS: Record<string, string> = {
 };
 
 export function InterviewView({ screen }: { screen: InterviewScreen }) {
-  const { state, loaded, pending, reset, endInterview } = screen;
+  const { state, loaded, pending, reset } = screen;
   const busy = pending !== null;
 
   if (!state) {
@@ -36,7 +36,7 @@ export function InterviewView({ screen }: { screen: InterviewScreen }) {
           <EmptyHint
             icon={Briefcase}
             title="No interview yet"
-            hint="Tap New interview to add a candidate and a role, then start."
+            hint="Add a candidate and a role, then start."
           />
         ) : null}
       </Section>
@@ -66,6 +66,7 @@ export function InterviewView({ screen }: { screen: InterviewScreen }) {
       <ReviewStage
         review={state.latestReview}
         question={state.currentQuestion}
+        answer={state.currentAnswer}
         edit={screen.review}
         pending={pending}
       />
@@ -90,7 +91,7 @@ export function InterviewView({ screen }: { screen: InterviewScreen }) {
 
   return (
     <Section>
-      <SessionHeader state={state} isPending={busy} onEnd={endInterview} />
+      <SessionHeader state={state} />
       {stage}
     </Section>
   );

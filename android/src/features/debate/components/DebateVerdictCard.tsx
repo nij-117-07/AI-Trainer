@@ -2,7 +2,7 @@
 /** The judge's verdict: winner, both scores, the strongest and weakest points, and the reasoning. */
 import { StyleSheet, Text, View } from "react-native";
 import { ThumbsDown, ThumbsUp, Trophy, type LucideIcon, Scale } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { ResultCallout } from "@/components/tool/ResultCallout";
@@ -57,26 +57,25 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   score: {
-    fontSize: 15,
+    ...typeScale.label,
     fontWeight: "600",
   },
   point: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: spacing.sm,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
   },
   pointBody: {
     flex: 1,
     gap: spacing.xs,
   },
   label: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
   body: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
   bold: {
     fontWeight: "600",

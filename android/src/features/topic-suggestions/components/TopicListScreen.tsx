@@ -1,9 +1,9 @@
 // src/features/topic-suggestions/components/TopicListScreen.tsx
-/** Topic Suggestions home: the saved topic list, with a Suggest topics button that opens the generator. */
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+/** Topic Suggestions home: the saved topic list. Suggest topics is the one action, in the footer. */
+import { StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { ListChecks, Sparkles } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
@@ -19,18 +19,17 @@ export function TopicListScreen() {
   const doneCount = state.topics.filter((topic) => topic.done).length;
 
   return (
-    <ToolScreen title="Topic Suggestions">
-      <Section>
-        <Text style={[styles.lead, { color: colors.mutedForeground }]}>
-          Keep a list of topics to study next. Suggest new ones, then add the ones you want.
-        </Text>
-
+    <ToolScreen
+      title="Topic Suggestions"
+      footer={
         <ActionButton
           label="Suggest topics"
           icon={Sparkles}
           onPress={() => router.push("/learning/topic-suggestions/new" as never)}
         />
-
+      }
+    >
+      <Section>
         <ErrorText message={state.error} />
 
         <View style={styles.header}>
@@ -42,41 +41,35 @@ export function TopicListScreen() {
           ) : null}
         </View>
 
-        {!state.loaded ? <ActivityIndicator color={colors.primary} /> : null}
-
         {state.loaded && state.topics.length === 0 ? (
-          <EmptyHint
-            icon={ListChecks}
-            title="Your list is empty"
-            hint="Tap Suggest topics, pick the ones you want, and they will appear here."
-          />
+          <EmptyHint icon={ListChecks} title="Your list is empty" hint="Suggest some topics to study next." />
         ) : null}
 
-        {state.topics.map((topic) => (
-          <TopicRow
-            key={topic.id}
-            topic={topic}
-            onToggle={() => state.toggle(topic.id)}
-            onRemove={() => state.remove(topic.id)}
-          />
-        ))}
+        <View style={styles.list}>
+          {state.topics.map((topic) => (
+            <TopicRow
+              key={topic.id}
+              topic={topic}
+              onToggle={() => state.toggle(topic.id)}
+              onRemove={() => state.remove(topic.id)}
+            />
+          ))}
+        </View>
       </Section>
     </ToolScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  lead: {
-    fontSize: 14,
-    lineHeight: 21,
-    paddingHorizontal: spacing.xs,
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   count: {
-    fontSize: 12,
+    ...typeScale.caption,
+  },
+  list: {
+    gap: spacing.sm,
   },
 });

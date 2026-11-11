@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors, type Tone } from "@/theme";
 
 interface ResultCalloutProps {
   icon: LucideIcon;
@@ -29,7 +29,7 @@ export function ResultCallout({ icon: Icon, title, tone, children }: ResultCallo
 const styles = StyleSheet.create({
   box: {
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     padding: spacing.lg,
     gap: spacing.sm,
   },
@@ -39,9 +39,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   title: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
 });

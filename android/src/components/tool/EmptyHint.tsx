@@ -1,8 +1,8 @@
 // src/components/tool/EmptyHint.tsx
-/** Placeholder shown before a tool's first result, pointing the user to the form. */
+/** Placeholder shown before a tool's first result, pointing the user to the form. Kept compact so it does not fill the screen. */
 import { StyleSheet, Text, View } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { cardPadding, shape, spacing, typeScale, useThemeColors } from "@/theme";
 
 interface EmptyHintProps {
   icon: LucideIcon;
@@ -26,27 +26,25 @@ export function EmptyHint({ icon: Icon, title, hint }: EmptyHintProps) {
 const styles = StyleSheet.create({
   box: {
     borderWidth: 1,
-    borderRadius: radius.xl,
-    padding: spacing.xl,
+    borderRadius: shape.lg,
+    padding: cardPadding.compact,
     alignItems: "center",
     gap: spacing.sm,
   },
   iconWrap: {
     width: 48,
     height: 48,
-    borderRadius: radius.full,
+    borderRadius: shape.md,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: spacing.xs,
   },
   title: {
-    fontSize: 16,
-    fontWeight: "600",
+    ...typeScale.title,
     textAlign: "center",
   },
   hint: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
     textAlign: "center",
   },
 });

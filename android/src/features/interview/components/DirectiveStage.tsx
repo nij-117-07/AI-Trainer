@@ -1,25 +1,36 @@
 // src/features/interview/components/DirectiveStage.tsx
 /**
- * Step 1: the session manager's decision and directive. The footer holds Proceed (or Save edits
- * while editing). The body holds Edit directive and Re-decide.
+ * Step 1: the session manager's decision and directive. The footer holds Ask question (or Save
+ * directive while editing). The title row holds the edit pencil, and the body holds Decide again.
  */
 import { StyleSheet, Text, View } from "react-native";
-import { Pencil, RotateCcw } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { Pencil, RotateCcw, X } from "lucide-react-native";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, TextField } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
-import { DIFFICULTY_OPTIONS, QUESTION_TYPE_OPTIONS } from "../options";
+import { DIFFICULTY_OPTIONS, QUESTION_TYPE_OPTIONS, type ChoiceOption } from "../options";
 import type { InterviewScreen } from "../hooks/useInterviewScreen";
 import type { InterviewPending } from "../hooks/useInterviewSession";
-import type { Directive, SessionDecision } from "../types";
-import { BadgeRow, StageBadge, StagePanel } from "./StagePanel";
+import type { Directive, NextAction, SessionDecision } from "../types";
+import { BadgeRow, IconAction, StageBadge, StagePanel } from "./StagePanel";
 
 interface DirectiveStageProps {
   decision: SessionDecision;
   edit: InterviewScreen["directive"];
   pending: InterviewPending;
   onRedecide: () => void;
+}
+
+const NEXT_ACTION_LABELS: Record<NextAction, string> = {
+  new_question: "New question",
+  follow_up: "Follow-up",
+  switch_topic: "Switch topic",
+  end_session: "End session",
+};
+
+function labelOf(options: ChoiceOption[], value: string): string {
+  return options.find((option) => option.value === value)?.label ?? value;
 }
 
 export function DirectiveStage({ decision, edit, pending, onRedecide }: DirectiveStageProps) {
@@ -31,13 +42,10 @@ export function DirectiveStage({ decision, edit, pending, onRedecide }: Directiv
     edit.setDraft((prev) => ({ ...prev, ...patch }));
   }
 
-  const actions = editing ? (
-    <ActionButton label="Cancel" variant="outline" onPress={edit.cancel} />
+  const trailing = editing ? (
+    <IconAction icon={X} label="Cancel editing directive" onPress={edit.cancel} />
   ) : (
-    <>
-      <ActionButton label="Edit directive" icon={Pencil} variant="outline" disabled={busy} onPress={edit.startEdit} />
-      <ActionButton label="Re-decide" icon={RotateCcw} variant="outline" disabled={busy} onPress={onRedecide} />
-    </>
+    <IconAction icon={Pencil} label="Edit directive" disabled={busy} onPress={edit.startEdit} />
   );
 
   const details: Array<[string, string | undefined]> = [
@@ -48,19 +56,26 @@ export function DirectiveStage({ decision, edit, pending, onRedecide }: Directiv
 
   return (
     <StagePanel
-      label="Session manager decision"
-      hint={decision.actionReasoning || "The session manager picked the next move."}
+      label="Next move"
+      hint={decision.actionReasoning || undefined}
       isPending={pending === "decide"}
       pendingLabel="Deciding the next move…"
-      actions={actions}
+      trailing={trailing}
+      actions={
+        editing ? undefined : (
+          <ActionButton label="Decide again" icon={RotateCcw} variant="outline" disabled={busy} onPress={onRedecide} />
+        )
+      }
     >
       <BadgeRow>
-        <StageBadge label={decision.nextAction} tone="sky" />
-        {draft.topic ? <StageBadge label={`topic: ${draft.topic}`} /> : null}
-        {draft.difficulty ? <StageBadge label={`difficulty: ${draft.difficulty}`} /> : null}
-        {draft.questionType ? <StageBadge label={`type: ${draft.questionType}`} /> : null}
+        <StageBadge label={NEXT_ACTION_LABELS[decision.nextAction] ?? decision.nextAction} tone="sky" />
+        {draft.topic ? <StageBadge label={`Topic: ${draft.topic}`} /> : null}
+        {draft.difficulty ? <StageBadge label={`Difficulty: ${labelOf(DIFFICULTY_OPTIONS, draft.difficulty)}`} /> : null}
+        {draft.questionType ? (
+          <StageBadge label={`Type: ${labelOf(QUESTION_TYPE_OPTIONS, draft.questionType)}`} />
+        ) : null}
       </BadgeRow>
-      <ListenButton text={decision.actionReasoning} label="Decision" />
+      <ListenButton text={decision.actionReasoning} label="Next move" />
 
       {editing ? (
         <View style={styles.form}>
@@ -99,7 +114,7 @@ export function DirectiveStage({ decision, edit, pending, onRedecide }: Directiv
           {details.map(([label, value]) =>
             value ? (
               <View key={label} style={styles.detail}>
-                <Text style={[styles.detailLabel, { color: colors.mutedForeground }]}>{label.toUpperCase()}</Text>
+                <Text style={[styles.detailLabel, { color: colors.mutedForeground }]}>{label}</Text>
                 <Text style={[styles.detailValue, { color: colors.foreground }]}>{value}</Text>
               </View>
             ) : null,
@@ -121,12 +136,9 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   detailLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    ...typeScale.caption,
   },
   detailValue: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
 });

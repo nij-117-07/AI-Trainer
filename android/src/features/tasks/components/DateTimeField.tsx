@@ -6,8 +6,8 @@
 import { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { CalendarClock, X } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Bell, CalendarDays, X } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { Field } from "@/components/tool/FormControls";
 
 interface DateTimeFieldProps {
@@ -27,6 +27,7 @@ export function DateTimeField({ label, hint, mode, value, placeholder, onChange 
   const [pending, setPending] = useState<Date | null>(null);
   const current = value ?? defaultValue(mode);
   const web = Platform.OS === "web";
+  const Icon = mode === "date" ? CalendarDays : Bell;
 
   function open() {
     if (web) return;
@@ -82,7 +83,7 @@ export function DateTimeField({ label, hint, mode, value, placeholder, onChange 
             pressed && !web && { opacity: 0.85 },
           ]}
         >
-          <CalendarClock size={18} color={colors.mutedForeground} />
+          <Icon size={20} color={colors.mutedForeground} />
           <Text style={[styles.text, { color: value ? colors.foreground : colors.mutedForeground }]}>
             {value ? formatValue(value, mode) : web ? "Pick in the Android app" : placeholder}
           </Text>
@@ -90,10 +91,10 @@ export function DateTimeField({ label, hint, mode, value, placeholder, onChange 
             <Pressable
               onPress={() => onChange(null)}
               accessibilityRole="button"
-              accessibilityLabel={`Clear ${label.toLowerCase()}`}
-              hitSlop={13}
+              accessibilityLabel={`Clear ${formatValue(value, mode)}`}
+              style={styles.clear}
             >
-              <X size={18} color={colors.mutedForeground} />
+              <X size={20} color={colors.mutedForeground} />
             </Pressable>
           ) : null}
         </Pressable>
@@ -150,19 +151,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    minHeight: 50,
+    minHeight: touchTarget + spacing.sm,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
   text: {
     flex: 1,
-    fontSize: 16,
+    ...typeScale.body,
+  },
+  clear: {
+    width: touchTarget,
+    height: touchTarget,
+    marginRight: -spacing.md,
+    alignItems: "center",
+    justifyContent: "center",
   },
   inline: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     overflow: "hidden",
   },
 });

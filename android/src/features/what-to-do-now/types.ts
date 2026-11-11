@@ -12,6 +12,7 @@ export interface NextAction {
   goal: string;
   reason: string;
   minutes: number | null;
+  done: boolean;
 }
 
 export interface WhatToDoNowResult {

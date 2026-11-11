@@ -1,7 +1,7 @@
 // src/features/observation-trainer/components/ResultParts.tsx
 /** Small pieces shared by the Observation Trainer report: bullet lists and labelled text. */
 import { StyleSheet, Text, View } from "react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 
 export function BulletList({ items }: { items: string[] }) {
   const colors = useThemeColors();
@@ -22,7 +22,9 @@ export function LabeledText({ label, body }: { label: string; body: string }) {
   const colors = useThemeColors();
   return (
     <View style={styles.labeled}>
-      <Text style={[styles.label, { color: colors.foreground }]}>{label}</Text>
+      <Text accessibilityRole="header" style={[styles.label, { color: colors.foreground }]}>
+        {label}
+      </Text>
       <Text style={[styles.body, { color: colors.mutedForeground }]}>{body || "Nothing was returned."}</Text>
     </View>
   );
@@ -30,8 +32,8 @@ export function LabeledText({ label, body }: { label: string; body: string }) {
 
 const styles = StyleSheet.create({
   muted: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
   },
   list: {
     gap: spacing.sm,
@@ -41,19 +43,17 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   bullet: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
   body: {
+    ...typeScale.body,
     flex: 1,
-    fontSize: 15,
-    lineHeight: 22,
   },
   labeled: {
     gap: spacing.xs,
   },
   label: {
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
 });

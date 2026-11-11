@@ -23,20 +23,24 @@ export function AnswerStage({ question, pending, onEditQuestion, onRegenerate }:
   return (
     <StagePanel
       label="Interview question"
-      hint="Type your answer in the answer box, then tap Submit. Take your time."
       isPending={drafting}
       pendingLabel={pending === "question" ? "Crafting the question…" : "Reviewing your answer…"}
       actions={
-        <ActionButton label="Regenerate" icon={RotateCcw} variant="outline" disabled={busy} onPress={onRegenerate} />
+        <ActionButton
+          label="Regenerate question"
+          icon={RotateCcw}
+          variant="outline"
+          disabled={busy}
+          onPress={onRegenerate}
+        />
       }
     >
       <BadgeRow>
-        <StageBadge label={question.topic || "general"} />
+        <StageBadge label={question.topic || "General"} />
         <StageBadge label={question.difficulty} />
       </BadgeRow>
       <TextField
         label="Question wording"
-        hint="Edit the question directly, or answer it as written."
         value={question.question}
         onChangeText={onEditQuestion}
         editable={!busy}

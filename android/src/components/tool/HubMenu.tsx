@@ -1,13 +1,15 @@
 // src/components/tool/HubMenu.tsx
 /**
- * Hub landing page: one small box per app in an area. Tapping a box opens that app.
+ * Hub landing page: one compact tile per app in an area. Tapping a tile opens that app. A search field
+ * appears only when there are enough apps to need one.
  */
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
-import { radius, spacing, useLayout, useThemeColors, type LayoutSize, type Tone } from "@/theme";
+import { X, Search } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useLayout, useThemeColors, type LayoutSize, type Tone } from "@/theme";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { TextField, pointerCursor } from "@/components/tool/FormControls";
+import { pointerCursor } from "@/components/tool/FormControls";
 import type { LucideIcon } from "lucide-react-native";
 
 export interface HubItem {
@@ -24,8 +26,10 @@ interface HubMenuProps {
   items: HubItem[];
 }
 
-const BOX_WIDTH: Record<LayoutSize, `${number}%`> = {
-  phone: "48%",
+const SEARCH_THRESHOLD = 8;
+
+const TILE_WIDTH: Record<LayoutSize, `${number}%`> = {
+  phone: "48.5%",
   tablet: "31.5%",
   desktop: "23.5%",
 };
@@ -42,14 +46,31 @@ export function HubMenu({ title, items }: HubMenuProps) {
 
   return (
     <ToolScreen title={title} wide>
-      {items.length > 6 && (
-        <TextField
-          label="Search"
-          placeholder="Find a tool…"
-          value={query}
-          onChangeText={setQuery}
-          maxLength={100}
-        />
+      {items.length > SEARCH_THRESHOLD && (
+        <View style={[styles.search, { borderColor: colors.border, backgroundColor: colors.card }]}>
+          <Search size={20} color={colors.mutedForeground} />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Find a tool"
+            placeholderTextColor={colors.mutedForeground}
+            accessibilityLabel="Find a tool"
+            maxLength={100}
+            returnKeyType="search"
+            autoCorrect={false}
+            style={[styles.searchInput, { color: colors.foreground }]}
+          />
+          {query ? (
+            <Pressable
+              onPress={() => setQuery("")}
+              accessibilityRole="button"
+              accessibilityLabel="Clear search"
+              style={({ pressed }) => [styles.clear, pointerCursor, pressed && { backgroundColor: colors.muted }]}
+            >
+              <X size={20} color={colors.foreground} />
+            </Pressable>
+          ) : null}
+        </View>
       )}
       <View style={styles.grid}>
         {visible.map((item) => {
@@ -61,15 +82,16 @@ export function HubMenu({ title, items }: HubMenuProps) {
               onPress={() => router.push(item.route as never)}
               accessibilityRole="button"
               accessibilityLabel={`Open ${item.title}`}
+              accessibilityHint={item.description}
               style={({ pressed }) => [
-                styles.box,
+                styles.tile,
                 pointerCursor,
-                { width: BOX_WIDTH[size], backgroundColor: tone.bg, borderColor: tone.border },
-                pressed && { opacity: 0.85 },
+                { width: TILE_WIDTH[size], backgroundColor: colors.card, borderColor: colors.border },
+                pressed && { backgroundColor: colors.muted },
               ]}
             >
-              <View style={[styles.iconTile, { backgroundColor: colors.card, borderColor: tone.border }]}>
-                <Icon size={18} color={tone.fg} />
+              <View style={[styles.iconTile, { backgroundColor: tone.bg }]}>
+                <Icon size={22} color={tone.fg} />
               </View>
               <Text style={[styles.itemTitle, { color: colors.foreground }]} numberOfLines={2}>
                 {item.title}
@@ -89,36 +111,59 @@ export function HubMenu({ title, items }: HubMenuProps) {
 }
 
 const styles = StyleSheet.create({
+  search: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: touchTarget,
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.xs,
+  },
+  searchInput: {
+    flex: 1,
+    ...typeScale.body,
+    paddingVertical: spacing.md,
+  },
+  clear: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    gap: spacing.md,
-  },
-  box: {
-    borderWidth: 1,
-    borderRadius: radius["2xl"],
-    padding: spacing.md,
     gap: spacing.sm,
   },
-  iconTile: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.lg,
+  tile: {
+    minHeight: 136,
     borderWidth: 1,
+    borderRadius: shape.lg,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  iconTile: {
+    width: 40,
+    height: 40,
+    borderRadius: shape.md,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: spacing.xs,
   },
   itemTitle: {
-    fontSize: 15,
+    ...typeScale.label,
     fontWeight: "600",
   },
   description: {
-    fontSize: 12,
-    lineHeight: 17,
+    ...typeScale.caption,
+    fontWeight: "400",
   },
   empty: {
-    fontSize: 14,
+    ...typeScale.body,
     textAlign: "center",
     paddingVertical: spacing.lg,
   },

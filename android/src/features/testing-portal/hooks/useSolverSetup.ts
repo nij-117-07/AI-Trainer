@@ -9,7 +9,7 @@ import { usePersistedState } from "@/hooks/usePersistedState";
 import { useRequest } from "@/hooks/useRequest";
 import { saveDocument } from "@/lib/document-store";
 import { solveMcq } from "../lib/generators";
-import { loadSolverResult, SOLVER_STORAGE_KEYS } from "../lib/persistence";
+import { loadSolverResult, SOLVER_STORAGE_KEYS, type SavedSolve } from "../lib/persistence";
 import { EMPTY_OPTIONS } from "../options";
 import { OPTION_KEYS, type Options, type SolverFormValues } from "../types";
 
@@ -19,6 +19,8 @@ export function useSolverSetup(onSolved: () => void) {
   const [context, setContext] = usePersistedState(SOLVER_STORAGE_KEYS.context, "");
   const [options, setOptions] = usePersistedState<Options>(SOLVER_STORAGE_KEYS.options, EMPTY_OPTIONS);
   const [hasSolution, setHasSolution] = useState(false);
+  const [unsaved, setUnsaved] = useState<SavedSolve | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
   const solve = useRequest(solveMcq);
 
   useEffect(() => {
@@ -41,13 +43,22 @@ export function useSolverSetup(onSolved: () => void) {
     if (!result) return;
     const trimmed = {} as Options;
     for (const key of OPTION_KEYS) trimmed[key] = options[key].trim();
-    await saveDocument(SOLVER_STORAGE_KEYS.result, {
+    const saved: SavedSolve = {
       question: question.trim(),
       context: context.trim(),
       options: trimmed,
       correctOption: result.correctOption,
       reasoning: result.reasoning,
-    }).catch(() => undefined);
+    };
+    try {
+      await saveDocument(SOLVER_STORAGE_KEYS.result, saved);
+    } catch {
+      setUnsaved(saved);
+      setSaveFailed(true);
+      return;
+    }
+    setUnsaved(null);
+    setSaveFailed(false);
     onSolved();
   }
 
@@ -55,6 +66,8 @@ export function useSolverSetup(onSolved: () => void) {
     setQuestion("");
     setContext("");
     setOptions(EMPTY_OPTIONS);
+    setUnsaved(null);
+    setSaveFailed(false);
     solve.reset();
   }
 
@@ -68,6 +81,8 @@ export function useSolverSetup(onSolved: () => void) {
     pending: solve.pending,
     error: solve.error,
     hasSolution,
+    unsaved,
+    saveFailed,
     submit,
     reset,
   };

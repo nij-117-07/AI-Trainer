@@ -12,7 +12,7 @@ export default function ObservationTrainerNewRoute() {
   return (
     <ToolScreen
       title="New training"
-      headerRight={<ResetButton onPress={training.reset} />}
+      headerRight={<ResetButton onPress={training.reset} accessibilityLabel="Reset form" />}
       footer={<ObservationFormFooter training={training} />}
     >
       <ObservationFormFields training={training} />

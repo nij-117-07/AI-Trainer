@@ -35,18 +35,32 @@ export function useSavedDraft<TForm, TResult>(
     };
   }, [storageKey, parse]);
 
+  const persist = useCallback(
+    (nextForm: TForm, nextResult: TResult | null) =>
+      saveDocument(storageKey, { form: nextForm, result: nextResult, savedAt: new Date().toISOString() }).catch(() => undefined),
+    [storageKey],
+  );
+
   useEffect(() => {
     if (!ready) return;
     const timer = setTimeout(() => {
-      saveDocument(storageKey, { form, result, savedAt: new Date().toISOString() }).catch(() => undefined);
+      void persist(form, result);
     }, SAVE_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [ready, storageKey, form, result]);
+  }, [ready, persist, form, result]);
+
+  const saveResultNow = useCallback(
+    (nextResult: TResult) => {
+      setResult(nextResult);
+      if (ready) void persist(form, nextResult);
+    },
+    [ready, persist, form],
+  );
 
   const reset = useCallback(() => {
     setForm(defaults);
     setResult(null);
   }, [defaults]);
 
-  return { form, setForm, result, setResult, reset };
+  return { form, setForm, result, setResult, saveResultNow, reset };
 }

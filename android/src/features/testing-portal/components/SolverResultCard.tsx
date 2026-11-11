@@ -1,37 +1,25 @@
 // src/features/testing-portal/components/SolverResultCard.tsx
-import { StyleSheet, Text, View } from "react-native";
-import { spacing, radius, useThemeColors } from "@/theme";
+import { StyleSheet, Text } from "react-native";
+import { CircleCheck } from "lucide-react-native";
+import { typeScale, useThemeColors } from "@/theme";
 import { ListenButton } from "@/components/tool/ListenButton";
+import { ResultCallout } from "@/components/tool/ResultCallout";
 import type { SolverResult } from "../types";
 
 export function SolverResultCard({ result }: { result: SolverResult }) {
   const colors = useThemeColors();
   return (
-    <View style={[styles.box, { backgroundColor: colors.background, borderColor: colors.border }]}>
-      <Text style={[styles.heading, { color: colors.foreground }]}>
-        Model answer: <Text style={{ color: colors.primary }}>{result.correctOption}</Text>
-      </Text>
-      <Text selectable style={[styles.body, { color: colors.mutedForeground }]}>
+    <ResultCallout icon={CircleCheck} title={`Model answer: ${result.correctOption}`} tone="emerald">
+      <Text selectable style={[styles.body, { color: colors.foreground }]}>
         {result.reasoning}
       </Text>
       <ListenButton text={result.reasoning} label="Reasoning" />
-    </View>
+    </ResultCallout>
   );
 }
 
 const styles = StyleSheet.create({
-  box: {
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  heading: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
   body: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...typeScale.body,
   },
 });

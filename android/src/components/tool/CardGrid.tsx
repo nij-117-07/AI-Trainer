@@ -30,6 +30,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    rowGap: spacing.lg,
+    rowGap: spacing.sm,
   },
 });

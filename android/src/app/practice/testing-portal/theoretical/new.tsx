@@ -12,7 +12,7 @@ export default function TheoreticalNewRoute() {
   return (
     <ToolScreen
       title="New questions"
-      headerRight={<ResetButton label="Reset form" onPress={setup.reset} />}
+      headerRight={<ResetButton accessibilityLabel="Reset form" onPress={setup.reset} />}
       footer={<TheoreticalFormFooter setup={setup} />}
     >
       <TheoreticalFormFields setup={setup} />

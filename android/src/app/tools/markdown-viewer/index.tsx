@@ -1,8 +1,9 @@
 // src/app/tools/markdown-viewer/index.tsx
-/** Markdown Viewer route: write Markdown, preview it, and share it. Reset clears the draft after confirmation. */
+/** Markdown Viewer route: write Markdown, preview it, and share it. Clear removes the draft after confirmation. */
 import { useState } from "react";
-import { Alert } from "react-native";
-import { ResetButton } from "@/components/tool/ResetButton";
+import { Alert, Pressable, StyleSheet } from "react-native";
+import { Trash2 } from "lucide-react-native";
+import { shape, touchTarget, useThemeColors } from "@/theme";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import {
   MarkdownViewerBody,
@@ -12,6 +13,7 @@ import {
 import { useMarkdownDraft } from "@/features/markdown-viewer/hooks/useMarkdownDraft";
 
 export default function MarkdownViewerRoute() {
+  const colors = useThemeColors();
   const draft = useMarkdownDraft();
   const [mode, setMode] = useState<MarkdownViewMode>("write");
 
@@ -26,7 +28,16 @@ export default function MarkdownViewerRoute() {
   return (
     <ToolScreen
       title="Markdown Viewer"
-      headerRight={<ResetButton onPress={confirmReset} />}
+      headerRight={
+        <Pressable
+          onPress={confirmReset}
+          accessibilityRole="button"
+          accessibilityLabel="Clear Markdown"
+          style={({ pressed }) => [styles.clearButton, pressed && { backgroundColor: colors.muted }]}
+        >
+          <Trash2 size={24} color={colors.foreground} />
+        </Pressable>
+      }
       footerSide={false}
       footer={<MarkdownViewerFooter content={draft.content} />}
     >
@@ -34,3 +45,13 @@ export default function MarkdownViewerRoute() {
     </ToolScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  clearButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

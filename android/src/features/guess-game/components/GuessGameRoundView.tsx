@@ -2,12 +2,12 @@
 /**
  * The running game in the page body: the level and guesses left, the solved banner, the hints,
  * every guess with its verdict, and the latest feedback and coaching. The guess box is in the
- * screen footer (see the route).
+ * screen footer, and "New game" is in the top bar (see the route).
  */
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { CircleCheck, CircleX, Compass, Lightbulb, LifeBuoy, ListChecks, MessageSquare, Sparkles, Trophy } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { CircleCheck, CircleX, Compass, Lightbulb, LifeBuoy, ListChecks, Trophy } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -21,14 +21,13 @@ import type { GuessGameSession } from "../types";
 interface GuessGameRoundViewProps {
   session: GuessGameSession;
   game: GuessGameRoundState;
-  onNewGame: () => void;
 }
 
 function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export function GuessGameRoundView({ session, game, onNewGame }: GuessGameRoundViewProps) {
+export function GuessGameRoundView({ session, game }: GuessGameRoundViewProps) {
   const colors = useThemeColors();
   const scroll = useToolScroll();
   const busy = game.pending !== null;
@@ -51,20 +50,12 @@ export function GuessGameRoundView({ session, game, onNewGame }: GuessGameRoundV
             Guesses left: {guessesLeft(session)} / {session.maxGuesses}
           </Text>
         </View>
-        {session.solved ? (
+        {session.solved && (
           <ResultCallout icon={Trophy} title="Solved!" tone="emerald">
             <Text accessibilityLiveRegion="polite" style={[styles.body, { color: colors.foreground }]}>
               The answer was {session.mysteryItem}. {session.funFact}
             </Text>
           </ResultCallout>
-        ) : (
-          <ActionButton
-            label="Start a different game"
-            icon={Sparkles}
-            variant="outline"
-            disabled={busy}
-            onPress={onNewGame}
-          />
         )}
       </Panel>
 
@@ -87,7 +78,7 @@ export function GuessGameRoundView({ session, game, onNewGame }: GuessGameRoundV
         {!session.solved && (
           <ActionButton
             label={game.pending === "hint" ? "Finding a hint…" : "Ask for a hint"}
-            icon={Sparkles}
+            icon={Lightbulb}
             variant="outline"
             loading={game.pending === "hint"}
             disabled={busy}
@@ -125,7 +116,7 @@ export function GuessGameRoundView({ session, game, onNewGame }: GuessGameRoundV
 
       {latest && !session.solved && (
         <Panel>
-          <ResultCallout icon={MessageSquare} title="Feedback" tone="sky">
+          <ResultCallout icon={CircleX} title="Not quite" tone="rose">
             <MarkdownText content={latest.result.feedback} />
             <ListenButton text={latest.result.feedback} label="Feedback" />
           </ResultCallout>
@@ -191,41 +182,39 @@ const styles = StyleSheet.create({
   },
   badge: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   badgeText: {
-    fontSize: 13,
-    fontWeight: "500",
+    ...typeScale.caption,
   },
   counter: {
-    fontSize: 14,
+    ...typeScale.label,
     fontWeight: "600",
   },
   body: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
   },
   rowNumber: {
-    fontSize: 13,
+    ...typeScale.caption,
     fontWeight: "700",
     minWidth: 14,
   },
   rowText: {
+    ...typeScale.body,
     flex: 1,
-    fontSize: 14,
   },
   caption: {
-    fontSize: 12,
+    ...typeScale.caption,
   },
 });

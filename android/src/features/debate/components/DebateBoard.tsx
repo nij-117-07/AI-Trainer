@@ -1,6 +1,6 @@
 // src/features/debate/components/DebateBoard.tsx
 /**
- * The debate on the practice page. The body holds the status and "End & judge", the verdict once
+ * The debate on the practice page. The body holds the status and "Get verdict", the verdict once
  * judged, the personas dropdown, the transcript (a box with its own scroll), and the breakdown of
  * the last AI turn. The turn form is the page footer (DebateTurnFooter).
  */
@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from "react-native";
 import { Crosshair, Gavel, MessageSquare, MessageSquareQuote, Swords } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { Disclosure } from "@/components/tool/Disclosure";
 import { ListenButton } from "@/components/tool/ListenButton";
@@ -34,11 +34,11 @@ export function DebateBoard({ game, session }: { game: DebateSessionState; sessi
 
   function confirmJudge() {
     Alert.alert(
-      "End and judge?",
+      "End the debate?",
       "The judge scores the statements so far. You can't add more statements after the verdict.",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "End & judge", onPress: () => void game.endAndJudge() },
+        { text: "Get verdict", onPress: () => void game.endAndJudge() },
       ],
     );
   }
@@ -55,7 +55,9 @@ export function DebateBoard({ game, session }: { game: DebateSessionState; sessi
               {statements} {statements === 1 ? "statement" : "statements"}
             </Text>
           </View>
-          <Text style={[styles.topic, { color: colors.foreground }]}>{session.topic}</Text>
+          <Text accessibilityRole="header" style={[styles.topic, { color: colors.foreground }]}>
+            {session.topic}
+          </Text>
           {busy && (
             <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
               {game.judging ? "Judging the debate…" : "AI is working…"}
@@ -63,7 +65,7 @@ export function DebateBoard({ game, session }: { game: DebateSessionState; sessi
           )}
           {active && (
             <ActionButton
-              label={game.judging ? "Judging…" : "End & judge"}
+              label={game.judging ? "Judging…" : "Get verdict"}
               icon={Gavel}
               variant="outline"
               loading={game.judging}
@@ -84,7 +86,7 @@ export function DebateBoard({ game, session }: { game: DebateSessionState; sessi
 
       {active && (
         <ActionButton
-          label="Start a different debate"
+          label="Start a new debate"
           icon={Swords}
           variant="outline"
           disabled={busy}
@@ -98,6 +100,7 @@ export function DebateBoard({ game, session }: { game: DebateSessionState; sessi
 function Transcript({ log }: { log: string[] }) {
   const colors = useThemeColors();
   const scroll = useRef<ScrollViewInstance>(null);
+  const entries = log.map(parseLogEntry).filter((entry) => entry.side !== null);
 
   useEffect(() => {
     scroll.current?.scrollToEnd({ animated: true });
@@ -106,18 +109,12 @@ function Transcript({ log }: { log: string[] }) {
   return (
     <Panel>
       <SectionTitle icon={MessageSquare} title="Transcript" />
-      <ScrollView ref={scroll} style={{ maxHeight: TRANSCRIPT_MAX_HEIGHT }} nestedScrollEnabled>
-        <View style={styles.transcript}>
-          {log.map((raw, index) => {
-            const entry = parseLogEntry(raw);
-            if (!entry.side) {
-              return (
-                <View key={index} style={[styles.entry, { borderColor: colors.border }]}>
-                  <MarkdownText content={entry.text} />
-                </View>
-              );
-            }
-            return (
+      {entries.length === 0 ? (
+        <Text style={[styles.body, { color: colors.mutedForeground }]}>No statements yet.</Text>
+      ) : (
+        <ScrollView ref={scroll} style={{ maxHeight: TRANSCRIPT_MAX_HEIGHT }} nestedScrollEnabled>
+          <View style={styles.transcript}>
+            {entries.map((entry, index) => (
               <View key={index} style={[styles.entry, { borderColor: colors.border }]}>
                 <View style={styles.speaker}>
                   <View style={[styles.badge, { borderColor: colors.border }]}>
@@ -131,10 +128,10 @@ function Transcript({ log }: { log: string[] }) {
                 </View>
                 <MarkdownText content={entry.text} />
               </View>
-            );
-          })}
-        </View>
-      </ScrollView>
+            ))}
+          </View>
+        </ScrollView>
+      )}
     </Panel>
   );
 }
@@ -175,24 +172,22 @@ const styles = StyleSheet.create({
   },
   pill: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   pillText: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
   count: {
-    fontSize: 13,
+    ...typeScale.label,
   },
   status: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.label,
   },
   topic: {
-    fontSize: 15,
-    fontWeight: "600",
+    ...typeScale.title,
   },
   transcript: {
     gap: spacing.md,
@@ -209,27 +204,26 @@ const styles = StyleSheet.create({
   },
   badge: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   badgeText: {
-    fontSize: 12,
+    ...typeScale.label,
     fontWeight: "600",
   },
   speakerName: {
     flexShrink: 1,
-    fontSize: 13,
+    ...typeScale.label,
   },
   detail: {
     gap: spacing.xs,
   },
   label: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
   body: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
 });

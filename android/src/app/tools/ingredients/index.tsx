@@ -1,6 +1,6 @@
 // src/app/tools/ingredients/index.tsx
 import { useRouter } from "expo-router";
-import { ShieldCheck, Sparkles } from "lucide-react-native";
+import { Camera, ShieldCheck } from "lucide-react-native";
 import { ActionButton } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
@@ -17,8 +17,8 @@ export default function IngredientsRoute() {
       title="Ingredients Checker"
       footer={
         <ActionButton
-          label="New check"
-          icon={Sparkles}
+          label="Check ingredients"
+          icon={Camera}
           onPress={() => router.push("/tools/ingredients/new")}
         />
       }
@@ -30,7 +30,7 @@ export default function IngredientsRoute() {
           <EmptyHint
             icon={ShieldCheck}
             title="No check yet"
-            hint="Tap New check, add a photo of the ingredients list, then analyze it."
+            hint="Choose a photo of an ingredients list to start."
           />
         )}
       </Section>

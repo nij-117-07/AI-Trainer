@@ -1,9 +1,9 @@
 // src/features/tasks/components/TaskRow.tsx
 /** One task in the list. The circle completes it; the rest of the row opens the editor. */
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Check, Repeat } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { formatDueDate, isOverdue, subtaskProgress } from "../lib/tasks";
+import { Check, Flag, Repeat } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { formatDueDate, isOverdue, PRIORITY_LABELS, subtaskProgress } from "../lib/tasks";
 import type { Task } from "../types";
 
 interface TaskRowProps {
@@ -79,12 +79,17 @@ export function TaskRow({ task, today, projectName, labelNames, onOpen, onToggle
       </Pressable>
 
       {flagged ? (
-        <Text
-          accessibilityLabel={`Priority ${task.priority}`}
-          style={[styles.priority, { color: urgent ? colors.destructive : colors.mutedForeground }]}
+        <View
+          accessible
+          accessibilityLabel={`Priority ${PRIORITY_LABELS[task.priority]}`}
+          style={styles.flag}
         >
-          P{task.priority}
-        </Text>
+          <Flag
+            size={16}
+            color={urgent ? colors.destructive : colors.mutedForeground}
+            fill={urgent ? colors.destructive : "transparent"}
+          />
+        </View>
       ) : null}
     </View>
   );
@@ -96,21 +101,21 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: spacing.md,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
   },
   checkboxHit: {
-    width: 44,
-    height: 44,
-    marginHorizontal: -11,
-    marginTop: -10,
+    width: touchTarget,
+    height: touchTarget,
+    marginHorizontal: -spacing.md,
+    marginTop: -spacing.md,
     alignItems: "center",
     justifyContent: "center",
   },
   checkbox: {
-    width: 22,
-    height: 22,
+    width: 24,
+    height: 24,
     borderWidth: 2,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -119,7 +124,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   title: {
-    fontSize: 16,
+    ...typeScale.body,
     fontWeight: "600",
   },
   strike: {
@@ -131,13 +136,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   meta: {
+    ...typeScale.caption,
     flexShrink: 1,
-    fontSize: 12,
-    lineHeight: 17,
   },
-  priority: {
-    marginTop: 2,
-    fontSize: 12,
-    fontWeight: "700",
+  flag: {
+    marginTop: spacing.xs,
   },
 });

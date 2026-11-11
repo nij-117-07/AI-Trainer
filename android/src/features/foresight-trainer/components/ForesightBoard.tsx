@@ -1,19 +1,23 @@
 // src/features/foresight-trainer/components/ForesightBoard.tsx
 /**
- * Scenario page body: the scene, the transcript, and the current decision's options with a custom
- * option. The reasoning box and the commit button are in the footer (ForesightFooter).
+ * Scenario page body: the transcript so far, the open scene with its decision, and the options with
+ * a custom option. The chosen option and the reasoning box are in the footer (ForesightFooter).
+ * The scene number is shown in the top bar. The newest entry scrolls into view.
  */
+import { useEffect } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { Award, Flag, Timer } from "lucide-react-native";
-import { spacing, useThemeColors, radius } from "@/theme";
+import { Award, CircleCheck, History, Pencil, Timer } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { Panel, TextField } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
+import { useToolScroll } from "@/components/tool/ToolScrollContext";
 import type { ForesightRunState } from "../hooks/useForesightRun";
 import { CUSTOM_CHOICE } from "../hooks/useForesightRun";
-import type { ChoiceOption, ForesightSession } from "../types";
+import { sceneMessage } from "../lib/session";
+import type { ChoiceOption, ForesightSession, ScenarioMessage } from "../types";
 
 interface ForesightBoardProps {
   session: ForesightSession;
@@ -24,19 +28,17 @@ const OPTION_LETTERS = ["A", "B", "C", "D", "E", "F"];
 
 export function ForesightBoard({ session, run }: ForesightBoardProps) {
   const colors = useThemeColors();
+  const scroll = useToolScroll();
   const complete = session.scenarioComplete;
   const customSelected = run.selected === CUSTOM_CHOICE;
-  const remaining = session.maxScenes - session.sceneNumber;
+  const history = historyOf(session);
+
+  useEffect(() => {
+    scroll?.current?.scrollToEnd({ animated: true });
+  }, [session.log.length, scroll]);
 
   return (
     <View style={styles.stack}>
-      <Panel>
-        <SectionTitle icon={Flag} title={`Scene ${session.sceneNumber} of ${session.maxScenes}`} />
-        <Text style={[styles.meta, { color: colors.mutedForeground }]}>
-          Theme: {session.theme} · Decisions made: {session.decisionHistory.length}
-        </Text>
-      </Panel>
-
       {complete && session.progressReport && (
         <ResultCallout icon={Award} title="Scenario complete" tone="emerald">
           <Text style={[styles.body, { color: colors.foreground }]}>
@@ -50,18 +52,20 @@ export function ForesightBoard({ session, run }: ForesightBoardProps) {
         </ResultCallout>
       )}
 
-      <Panel>
-        <SectionTitle icon={Flag} title="Transcript" />
-        {session.log.map((entry, index) => (
-          <View key={index} style={styles.entry}>
-            <Text style={[styles.speaker, { color: colors.mutedForeground }]}>
-              {entry.role === "user" ? "You" : "Trainer"}
-            </Text>
-            <MarkdownText content={entry.content} />
-            {entry.role !== "user" && <ListenButton text={entry.content} label="Trainer reply" />}
-          </View>
-        ))}
-      </Panel>
+      {history.length > 0 && (
+        <Panel>
+          <SectionTitle icon={History} title="So far" />
+          {history.map((entry, index) => (
+            <View key={index} style={styles.entry}>
+              <Text style={[styles.speaker, { color: colors.mutedForeground }]}>
+                {entry.role === "user" ? "You" : "Trainer"}
+              </Text>
+              <MarkdownText content={entry.content} />
+              {entry.role !== "user" && <ListenButton text={entry.content} label="Trainer reply" />}
+            </View>
+          ))}
+        </Panel>
+      )}
 
       {!complete && (
         <Panel>
@@ -71,10 +75,15 @@ export function ForesightBoard({ session, run }: ForesightBoardProps) {
             </ResultCallout>
           )}
 
-          <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>
-            {session.currentScene.decisionPoint}
-          </Text>
-          <ListenButton text={session.currentScene.decisionPoint} label="Decision" />
+          <MarkdownText content={session.currentScene.sceneNarrative} />
+          <ListenButton text={session.currentScene.sceneNarrative} label="Scene" />
+
+          <View style={styles.decisionRow}>
+            <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>
+              {session.currentScene.decisionPoint}
+            </Text>
+            <ListenButton text={session.currentScene.decisionPoint} label="Decision point" />
+          </View>
 
           <View style={styles.options}>
             {session.options.map((option, index) => (
@@ -93,14 +102,15 @@ export function ForesightBoard({ session, run }: ForesightBoardProps) {
             onPress={() => run.choose(CUSTOM_CHOICE)}
             disabled={run.pending}
             accessibilityRole="button"
-            accessibilityLabel="Write your own option instead"
+            accessibilityLabel="Write your own option"
             accessibilityState={{ selected: customSelected, disabled: run.pending }}
             style={[
               styles.custom,
               { borderColor: customSelected ? colors.primary : colors.border, backgroundColor: colors.card },
             ]}
           >
-            <Text style={[styles.body, { color: colors.foreground }]}>Write your own option instead</Text>
+            <Pencil size={18} color={colors.foreground} />
+            <Text style={[styles.body, { color: colors.foreground }]}>Write your own option</Text>
           </Pressable>
           {customSelected && (
             <TextField
@@ -115,16 +125,6 @@ export function ForesightBoard({ session, run }: ForesightBoardProps) {
             />
           )}
 
-          <Text style={[styles.meta, { color: colors.mutedForeground }]}>
-            {run.choice === ""
-              ? "Choose an option. Then explain your reasoning and tap Commit."
-              : "Explain your reasoning and tap Commit to send your choice."}
-          </Text>
-          {remaining > 0 && session.decisionHistory.length > 0 && (
-            <Text style={[styles.meta, { color: colors.mutedForeground }]}>
-              {remaining} scene{remaining === 1 ? "" : "s"} remaining
-            </Text>
-          )}
           {run.pending && (
             <View
               accessibilityLiveRegion="polite"
@@ -138,6 +138,14 @@ export function ForesightBoard({ session, run }: ForesightBoardProps) {
       )}
     </View>
   );
+}
+
+/** The transcript without the open scene, which the scene panel shows instead. */
+function historyOf(session: ForesightSession): ScenarioMessage[] {
+  const last = session.log[session.log.length - 1];
+  const sceneOpen =
+    !session.scenarioComplete && last?.content === sceneMessage(session.sceneNumber, session.currentScene);
+  return sceneOpen ? session.log.slice(0, -1) : session.log;
 }
 
 interface OptionCardProps {
@@ -165,14 +173,14 @@ function OptionCard({ letter, option, selected, disabled, onPress }: OptionCardP
         { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.muted : colors.card },
       ]}
     >
-      <Text style={[styles.optionTitle, { color: colors.foreground }]}>
-        {letter}. {option.title || "Untitled option"}
-      </Text>
+      <View style={styles.optionHeader}>
+        <Text style={[styles.optionTitle, { color: colors.foreground }]}>
+          {letter}. {option.title || "Untitled option"}
+        </Text>
+        {selected && <CircleCheck size={18} color={colors.primary} />}
+      </View>
       {option.description !== "" && (
         <Text style={[styles.body, { color: colors.foreground }]}>{option.description}</Text>
-      )}
-      {option.hiddenTradeoff !== "" && (
-        <Text style={[styles.meta, { color: colors.mutedForeground }]}>Tradeoff: {option.hiddenTradeoff}</Text>
       )}
       {meta !== "" && <Text style={[styles.meta, { color: colors.mutedForeground }]}>{meta}</Text>}
     </Pressable>
@@ -181,25 +189,26 @@ function OptionCard({ letter, option, selected, disabled, onPress }: OptionCardP
 
 const styles = StyleSheet.create({
   stack: {
-    gap: spacing.lg,
+    gap: spacing.md,
+  },
+  decisionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   heading: {
-    fontSize: 15,
-    fontWeight: "600",
-    lineHeight: 22,
+    ...typeScale.title,
+    flex: 1,
   },
   meta: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
   body: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...typeScale.body,
   },
   speaker: {
-    fontSize: 12,
+    ...typeScale.caption,
     fontWeight: "600",
-    textTransform: "uppercase",
   },
   entry: {
     gap: spacing.xs,
@@ -209,28 +218,38 @@ const styles = StyleSheet.create({
   },
   option: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
     gap: spacing.xs,
   },
+  optionHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
   optionTitle: {
-    fontSize: 15,
+    ...typeScale.body,
+    flex: 1,
     fontWeight: "600",
   },
   custom: {
-    minHeight: 44,
-    justifyContent: "center",
+    minHeight: touchTarget,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
     borderWidth: 1,
     borderStyle: "dashed",
-    borderRadius: radius.lg,
-    padding: spacing.md,
+    borderRadius: shape.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   status: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
   },
 });

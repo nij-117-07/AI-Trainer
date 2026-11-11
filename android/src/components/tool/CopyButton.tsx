@@ -1,18 +1,31 @@
 // src/components/tool/CopyButton.tsx
-/** Compact copy button that puts the given text on the clipboard and shows a confirmation. */
-import { useState } from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+/**
+ * Copy button that puts the given text on the clipboard. Icon only: the copy icon turns into a check
+ * for a moment, and the change is announced for screen readers.
+ */
+import { useEffect, useState } from "react";
+import { AccessibilityInfo, Pressable, StyleSheet } from "react-native";
 import { setStringAsync } from "expo-clipboard";
 import { Check, Copy } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, touchTarget, useThemeColors } from "@/theme";
+import { pointerCursor } from "@/components/tool/FormControls";
+
+const CONFIRM_MS = 1800;
 
 export function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
   const colors = useThemeColors();
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), CONFIRM_MS);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
   async function handleCopy() {
     await setStringAsync(text);
     setCopied(true);
+    AccessibilityInfo.announceForAccessibility(`${label} copied`);
   }
 
   return (
@@ -22,31 +35,23 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
       accessibilityLabel={copied ? "Copied" : label}
       style={({ pressed }) => [
         styles.button,
+        pointerCursor,
         { borderColor: colors.border, backgroundColor: colors.card },
         pressed && { backgroundColor: colors.muted },
       ]}
     >
-      {copied ? <Check size={16} color={colors.foreground} /> : <Copy size={16} color={colors.foreground} />}
-      <Text accessibilityLiveRegion="polite" style={[styles.text, { color: colors.foreground }]}>
-        {copied ? "Copied" : "Copy"}
-      </Text>
+      {copied ? <Check size={20} color={colors.foreground} /> : <Copy size={20} color={colors.foreground} />}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    minHeight: 44,
+    width: touchTarget,
+    height: touchTarget,
     borderWidth: 1,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  text: {
-    fontSize: 13,
-    fontWeight: "600",
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

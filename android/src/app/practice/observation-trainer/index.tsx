@@ -17,7 +17,7 @@ export default function ObservationTrainerRoute() {
       title="Observation Trainer"
       footer={
         <ActionButton
-          label="New training"
+          label="Start training"
           icon={Eye}
           onPress={() => router.push("/practice/observation-trainer/new")}
         />
@@ -30,7 +30,7 @@ export default function ObservationTrainerRoute() {
           <EmptyHint
             icon={Eye}
             title="No report yet"
-            hint="Tap New training, find or upload an image, describe what you saw, then train."
+            hint="Describe an image from memory to see how much you noticed."
           />
         )}
       </Section>

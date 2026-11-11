@@ -1,15 +1,15 @@
 // src/features/vision-converter/components/ConvertedMarkdown.tsx
 /**
- * Converted Markdown result with a Preview / Markdown toggle and a copy button beside it. The
- * viewer has a fixed height and scrolls inside its own box, so the page does not move with the
- * text. The Markdown view is editable, as in the webui, and Share sends the current text (edited
- * or not) to the system share sheet.
+ * Converted Markdown result with a Preview / Markdown toggle. Listen, Copy, and Share are icon
+ * buttons under the text. The viewer has a fixed height and scrolls inside its own box, so the page
+ * does not move with the text. The Markdown view is editable, as in the webui, and Share sends the
+ * current text (edited or not) to the system share sheet.
  */
 import { useEffect, useState } from "react";
-import { ScrollView, Share, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { FileText, Share2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ChoiceChips, Panel, TextField } from "@/components/tool/FormControls";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { ChoiceChips, Panel, pointerCursor, TextField } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -38,12 +38,7 @@ export function ConvertedMarkdown({ markdown }: { markdown: string }) {
   return (
     <Panel>
       <SectionTitle icon={FileText} title="Converted Markdown" />
-      <View style={styles.toolbar}>
-        <View style={styles.chips}>
-          <ChoiceChips options={VIEW_OPTIONS} value={mode} onChange={setMode} wrap={false} />
-        </View>
-        {text !== "" && <CopyButton text={text} label="Copy Markdown" />}
-      </View>
+      <ChoiceChips options={VIEW_OPTIONS} value={mode} onChange={setMode} wrap={false} />
 
       {text === "" ? (
         <Text style={[styles.empty, { color: colors.mutedForeground }]}>
@@ -70,7 +65,20 @@ export function ConvertedMarkdown({ markdown }: { markdown: string }) {
       {text !== "" && (
         <View style={styles.actions}>
           {mode === "preview" ? <ListenButton text={text} label="Converted text" /> : null}
-          <ActionButton label="Share Markdown" icon={Share2} variant="outline" onPress={handleShare} />
+          <CopyButton text={text} label="Copy Markdown" />
+          <Pressable
+            onPress={handleShare}
+            accessibilityRole="button"
+            accessibilityLabel="Share Markdown"
+            style={({ pressed }) => [
+              styles.iconButton,
+              pointerCursor,
+              { borderColor: colors.border, backgroundColor: colors.card },
+              pressed && { backgroundColor: colors.muted },
+            ]}
+          >
+            <Share2 size={20} color={colors.foreground} />
+          </Pressable>
         </View>
       )}
     </Panel>
@@ -78,35 +86,36 @@ export function ConvertedMarkdown({ markdown }: { markdown: string }) {
 }
 
 const styles = StyleSheet.create({
-  toolbar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
-  chips: {
-    flex: 1,
-  },
   viewer: {
     height: 360,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     overflow: "hidden",
   },
   viewerContent: {
     padding: spacing.md,
   },
   empty: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
   source: {
     fontFamily: "monospace",
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 14,
+    lineHeight: 22,
     height: 360,
   },
   actions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "flex-start",
     gap: spacing.sm,
+  },
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderWidth: 1,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

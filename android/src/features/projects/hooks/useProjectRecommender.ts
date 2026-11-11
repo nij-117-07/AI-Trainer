@@ -2,11 +2,12 @@
 /** Holds the project form and last result, saved on the device, and runs the request. */
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "@/hooks/useRequest";
+import { keptCount, mergeKept } from "@/lib/kept";
 import { recommendProjects } from "../lib/generators";
 import { toProjectDraft } from "../lib/normalise";
 import { DEFAULT_RECOMMENDATIONS } from "../lib/validate";
-import type { ProjectFormValues, ProjectResult } from "../types";
-import { useSavedDraft } from "./useSavedDraft";
+import type { ProjectFormValues, ProjectIdea, ProjectResult } from "../types";
+import { SAVE_FAILED_MESSAGE, useSavedDraft } from "./useSavedDraft";
 
 const STORAGE_KEY = "learning.projects.v1";
 
@@ -18,6 +19,8 @@ const DEFAULTS: ProjectFormValues = {
 };
 
 const parseDraft = (raw: unknown) => toProjectDraft(raw, DEFAULTS);
+
+const keyOf = (project: ProjectIdea) => project.title.trim().toLowerCase();
 
 export function useProjectRecommender() {
   const { settings } = useAiSettings();
@@ -31,7 +34,17 @@ export function useProjectRecommender() {
 
   async function recommend() {
     const next = await request.run(settings, form);
-    if (next) setResult(next);
+    if (!next) return;
+    setResult((prev) => ({ ...next, projects: mergeKept(prev?.projects ?? [], next.projects, keyOf) }));
+  }
+
+  function toggleKept(index: number) {
+    setResult((prev) =>
+      prev && {
+        ...prev,
+        projects: prev.projects.map((project, i) => (i === index ? { ...project, kept: !project.kept } : project)),
+      },
+    );
   }
 
   function reset() {
@@ -43,9 +56,12 @@ export function useProjectRecommender() {
     form,
     pending: request.pending,
     error: request.error,
-    result: request.data ?? draft.result,
+    saveError: draft.saveFailed ? SAVE_FAILED_MESSAGE : null,
+    result: draft.result,
+    keptCount: keptCount(draft.result?.projects ?? []),
     update,
     recommend,
+    toggleKept,
     reset,
   };
 }

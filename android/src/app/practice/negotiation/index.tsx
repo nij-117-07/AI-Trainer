@@ -20,7 +20,7 @@ export default function NegotiationRoute() {
   return (
     <ToolScreen
       title="Negotiation Practice"
-      headerRight={<ResetButton onPress={game.reset} />}
+      headerRight={<ResetButton onPress={game.reset} accessibilityLabel="Reset negotiation" />}
       footer={
         active ? (
           <AnswerComposer
@@ -69,7 +69,7 @@ export default function NegotiationRoute() {
             <EmptyHint
               icon={Handshake}
               title="No negotiation yet"
-              hint="Tap New negotiation to pick a domain and difficulty, then face the opponent."
+              hint="Pick a topic and difficulty to begin."
             />
           )
         )}

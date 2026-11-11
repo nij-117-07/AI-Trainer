@@ -1,10 +1,12 @@
 // src/features/explainer/components/FeynmanTab.tsx
 /** Feynman: simplify a jargon-heavy idea with metaphors, pitched to an age the user picks. */
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { MessageCircleHeart, Puzzle, Sparkles } from "lucide-react-native";
 import { spacing } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { CopyButton } from "@/components/tool/CopyButton";
 import { CountSlider } from "@/components/tool/CountSlider";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -23,19 +25,43 @@ export function useFeynman() {
 
 export type FeynmanState = ReturnType<typeof useFeynman>;
 
+export function FeynmanFields({ state }: { state: FeynmanState }) {
+  const { form, pending, update } = state;
+
+  return (
+    <Panel>
+      <TextField
+        label="Complex topic"
+        placeholder="e.g. Quantum entanglement"
+        value={form.complexTopic}
+        onChangeText={(text) => update("complexTopic", text)}
+        editable={!pending}
+        maxLength={LIMITS.topic}
+      />
+      <CountSlider
+        label="Target age (years)"
+        min={FEYNMAN_AGE.min}
+        max={FEYNMAN_AGE.max}
+        value={form.targetAge}
+        onChange={(value) => update("targetAge", value)}
+      />
+    </Panel>
+  );
+}
+
 export function FeynmanResults({ state }: { state: FeynmanState }) {
   const { result, pending } = state;
 
   if (pending) {
-    return <ResultLoading title="Simplifying your topic" hint="This can take a moment." />;
+    return <ResultLoading title="Explaining your topic" hint="This can take a moment." />;
   }
 
   if (!result) {
     return (
       <EmptyHint
         icon={Puzzle}
-        title="Make it simple"
-        hint="Enter a complex topic and pick an age in the form, then tap Simplify it."
+        title="No explanation yet"
+        hint="Type a complex topic, pick an age, then tap Explain simply."
       />
     );
   }
@@ -45,51 +71,39 @@ export function FeynmanResults({ state }: { state: FeynmanState }) {
       <Panel>
         <SectionTitle icon={Puzzle} title="Simplified explanation" />
         <MarkdownText content={result.explanation} />
-        <ListenButton text={result.explanation} label="Explanation" />
+        <View style={styles.actions}>
+          <ListenButton text={result.explanation} label="Explanation" />
+          <CopyButton text={result.explanation} label="Copy explanation" />
+        </View>
       </Panel>
-
-      {result.keyMetaphors.length > 0 && (
-        <Panel>
-          <SectionTitle icon={Sparkles} title="Key metaphors" />
-          <TagList items={result.keyMetaphors} />
-        </Panel>
-      )}
 
       {result.funAnalogy.trim() !== "" && (
         <ResultCallout icon={MessageCircleHeart} title="Fun analogy" tone="amber">
           <MarkdownText content={result.funAnalogy} />
-          <ListenButton text={result.funAnalogy} label="Fun analogy" />
+          <View style={styles.actions}>
+            <ListenButton text={result.funAnalogy} label="Fun analogy" />
+            <CopyButton text={result.funAnalogy} label="Copy fun analogy" />
+          </View>
         </ResultCallout>
+      )}
+
+      {result.keyMetaphors.length > 0 && (
+        <Disclosure title="Key metaphors" icon={Sparkles} summary={result.keyMetaphors.join(", ")}>
+          <TagList items={result.keyMetaphors} />
+        </Disclosure>
       )}
     </Section>
   );
 }
 
 export function FeynmanFooter({ state }: { state: FeynmanState }) {
-  const { form, pending, error, update, submit } = state;
+  const { pending, error, submit } = state;
 
   return (
     <View style={styles.footer}>
-      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
-        <TextField
-          label="Complex topic"
-          placeholder="e.g. Quantum entanglement"
-          value={form.complexTopic}
-          onChangeText={(text) => update("complexTopic", text)}
-          editable={!pending}
-          maxLength={LIMITS.topic}
-        />
-        <CountSlider
-          label="Target age (years)"
-          min={FEYNMAN_AGE.min}
-          max={FEYNMAN_AGE.max}
-          value={form.targetAge}
-          onChange={(value) => update("targetAge", value)}
-        />
-      </ScrollView>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Simplifying…" : "Simplify it"}
+        label={pending ? "Explaining…" : "Explain simply"}
         icon={Sparkles}
         loading={pending}
         onPress={submit}
@@ -100,6 +114,10 @@ export function FeynmanFooter({ state }: { state: FeynmanState }) {
 
 const styles = StyleSheet.create({
   footer: { gap: spacing.md },
-  fields: { maxHeight: 340 },
-  fieldsContent: { gap: spacing.md },
+  actions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
 });

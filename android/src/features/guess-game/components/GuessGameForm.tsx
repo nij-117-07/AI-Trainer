@@ -6,7 +6,7 @@
 import { StyleSheet, View } from "react-native";
 import { Gamepad2 } from "lucide-react-native";
 import { spacing } from "@/theme";
-import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ChoiceChips, ErrorText, Field, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { CATEGORY_OPTIONS, DIFFICULTY_OPTIONS, THEME_MAX_LENGTH } from "../options";
 import type { GuessGameSetupState } from "../hooks/useGuessGameSetup";
@@ -24,13 +24,13 @@ export function GuessGameFormFields({ setup }: { setup: GuessGameSetupState }) {
         onChange={(value) => update("category", value)}
         customPlaceholder="e.g. board games, poems, TV shows"
       />
-      <SelectField
-        label="Difficulty"
-        options={DIFFICULTY_OPTIONS}
-        value={form.difficulty}
-        onChange={(value) => update("difficulty", value as GameDifficulty)}
-        allowCustom={false}
-      />
+      <Field label="Difficulty">
+        <ChoiceChips
+          options={DIFFICULTY_OPTIONS}
+          value={form.difficulty}
+          onChange={(value) => update("difficulty", value as GameDifficulty)}
+        />
+      </Field>
       <TextField
         label="Vocabulary theme (optional)"
         placeholder="e.g. sci-fi movies, animals, 90s slang"

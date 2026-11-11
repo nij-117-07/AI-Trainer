@@ -1,13 +1,13 @@
-// src/features/topic-suggestions/hooks/useSuggestTopics.ts
 /**
- * State for the suggest page. The form and the pending suggestions are saved on the device. Only
- * the topics the user ticks are added to the list.
+ * State for the suggest page. The form and the suggested topics are saved on the device, and each
+ * suggestion keeps its ticked state. Find more keeps the ticked topics and replaces the rest. Only
+ * the kept topics are added to the list.
  */
 import { useEffect, useState } from "react";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { suggestTopics } from "@/features/guides/lib/generators";
-import type { TopicRecommendation } from "@/features/guides/types";
 import { useRequest } from "@/hooks/useRequest";
+import { keptCount, mergeKept } from "@/lib/kept";
 import { loadDocument, saveDocument } from "@/lib/document-store";
 import {
   appendTopics,
@@ -19,20 +19,24 @@ import {
   TOPIC_FORM_DEFAULTS,
 } from "../lib/topics";
 import { loadTopics, saveTopics } from "../lib/store";
-import type { TopicContext, TopicFormValues } from "../types";
+import type { TopicCandidate, TopicContext, TopicFormValues } from "../types";
+
+const SAVE_FAILED_MESSAGE = "Changes couldn't be saved. They'll try again.";
 
 function makeContext(): TopicContext {
   return { now: new Date().toISOString(), newId: () => globalThis.crypto.randomUUID() };
 }
 
+const keyOf = (topic: TopicCandidate) => topic.topicName.trim().toLowerCase();
+
 export function useSuggestTopics(onAdded: (message: string) => void) {
   const { settings } = useAiSettings();
   const [form, setForm] = useState<TopicFormValues>(TOPIC_FORM_DEFAULTS);
-  const [batch, setBatch] = useState<TopicRecommendation[] | null>(null);
-  const [selected, setSelected] = useState<boolean[]>([]);
+  const [batch, setBatch] = useState<TopicCandidate[] | null>(null);
   const [ready, setReady] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const request = useRequest((values: TopicFormValues, history: string) =>
     suggestTopics(settings, values, history),
   );
@@ -45,7 +49,6 @@ export function useSuggestTopics(onAdded: (message: string) => void) {
         const draft = normalizeDraft(savedDraft);
         setForm(draft.form);
         setBatch(draft.batch);
-        setSelected(draft.batch ? draft.batch.map(() => true) : []);
         setReady(true);
       })
       .catch(() => undefined);
@@ -56,37 +59,40 @@ export function useSuggestTopics(onAdded: (message: string) => void) {
 
   useEffect(() => {
     if (!ready) return;
-    saveDocument(TOPIC_DRAFT_KEY, { form, batch }).catch(() => undefined);
+    saveDocument(TOPIC_DRAFT_KEY, { form, batch })
+      .then(() => setSaveFailed(false))
+      .catch(() => setSaveFailed(true));
   }, [ready, form, batch]);
 
   function update<K extends keyof TopicFormValues>(key: K, value: TopicFormValues[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function generate() {
+  async function generate(): Promise<boolean> {
     setNotice(null);
     const current = await loadTopics().catch(() => []);
     const next = await request.run(form, listHistory(current));
-    if (!next) return;
+    if (!next) return false;
     if (next.recommendations.length === 0) {
       setNotice("No topics came back. Try again.");
-      return;
+      return false;
     }
-    setBatch(next.recommendations);
-    setSelected(next.recommendations.map(() => true));
+    const fresh = next.recommendations.map((topic) => ({ ...topic, kept: false }));
+    setBatch((prev) => mergeKept(prev ?? [], fresh, keyOf));
+    return true;
   }
 
-  function toggleSelected(index: number) {
-    setSelected((current) => current.map((on, i) => (i === index ? !on : on)));
+  function toggleKept(index: number) {
+    setBatch((current) => current?.map((topic, i) => (i === index ? { ...topic, kept: !topic.kept } : topic)) ?? null);
   }
 
-  function setAllSelected(value: boolean) {
-    setSelected((current) => current.map(() => value));
+  function setAllKept(value: boolean) {
+    setBatch((current) => current?.map((topic) => ({ ...topic, kept: value })) ?? null);
   }
 
-  async function addSelected() {
+  async function keepTopics() {
     if (!batch) return;
-    const picks = pickTopics(batch, selected);
+    const picks = pickTopics(batch, batch.map((topic) => topic.kept));
     if (picks.length === 0) return;
     setAdding(true);
     setNotice(null);
@@ -94,7 +100,6 @@ export function useSuggestTopics(onAdded: (message: string) => void) {
       const result = appendTopics(await loadTopics(), picks, makeContext());
       await saveTopics(result.topics);
       setBatch(null);
-      setSelected([]);
       onAdded(describeAppend(result.added, result.skipped));
     } catch (err) {
       setNotice(err instanceof Error ? err.message : "Could not add the topics. Please try again.");
@@ -105,7 +110,6 @@ export function useSuggestTopics(onAdded: (message: string) => void) {
 
   function discardBatch() {
     setBatch(null);
-    setSelected([]);
     setNotice(null);
   }
 
@@ -118,17 +122,17 @@ export function useSuggestTopics(onAdded: (message: string) => void) {
   return {
     form,
     batch,
-    selected,
-    selectedCount: selected.filter(Boolean).length,
+    keptCount: keptCount(batch ?? []),
     notice,
     busy: request.pending,
     adding,
     error: request.error,
+    saveError: saveFailed ? SAVE_FAILED_MESSAGE : null,
     update,
     generate,
-    toggleSelected,
-    setAllSelected,
-    addSelected,
+    toggleKept,
+    setAllKept,
+    keepTopics,
     discardBatch,
     reset,
   };

@@ -27,7 +27,7 @@ export default function DebateRoute() {
   return (
     <ToolScreen
       title="Debate Engine"
-      headerRight={session ? <ResetButton label="Reset debate" onPress={confirmReset} /> : undefined}
+      headerRight={session ? <ResetButton accessibilityLabel="Reset debate" onPress={confirmReset} /> : undefined}
       footer={
         active ? (
           <DebateTurnFooter game={game} />
@@ -44,7 +44,7 @@ export default function DebateRoute() {
             <EmptyHint
               icon={Swords}
               title="No debate yet"
-              hint="Tap New debate to describe two personas and a topic, then start."
+              hint="Build two personas and a topic, then argue against the AI."
             />
           )
         )}

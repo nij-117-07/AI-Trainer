@@ -5,7 +5,7 @@
  */
 import { StyleSheet, Text, View } from "react-native";
 import { Sparkles } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
 import { CountSlider } from "@/components/tool/CountSlider";
 import { Disclosure } from "@/components/tool/Disclosure";
@@ -22,7 +22,7 @@ export function McqFormFields({ setup }: { setup: McqSetupState }) {
     <>
       {existingCount > 0 && (
         <Text style={[styles.note, { color: colors.mutedForeground }]}>
-          New questions are added after the {existingCount} you already have. Use Clear all on the MCQs page to start over.
+          Adds to your {existingCount} saved questions. Start over from the MCQs page.
         </Text>
       )}
       <TextField
@@ -62,7 +62,7 @@ export function McqFormFields({ setup }: { setup: McqSetupState }) {
         onChange={(value) => update("numQuestions", value)}
       />
       <TextField
-        label="User instructions (optional)"
+        label="Instructions (optional)"
         placeholder="e.g. Use short code snippets, avoid trick questions"
         value={form.customInstructions}
         onChangeText={(text) => update("customInstructions", text)}
@@ -74,11 +74,11 @@ export function McqFormFields({ setup }: { setup: McqSetupState }) {
       {history.length > 0 && (
         <Disclosure
           title="Past questions"
-          summary={`${history.length} of ${PAST_QUESTIONS_LIMIT} kept. Sent with the next request so the model avoids repeats.`}
+          summary={`${history.length} of ${PAST_QUESTIONS_LIMIT} kept to avoid repeats.`}
         >
           <View style={styles.list}>
             {history.map((question, index) => (
-              <Text key={`${index}-${question}`} style={[styles.item, { color: colors.foreground, borderColor: colors.border }]}>
+              <Text key={`${index}-${question}`} style={[styles.item, { color: colors.foreground }]}>
                 {index + 1}. {question}
               </Text>
             ))}
@@ -96,7 +96,7 @@ export function McqFormFooter({ setup }: { setup: McqSetupState }) {
     <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Writing questions…" : "Generate MCQs"}
+        label={pending ? "Generating questions…" : "Generate questions"}
         icon={Sparkles}
         loading={pending}
         onPress={() => void submit()}
@@ -107,8 +107,8 @@ export function McqFormFooter({ setup }: { setup: McqSetupState }) {
 
 const styles = StyleSheet.create({
   note: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
   },
   footer: {
     gap: spacing.md,
@@ -117,11 +117,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   item: {
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
   },
 });

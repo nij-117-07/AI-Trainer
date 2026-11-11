@@ -126,7 +126,7 @@ export function CreativeAssetsFormFooter({ assets }: { assets: CreativeAssetsFor
     <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Brainstorming…" : "Generate assets"}
+        label={pending ? "Generating assets…" : "Generate assets"}
         icon={Sparkles}
         loading={pending}
         onPress={submit}

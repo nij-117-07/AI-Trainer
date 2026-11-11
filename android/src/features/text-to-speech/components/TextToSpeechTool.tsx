@@ -8,8 +8,8 @@ import { createElement, useEffect, useRef, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
-import { Pause, Play, RotateCcw, Settings2, Volume2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Play, RotateCcw, Settings, Square, Trash2, Volume2 } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { SettingsToggle } from "@/components/tool/SettingsToggle";
@@ -144,12 +144,11 @@ export function TextToSpeechTool() {
     <Section>
       {clip ? (
         <Panel>
-          <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={[styles.label, { color: colors.foreground }]}>
+          <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={[styles.title, { color: colors.foreground }]}>
             Audio ready
           </Text>
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-            {`Voice ${clip.voice} · ${clip.mimeType} · ${formatSize(clip.sizeBytes)}`}
-            {clip.generationId ? ` · Generation ${clip.generationId}` : ""}
+          <Text style={[styles.caption, { color: colors.mutedForeground }]}>
+            {`${clip.voice} · ${formatSize(clip.sizeBytes)}`}
           </Text>
 
           {isWeb ? (
@@ -167,19 +166,19 @@ export function TextToSpeechTool() {
                 onPress={togglePlayback}
                 disabled={!playerStatus.isLoaded}
                 accessibilityRole="button"
-                accessibilityLabel={playerStatus.playing ? "Pause audio" : "Play audio"}
+                accessibilityLabel={playerStatus.playing ? "Stop audio" : "Play audio"}
                 accessibilityState={{ disabled: !playerStatus.isLoaded }}
                 style={({ pressed }) => [
-                  styles.playButton,
-                  { backgroundColor: colors.primary },
-                  pressed && styles.pressed,
+                  styles.iconButton,
+                  { borderColor: colors.border, backgroundColor: colors.card },
+                  pressed && { backgroundColor: colors.muted },
                   !playerStatus.isLoaded && styles.disabled,
                 ]}
               >
                 {playerStatus.playing ? (
-                  <Pause size={22} color={colors.primaryForeground} />
+                  <Square size={22} color={colors.primary} fill={colors.primary} />
                 ) : (
-                  <Play size={22} color={colors.primaryForeground} />
+                  <Play size={22} color={colors.foreground} />
                 )}
               </Pressable>
               <View style={styles.playerText}>
@@ -187,7 +186,7 @@ export function TextToSpeechTool() {
                   {playerStatus.error ? "Playback failed" : playerStatus.isLoaded ? (playerStatus.playing ? "Playing" : "Ready to play") : "Loading audio…"}
                 </Text>
                 {playerStatus.error ? (
-                  <Text accessibilityRole="alert" style={[styles.hint, { color: colors.destructive }]}>
+                  <Text accessibilityRole="alert" style={[styles.caption, { color: colors.destructive }]}>
                     {playerStatus.error}
                   </Text>
                 ) : null}
@@ -200,12 +199,12 @@ export function TextToSpeechTool() {
                 accessibilityState={{ disabled: !playerStatus.isLoaded }}
                 style={({ pressed }) => [
                   styles.iconButton,
-                  { borderColor: colors.border },
+                  { borderColor: colors.border, backgroundColor: colors.card },
                   pressed && { backgroundColor: colors.muted },
                   !playerStatus.isLoaded && styles.disabled,
                 ]}
               >
-                <RotateCcw size={18} color={colors.foreground} />
+                <RotateCcw size={22} color={colors.foreground} />
               </Pressable>
             </View>
           )}
@@ -228,40 +227,40 @@ export function TextToSpeechTool() {
             <View style={styles.settingsRow}>
               <View style={styles.settingsText}>
                 <Text style={[styles.label, { color: colors.foreground }]}>Using</Text>
-                <Text style={[styles.hint, { color: colors.mutedForeground }]} accessibilityLabel="Speech model and voice">
-                  {configured ? `${connection.model} · voice ${connection.voice}` : "No speech model or voice set yet. Tap Change to set one."}
+                <Text style={[styles.caption, { color: colors.mutedForeground }]}>
+                  {configured ? `${connection.model} · voice ${connection.voice}` : "No speech model or voice set yet."}
                 </Text>
               </View>
               <Pressable
                 onPress={() => router.push("/admin/settings")}
                 accessibilityRole="button"
-                accessibilityLabel="Change speech model and voice in settings"
-                style={({ pressed }) => [styles.settingsButton, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
+                accessibilityLabel="Change speech model and voice"
+                style={({ pressed }) => [styles.iconButton, { borderColor: colors.border, backgroundColor: colors.card }, pressed && { backgroundColor: colors.muted }]}
               >
-                <Settings2 size={16} color={colors.foreground} />
-                <Text style={[styles.settingsButtonText, { color: colors.foreground }]}>Change</Text>
+                <Settings size={22} color={colors.foreground} />
               </Pressable>
             </View>
 
-            <TextField
-              label="Text to speak"
-              value={text}
-              onChangeText={(value) => {
-                setText(value);
-                setError(null);
-              }}
-              placeholder="Type or paste the text to read aloud"
-              placeholderTextColor={colors.mutedForeground}
-              multiline
-              style={styles.textArea}
-              accessibilityLabel="Text to speak"
-            />
-            <Text style={[styles.counter, { color: overLimit ? colors.destructive : colors.mutedForeground }]}>
-              {text.length} / {MAX_SPEECH_CHARS} characters
-            </Text>
+            <View style={styles.textBlock}>
+              <TextField
+                label="Text to speak"
+                value={text}
+                onChangeText={(value) => {
+                  setText(value);
+                  setError(null);
+                }}
+                placeholder="Type or paste text"
+                placeholderTextColor={colors.mutedForeground}
+                multiline
+                style={styles.textArea}
+              />
+              <Text style={[styles.caption, styles.counter, { color: overLimit ? colors.destructive : colors.mutedForeground }]}>
+                {text.length} / {MAX_SPEECH_CHARS}
+              </Text>
+            </View>
 
             <ActionButton
-              label={generating ? "Generating audio…" : "Generate speech"}
+              label={generating ? "Generating…" : "Read aloud"}
               icon={Volume2}
               loading={generating}
               onPress={generate}
@@ -275,9 +274,14 @@ export function TextToSpeechTool() {
       {loaded && entries.length > 0 ? (
         <Panel>
           <View style={styles.historyHeader}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Recent</Text>
-            <Pressable onPress={clear} accessibilityRole="button" accessibilityLabel="Clear recent speech" style={styles.clearButton}>
-              <Text style={[styles.hint, { color: colors.mutedForeground }]}>Clear list</Text>
+            <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>Recent</Text>
+            <Pressable
+              onPress={clear}
+              accessibilityRole="button"
+              accessibilityLabel="Clear recent speech"
+              style={({ pressed }) => [styles.iconButton, { borderColor: colors.border, backgroundColor: colors.card }, pressed && { backgroundColor: colors.muted }]}
+            >
+              <Trash2 size={22} color={colors.foreground} />
             </Pressable>
           </View>
           {entries.map((entry) => (
@@ -288,10 +292,10 @@ export function TextToSpeechTool() {
               accessibilityLabel={`Use text: ${entry.text.slice(0, 40)}`}
               style={({ pressed }) => [styles.historyRow, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
             >
-              <Text style={[styles.historyText, { color: colors.foreground }]} numberOfLines={2}>
+              <Text style={[styles.body, { color: colors.foreground }]} numberOfLines={2}>
                 {entry.text.length > PREVIEW_CHARS ? `${entry.text.slice(0, PREVIEW_CHARS).trimEnd()}…` : entry.text}
               </Text>
-              <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+              <Text style={[styles.caption, { color: colors.mutedForeground }]}>
                 {formatDate(entry.createdAt)} · {entry.voice}
               </Text>
             </Pressable>
@@ -313,7 +317,7 @@ function formatDate(iso: string): string {
 
 const styles = StyleSheet.create({
   formBody: {
-    gap: spacing.xl,
+    gap: spacing.lg,
   },
   settingsRow: {
     flexDirection: "row",
@@ -324,32 +328,26 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xs,
   },
-  settingsButton: {
-    flexDirection: "row",
-    alignItems: "center",
+  textBlock: {
     gap: spacing.xs,
-    minHeight: 44,
-    borderWidth: 1,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
   },
-  settingsButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
+  title: {
+    ...typeScale.title,
+  },
+  body: {
+    ...typeScale.body,
   },
   label: {
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
-  hint: {
-    fontSize: 13,
-    lineHeight: 18,
+  caption: {
+    ...typeScale.caption,
   },
   textArea: {
-    minHeight: 160,
+    minHeight: 140,
   },
   counter: {
-    fontSize: 12,
     textAlign: "right",
   },
   playerRow: {
@@ -357,27 +355,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
   },
-  playButton: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.full,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   playerText: {
     flex: 1,
     gap: spacing.xs,
   },
   iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  pressed: {
-    opacity: 0.85,
   },
   disabled: {
     opacity: 0.5,
@@ -387,18 +375,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  clearButton: {
-    minHeight: 44,
-    justifyContent: "center",
-  },
   historyRow: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
     gap: spacing.xs,
-  },
-  historyText: {
-    fontSize: 15,
-    lineHeight: 21,
   },
 });

@@ -1,13 +1,16 @@
 // src/features/executive-eq/components/SimulationBoard.tsx
 /**
- * The running Executive EQ simulation on the practice page: the scene and NPC, the latest
- * briefing, and the transcript. The reply box lives in the page footer. Grades for each reply are
- * shown as chips at the top.
+ * The running Executive EQ simulation on the practice page: the scene, the counterpart profile
+ * (collapsed), the latest briefing, and the transcript as a chat. The reply box lives in the page
+ * footer. Grades for each reply are shown as chips at the top, and each reply's feedback lists what
+ * worked and what to improve above the coach's evaluation.
  */
 import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { Bot, Eye } from "lucide-react-native";
-import { radius, spacing, useThemeColors, type Tone } from "@/theme";
+import { Bot, Check, Eye, X, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors, type Tone } from "@/theme";
+import { CopyButton } from "@/components/tool/CopyButton";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
@@ -15,7 +18,8 @@ import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
 import { useToolScroll } from "@/components/tool/ToolScrollContext";
-import type { ExecutiveEqSession } from "../types";
+import { gradeByLogIndex } from "../lib/transcript";
+import type { EvaluationResult, ExecutiveEqSession } from "../types";
 
 interface SimulationBoardProps {
   session: ExecutiveEqSession;
@@ -29,7 +33,7 @@ export function SimulationBoard({ session, busy }: SimulationBoardProps) {
   const scroll = useToolScroll();
   const { scenario } = session;
   const npc = scenario.npcProfile;
-  const npcLine = [npc.name, npc.title].filter(Boolean).join(" · ");
+  const grades = gradeByLogIndex(session);
 
   useEffect(() => {
     scroll?.current?.scrollToEnd({ animated: true });
@@ -39,10 +43,9 @@ export function SimulationBoard({ session, busy }: SimulationBoardProps) {
     <>
       <Panel>
         <SectionTitle icon={Eye} title={scenario.scenarioTitle || "Simulation"} />
-        {npcLine !== "" && <Text style={[styles.meta, { color: colors.mutedForeground }]}>{npcLine}</Text>}
         {session.grades.length > 0 && (
           <View style={styles.gradeRow}>
-            <Text style={[styles.meta, { color: colors.mutedForeground }]}>Grades</Text>
+            <Text style={[styles.caption, { color: colors.mutedForeground }]}>Grades</Text>
             {session.grades.map((grade, index) => {
               const tone = colors.tone[GRADE_TONES[grade.strategicGrade] ?? "amber"];
               return (
@@ -58,12 +61,6 @@ export function SimulationBoard({ session, busy }: SimulationBoardProps) {
             })}
           </View>
         )}
-      </Panel>
-
-      <Panel>
-        <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>
-          The scene
-        </Text>
         {scenario.settingDescription !== "" && <MarkdownText content={scenario.settingDescription} />}
         <ListenButton text={scenario.settingDescription} label="Scene" />
         {scenario.initialStakes !== "" && (
@@ -71,12 +68,11 @@ export function SimulationBoard({ session, busy }: SimulationBoardProps) {
         )}
       </Panel>
 
-      <Panel>
-        <SectionTitle icon={Bot} title={npc.name || "Counterpart"} />
+      <Disclosure icon={Bot} title={npc.name || "Counterpart"} summary={npc.title || undefined}>
         <LabeledLine label="Personality" value={npc.personality} />
         <LabeledLine label="Hidden motive" value={npc.hiddenMotive} />
         <LabeledLine label="Tell" value={npc.tell} />
-      </Panel>
+      </Disclosure>
 
       {session.lastBriefing && (
         <ResultCallout icon={Eye} title="Read the room" tone="sky">
@@ -104,20 +100,34 @@ export function SimulationBoard({ session, busy }: SimulationBoardProps) {
         </ResultCallout>
       )}
 
-      <Panel>
-        <SectionTitle icon={Bot} title="Transcript" />
+      <View style={styles.transcript}>
         {session.log.length === 0 ? (
           <Text style={[styles.body, { color: colors.mutedForeground }]}>The NPC has not spoken yet.</Text>
         ) : (
-          session.log.map((entry, index) => (
-            <View key={index} style={styles.entry}>
-              <Text style={[styles.speaker, { color: colors.mutedForeground }]}>
-                {entry.role === "user" ? "You" : "Simulation"}
-              </Text>
-              <MarkdownText content={entry.content} />
-              {entry.role !== "user" && <ListenButton text={entry.content} label="Reply" />}
-            </View>
-          ))
+          session.log.map((entry, index) => {
+            if (entry.role === "user") {
+              return (
+                <View key={index} style={styles.userEntry}>
+                  <Text style={[styles.caption, { color: colors.mutedForeground }]}>You</Text>
+                  <View style={[styles.userBubble, { backgroundColor: colors.muted }]}>
+                    <MarkdownText content={entry.content} />
+                  </View>
+                </View>
+              );
+            }
+            const grade = grades.get(index);
+            return (
+              <View key={index} style={styles.assistantEntry}>
+                <Text style={[styles.caption, { color: colors.mutedForeground }]}>Simulation</Text>
+                {grade && <EvaluationLists evaluation={grade} />}
+                <MarkdownText content={entry.content} />
+                <View style={styles.actions}>
+                  <ListenButton text={entry.content} label="Reply" />
+                  <CopyButton text={entry.content} label="Copy reply" />
+                </View>
+              </View>
+            );
+          })
         )}
         {busy && (
           <View
@@ -128,8 +138,39 @@ export function SimulationBoard({ session, busy }: SimulationBoardProps) {
             <Text style={[styles.body, { color: colors.mutedForeground }]}>Waiting for the reply…</Text>
           </View>
         )}
-      </Panel>
+      </View>
     </>
+  );
+}
+
+function EvaluationLists({ evaluation }: { evaluation: EvaluationResult }) {
+  return (
+    <View style={styles.feedback}>
+      <FeedbackList title="What worked" items={evaluation.strengths} icon={Check} tone="emerald" />
+      <FeedbackList title="To improve" items={evaluation.criticalFlaws} icon={X} tone="rose" />
+    </View>
+  );
+}
+
+function FeedbackList({ title, items, icon: Icon, tone }: { title: string; items: string[]; icon: LucideIcon; tone: Tone }) {
+  const colors = useThemeColors();
+  if (items.length === 0) return null;
+  return (
+    <View style={styles.feedbackGroup}>
+      <Text accessibilityRole="header" style={[styles.heading, { color: colors.mutedForeground }]}>
+        {title}
+      </Text>
+      {items.map((item, index) => (
+        <View key={`${index}-${item}`} style={styles.feedbackItem}>
+          <View style={styles.feedbackIcon}>
+            <Icon size={16} color={colors.tone[tone].fg} />
+          </View>
+          <Text selectable style={[styles.body, styles.feedbackText, { color: colors.foreground }]}>
+            {item}
+          </Text>
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -146,24 +187,22 @@ function LabeledLine({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   heading: {
-    fontSize: 15,
+    ...typeScale.caption,
     fontWeight: "600",
   },
-  meta: {
-    fontSize: 13,
+  caption: {
+    ...typeScale.caption,
   },
   body: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...typeScale.body,
   },
   label: {
-    fontSize: 13,
+    ...typeScale.caption,
     fontWeight: "600",
   },
   stakes: {
-    fontSize: 14,
+    ...typeScale.body,
     fontWeight: "600",
-    lineHeight: 20,
   },
   gradeRow: {
     flexDirection: "row",
@@ -171,15 +210,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   grade: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 28,
+    height: 28,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   gradeText: {
-    fontSize: 13,
+    ...typeScale.caption,
     fontWeight: "700",
   },
   coach: {
@@ -190,20 +229,49 @@ const styles = StyleSheet.create({
   strategies: {
     gap: spacing.sm,
   },
-  entry: {
+  transcript: {
+    gap: spacing.md,
+  },
+  feedback: {
+    gap: spacing.md,
+  },
+  feedbackGroup: {
+    gap: spacing.sm,
+  },
+  feedbackItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
+  feedbackIcon: {
+    paddingTop: spacing.xs,
+  },
+  feedbackText: {
+    flex: 1,
+  },
+  userEntry: {
+    alignItems: "flex-end",
     gap: spacing.xs,
+  },
+  userBubble: {
+    maxWidth: "80%",
+    borderRadius: shape.lg,
+    borderTopRightRadius: shape.xs,
+    padding: spacing.md,
+  },
+  assistantEntry: {
+    gap: spacing.xs,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: spacing.sm,
   },
   status: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
-  },
-  speaker: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
   },
 });

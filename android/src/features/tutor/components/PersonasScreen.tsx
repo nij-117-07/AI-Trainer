@@ -1,16 +1,15 @@
 // src/features/tutor/components/PersonasScreen.tsx
 /**
- * Personas: the saved system prompts the tutor can use. The list is in the body, and the editor
- * is pinned to the footer.
+ * Saved teaching styles (prompt templates). Tap a row to edit it, and the form for a new or edited
+ * template is pinned to the footer.
  */
 import { useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
-import { BookOpenCheck, Pencil, Save, Trash2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { RefreshCcw, Save, Trash2 } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { ActionButton, ErrorText, TextField, pointerCursor } from "@/components/tool/FormControls";
 import { ResetButton } from "@/components/tool/ResetButton";
 import { Section } from "@/components/tool/Section";
-import { SectionTitle } from "@/components/tool/SectionTitle";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { usePromptTemplates } from "../hooks/usePromptTemplates";
 import type { PromptTemplate } from "../types";
@@ -57,9 +56,9 @@ export function PersonasScreen() {
       const saved = await templates.save({ name, content });
       setName(saved);
       setEditing(saved);
-      setSuccess(`Persona '${saved}' saved.`);
+      setSuccess(`Saved '${saved}'.`);
     } catch (err) {
-      setError(messageOf(err, "Could not save the persona."));
+      setError(messageOf(err, "Couldn't save the template."));
     } finally {
       setBusy(false);
     }
@@ -68,7 +67,7 @@ export function PersonasScreen() {
   function confirmRemove(template: PromptTemplate) {
     const restoring = template.source === "customized";
     Alert.alert(
-      restoring ? "Restore built-in?" : "Delete persona?",
+      restoring ? "Restore built-in?" : "Delete template?",
       restoring
         ? `Replace your changes to "${template.name}" with the built-in version?`
         : `Delete "${template.name}"?`,
@@ -91,19 +90,18 @@ export function PersonasScreen() {
       if (editing === template.name) clearForm();
       setSuccess(`Removed '${template.name}'.`);
     } catch (err) {
-      setError(messageOf(err, "Could not remove the persona."));
+      setError(messageOf(err, "Couldn't remove the template."));
     }
   }
 
   return (
     <ToolScreen
-      title="Personas"
-      headerRight={<ResetButton onPress={clearForm} />}
+      title="Teaching styles"
+      usesAi={false}
+      headerRight={<ResetButton onPress={clearForm} accessibilityLabel="Reset template form" />}
       footer={
         <View style={styles.footer}>
-          <Text style={[styles.editingLabel, { color: colors.mutedForeground }]}>
-            {editing ? `Editing "${editing}"` : "New persona"}
-          </Text>
+          {editing ? <Text style={[styles.editing, { color: colors.mutedForeground }]}>Editing "{editing}"</Text> : null}
           <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
             <TextField
               label="Name"
@@ -115,8 +113,8 @@ export function PersonasScreen() {
               maxLength={PROMPT_NAME_MAX}
             />
             <TextField
-              label="Persona prompt"
-              placeholder="How should the tutor behave and teach?"
+              label="Prompt"
+              placeholder="e.g. Explain with one short example, then ask one question."
               value={content}
               onChangeText={setContent}
               editable={!busy}
@@ -131,52 +129,59 @@ export function PersonasScreen() {
               {success}
             </Text>
           ) : null}
-          <ActionButton
-            label={busy ? "Saving…" : editing ? "Update persona" : "Save persona"}
-            icon={Save}
-            loading={busy}
-            onPress={() => void save()}
-          />
+          <ActionButton label={busy ? "Saving…" : "Save template"} icon={Save} loading={busy} onPress={() => void save()} />
         </View>
       }
     >
       <Section>
-        <Panel>
-          <SectionTitle icon={BookOpenCheck} title="Saved personas" />
-          <ErrorText message={templates.error} />
-          {!templates.loaded ? (
-            <Text style={[styles.muted, { color: colors.mutedForeground }]}>Loading personas…</Text>
-          ) : (
-            templates.templates.map((template) => (
-              <View key={template.name} style={[styles.row, { borderColor: colors.border }]}>
-                <View style={styles.rowHeader}>
-                  <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>
-                    {template.name}
-                  </Text>
-                  <Text style={[styles.badge, { color: colors.mutedForeground }]}>{SOURCE_LABELS[template.source]}</Text>
-                </View>
-                <Text style={[styles.preview, { color: colors.mutedForeground }]} numberOfLines={2}>
-                  {template.content}
-                </Text>
-                <View style={styles.actions}>
-                  <View style={styles.action}>
-                    <ActionButton label="Edit" icon={Pencil} variant="outline" onPress={() => edit(template)} />
-                  </View>
-                  {template.source !== "built-in" ? (
-                    <View style={styles.action}>
-                      <ActionButton
-                        label={template.source === "customized" ? "Restore" : "Delete"}
-                        icon={Trash2}
-                        variant="outline"
-                        onPress={() => confirmRemove(template)}
-                      />
-                    </View>
+        <ErrorText message={templates.error} />
+        {!templates.loaded ? (
+          <Text style={[styles.muted, { color: colors.mutedForeground }]}>Loading templates…</Text>
+        ) : (
+          <View style={[styles.list, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {templates.templates.map((template, index) => {
+              const removable = template.source !== "built-in";
+              const restoring = template.source === "customized";
+              return (
+                <View
+                  key={template.name}
+                  style={[styles.row, index > 0 && { borderTopWidth: 1, borderTopColor: colors.border }]}
+                >
+                  <Pressable
+                    onPress={() => edit(template)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Edit ${template.name}`}
+                    accessibilityState={{ selected: editing === template.name }}
+                    style={({ pressed }) => [
+                      styles.rowMain,
+                      pointerCursor,
+                      (pressed || editing === template.name) && { backgroundColor: colors.muted },
+                    ]}
+                  >
+                    <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>
+                      {template.name}
+                    </Text>
+                    <Text style={[styles.meta, { color: colors.mutedForeground }]}>{SOURCE_LABELS[template.source]}</Text>
+                  </Pressable>
+                  {removable ? (
+                    <Pressable
+                      onPress={() => confirmRemove(template)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${restoring ? "Restore" : "Delete"} ${template.name}`}
+                      style={({ pressed }) => [styles.iconButton, pointerCursor, pressed && { backgroundColor: colors.muted }]}
+                    >
+                      {restoring ? (
+                        <RefreshCcw size={20} color={colors.foreground} />
+                      ) : (
+                        <Trash2 size={20} color={colors.foreground} />
+                      )}
+                    </Pressable>
                   ) : null}
                 </View>
-              </View>
-            ))
-          )}
-        </Panel>
+              );
+            })}
+          </View>
+        )}
       </Section>
     </ToolScreen>
   );
@@ -186,8 +191,8 @@ const styles = StyleSheet.create({
   footer: {
     gap: spacing.md,
   },
-  editingLabel: {
-    fontSize: 13,
+  editing: {
+    ...typeScale.label,
   },
   fields: {
     maxHeight: 340,
@@ -196,42 +201,42 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   success: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
   },
   muted: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
+  },
+  list: {
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    overflow: "hidden",
   },
   row: {
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  rowHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
+    minHeight: 56,
+  },
+  rowMain: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    paddingLeft: spacing.lg,
+    gap: spacing.xs,
   },
   name: {
-    flexShrink: 1,
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
-  badge: {
-    fontSize: 12,
+  meta: {
+    ...typeScale.label,
+    fontWeight: "400",
   },
-  preview: {
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  action: {
-    flex: 1,
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    marginRight: spacing.xs,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

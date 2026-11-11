@@ -1,8 +1,11 @@
 // src/features/negotiation/components/Transcript.tsx
-/** Chat transcript for a negotiation: opponent and trainee messages, with coach tips between them. */
+/**
+ * Chat transcript for a negotiation: the trainee's messages on the right, the opponent's replies
+ * full width without a bubble, and coach tips between them.
+ */
 import { StyleSheet, Text, View } from "react-native";
 import { Lightbulb } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
@@ -25,23 +28,26 @@ function Entry({ entry }: { entry: SessionEntry }) {
     return (
       <ResultCallout icon={Lightbulb} title="Coach tip" tone="emerald">
         <MarkdownText content={entry.text} />
-        <ListenButton text={entry.text} label="Coach tip" />
+        <ListenButton text={entry.text} label="coach tip" />
       </ResultCallout>
     );
   }
 
-  const isUser = entry.role === "user";
+  if (entry.role === "user") {
+    return (
+      <View style={[styles.userMessage, { backgroundColor: colors.tone.sky.bg }]}>
+        <MarkdownText content={entry.text} />
+      </View>
+    );
+  }
+
   return (
-    <View
-      style={[
-        styles.bubble,
-        isUser ? styles.userBubble : styles.opponentBubble,
-        { backgroundColor: isUser ? colors.tone.sky.bg : colors.muted, borderColor: colors.border },
-      ]}
-    >
-      <Text style={[styles.speaker, { color: colors.mutedForeground }]}>{isUser ? "You" : "Opponent"}</Text>
+    <View style={styles.opponent}>
+      <Text accessibilityRole="text" style={[styles.speaker, { color: colors.mutedForeground }]}>
+        Opponent
+      </Text>
       <MarkdownText content={entry.text} />
-      {isUser ? null : <ListenButton text={entry.text} label="Reply" />}
+      <ListenButton text={entry.text} label="opponent's reply" />
     </View>
   );
 }
@@ -50,21 +56,19 @@ const styles = StyleSheet.create({
   list: {
     gap: spacing.md,
   },
-  bubble: {
-    maxWidth: "90%",
-    borderWidth: 1,
-    borderRadius: radius.xl,
-    padding: spacing.md,
+  userMessage: {
+    alignSelf: "flex-end",
+    maxWidth: "80%",
+    borderRadius: shape.lg,
+    borderTopRightRadius: shape.xs,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  opponent: {
     gap: spacing.xs,
   },
-  userBubble: {
-    alignSelf: "flex-end",
-  },
-  opponentBubble: {
-    alignSelf: "flex-start",
-  },
   speaker: {
-    fontSize: 12,
+    ...typeScale.body,
     fontWeight: "600",
   },
 });

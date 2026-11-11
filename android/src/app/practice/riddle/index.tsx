@@ -29,13 +29,13 @@ export default function RiddleRoute() {
             maxLength={2000}
             pending={game.evaluate.pending}
             error={game.evaluate.error}
-            submitLabel={attempts.length > 0 ? "Check again" : "Submit"}
+            submitLabel="Submit guess"
             onChangeText={game.changeAnswer}
             onSubmit={() => void game.submitAnswer()}
           />
         ) : (
           <ActionButton
-            label="New riddle"
+            label={round ? "Next riddle" : "New riddle"}
             icon={Sparkles}
             onPress={() => router.push("/practice/riddle/new")}
           />
@@ -46,13 +46,14 @@ export default function RiddleRoute() {
         {round ? (
           <>
             <RiddleRoundView
+              key={round.riddle.riddleText}
               round={round}
               showSolution={game.showSolution}
               onToggleSolution={game.toggleSolution}
             />
             {active && (
               <ActionButton
-                label="Start a different riddle"
+                label="New riddle"
                 icon={Sparkles}
                 variant="outline"
                 onPress={() => router.push("/practice/riddle/new")}
@@ -60,13 +61,7 @@ export default function RiddleRoute() {
             )}
           </>
         ) : (
-          game.loaded && (
-            <EmptyHint
-              icon={Brain}
-              title="No riddle yet"
-              hint="Tap New riddle, choose a topic and difficulty, then generate."
-            />
-          )
+          game.loaded && <EmptyHint icon={Brain} title="No riddle yet" hint="Pick a topic and difficulty to begin." />
         )}
       </Section>
     </ToolScreen>

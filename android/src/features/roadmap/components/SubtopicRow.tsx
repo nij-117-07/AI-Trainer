@@ -1,9 +1,9 @@
 // src/features/roadmap/components/SubtopicRow.tsx
-/** A single subpoint: done toggle, title, inline rename, move up or down, and delete. */
+/** A single subpoint: done button and title, with move, rename, and delete icons under it. */
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { ROADMAP_LIMITS } from "../lib/validation";
 import type { RoadmapSubtopic } from "../types";
 import { DoneToggle, IconButton, InlineEdit } from "./ItemControls";
@@ -23,20 +23,20 @@ export function SubtopicRow({ subtopic, isFirst, isLast, onToggle, onRename, onM
   const [editing, setEditing] = useState(false);
 
   return (
-    <View style={styles.row}>
-      <DoneToggle done={subtopic.done} label={`Mark "${subtopic.title}" done`} onToggle={onToggle} />
-      {editing ? (
-        <InlineEdit
-          initialValue={subtopic.title}
-          maxLength={ROADMAP_LIMITS.title}
-          onSave={(title) => {
-            onRename(title);
-            setEditing(false);
-          }}
-          onCancel={() => setEditing(false)}
-        />
-      ) : (
-        <>
+    <View style={styles.wrap}>
+      <View style={styles.row}>
+        <DoneToggle done={subtopic.done} title={subtopic.title} onToggle={onToggle} />
+        {editing ? (
+          <InlineEdit
+            initialValue={subtopic.title}
+            maxLength={ROADMAP_LIMITS.title}
+            onSave={(title) => {
+              onRename(title);
+              setEditing(false);
+            }}
+            onCancel={() => setEditing(false)}
+          />
+        ) : (
           <Text
             style={[
               styles.title,
@@ -46,33 +46,49 @@ export function SubtopicRow({ subtopic, isFirst, isLast, onToggle, onRename, onM
           >
             {subtopic.title}
           </Text>
-          {!isFirst ? (
-            <IconButton icon={ChevronUp} label={`Move "${subtopic.title}" up`} onPress={() => onMove(-1)} />
-          ) : null}
-          {!isLast ? (
-            <IconButton icon={ChevronDown} label={`Move "${subtopic.title}" down`} onPress={() => onMove(1)} />
-          ) : null}
-          <IconButton icon={Pencil} label="Rename subtopic" onPress={() => setEditing(true)} />
-          <IconButton icon={Trash2} label="Delete subtopic" onPress={onDelete} />
-        </>
+        )}
+      </View>
+      {editing ? null : (
+        <View style={styles.actions}>
+          <IconButton
+            icon={ChevronUp}
+            label={`Move "${subtopic.title}" up`}
+            disabled={isFirst}
+            onPress={() => onMove(-1)}
+          />
+          <IconButton
+            icon={ChevronDown}
+            label={`Move "${subtopic.title}" down`}
+            disabled={isLast}
+            onPress={() => onMove(1)}
+          />
+          <IconButton icon={Pencil} label={`Rename "${subtopic.title}"`} onPress={() => setEditing(true)} />
+          <IconButton icon={Trash2} label={`Delete "${subtopic.title}"`} onPress={onDelete} />
+        </View>
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrap: {
+    gap: spacing.xs,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
-    paddingVertical: spacing.xs,
   },
   title: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.body,
   },
   done: {
     textDecorationLine: "line-through",
+  },
+  actions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: spacing.xs,
   },
 });

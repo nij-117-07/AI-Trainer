@@ -8,7 +8,7 @@ import { useState } from "react";
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { ImagePlus, X } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { resizeImage, type ImageInput } from "@/lib/image";
 import { ErrorText, Field } from "@/components/tool/FormControls";
 
@@ -43,7 +43,7 @@ export function ImageDropField({ value, onChange, disabled = false }: ImageDropF
   }
 
   return (
-    <Field label="Image" hint="PNG, JPG, or WEBP. Resized on the device before it is sent to the model.">
+    <Field label="Image" hint="PNG, JPG, or WEBP">
       {value ? (
         <View style={[styles.preview, { borderColor: colors.border }]}>
           <Image source={{ uri: value.uri }} style={styles.image} resizeMode="contain" accessibilityLabel="Selected image" />
@@ -54,7 +54,7 @@ export function ImageDropField({ value, onChange, disabled = false }: ImageDropF
             accessibilityLabel="Remove image"
             style={[styles.remove, { backgroundColor: colors.card, borderColor: colors.border }]}
           >
-            <X size={16} color={colors.foreground} />
+            <X size={20} color={colors.foreground} />
           </Pressable>
         </View>
       ) : (
@@ -89,29 +89,29 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     borderWidth: 1,
     borderStyle: "dashed",
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
+    minHeight: touchTarget,
     paddingVertical: spacing.lg,
   },
   pickerText: {
-    fontSize: 15,
-    fontWeight: "500",
+    ...typeScale.label,
   },
   preview: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     overflow: "hidden",
   },
   image: {
     width: "100%",
-    height: 220,
+    height: 180,
   },
   remove: {
     position: "absolute",
     top: spacing.xs,
     right: spacing.xs,
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",

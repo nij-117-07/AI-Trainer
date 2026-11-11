@@ -55,7 +55,7 @@ export function MessageRefinerFormFields({ refiner }: { refiner: MessageRefinerF
     <>
       <TextField
         label="Your message"
-        hint={`Up to ${MESSAGE_MAX} characters.`}
+        hint={`${form.message.length} / ${MESSAGE_MAX}`}
         placeholder="e.g. Hi, can we move our call to later? I'm stuck in another meeting."
         value={form.message}
         onChangeText={(text) => update("message", text)}

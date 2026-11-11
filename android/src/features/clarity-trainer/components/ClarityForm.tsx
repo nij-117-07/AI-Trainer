@@ -1,12 +1,12 @@
 // src/features/clarity-trainer/components/ClarityForm.tsx
 /**
- * Clarity Trainer setup form, shown on its own page. The fields fill the body; the generate button
- * and the error sit in the footer. A successful generate returns to the practice page.
+ * Clarity Trainer setup form, shown on its own page. The fields fill the body; the start button and
+ * the error sit in the footer. A successful start returns to the practice page.
  */
 import { StyleSheet, View } from "react-native";
 import { Sparkles } from "lucide-react-native";
 import { spacing } from "@/theme";
-import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ChoiceChips, ErrorText, Field, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import type { ClaritySetupState } from "../hooks/useClaritySetup";
 import { CATEGORY_OPTIONS, DIFFICULTY_OPTIONS, LIMITS } from "../options";
@@ -16,13 +16,13 @@ export function ClarityFormFields({ setup }: { setup: ClaritySetupState }) {
 
   return (
     <>
-      <SelectField
-        label="Difficulty"
-        options={DIFFICULTY_OPTIONS}
-        value={form.difficulty}
-        onChange={(value) => update("difficulty", value)}
-        allowCustom={false}
-      />
+      <Field label="Difficulty">
+        <ChoiceChips
+          options={DIFFICULTY_OPTIONS}
+          value={form.difficulty}
+          onChange={(value) => update("difficulty", value)}
+        />
+      </Field>
       <SelectField
         label="Scenario category"
         options={CATEGORY_OPTIONS}
@@ -49,7 +49,7 @@ export function ClarityFormFooter({ setup }: { setup: ClaritySetupState }) {
     <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Creating scenario…" : "Generate scenario"}
+        label={pending ? "Creating scenario…" : "Start round"}
         icon={Sparkles}
         loading={pending}
         onPress={submit}

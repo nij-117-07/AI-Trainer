@@ -10,11 +10,21 @@ describe("next-topic-suggestor normalize", () => {
       ],
     });
     expect(result).toEqual({
-      recommendations: [{ topicName: "Session cookies", reason: "Builds on routing." }],
+      recommendations: [{ topicName: "Session cookies", reason: "Builds on routing.", kept: false }],
     });
   });
 
   it("returns an empty list for bad input", () => {
     expect(normalizeRecommendations(null).recommendations).toEqual([]);
+  });
+
+  it("defaults kept to false and keeps a saved kept flag", () => {
+    const result = normalizeRecommendations({
+      recommendations: [
+        { topicName: "Session cookies", reason: "" },
+        { topicName: "CSRF", reason: "", kept: true },
+      ],
+    });
+    expect(result.recommendations.map((item) => item.kept)).toEqual([false, true]);
   });
 });

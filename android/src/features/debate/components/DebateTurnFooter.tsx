@@ -63,13 +63,9 @@ export function DebateTurnFooter({ game }: { game: DebateSessionState }) {
         fields
       )}
       <AnswerComposer
-        label={ai ? "User instructions (optional)" : `${sideLabel} statement`}
+        label={ai ? "Direction (optional)" : `${sideLabel} statement`}
         value={draft.text}
-        placeholder={
-          ai
-            ? `Optional direction for the ${sideLabel} AI, e.g. "attack the cost argument"`
-            : `Write the ${sideLabel} statement…`
-        }
+        placeholder={ai ? "e.g. attack the cost argument" : `Write the ${sideLabel} statement…`}
         maxLength={ai ? LIMITS.direction : LIMITS.statement}
         pending={busy}
         error={game.error}

@@ -42,6 +42,7 @@ export function useGraderSetup(onGraded: () => void) {
     if (!result) return;
     await saveDocument(GRADER_STORAGE_KEYS.result, {
       questionAsked: form.questionAsked.trim(),
+      targetObjective: form.targetObjective.trim(),
       userAnswerText: form.userAnswerText.trim(),
       hadImage: image !== null,
       grade: result,

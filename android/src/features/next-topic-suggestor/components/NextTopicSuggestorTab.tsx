@@ -1,51 +1,28 @@
 // src/features/next-topic-suggestor/components/NextTopicSuggestorTab.tsx
-/** Next Topic Suggestor body: recommended next topics. The form lives in the footer. */
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { Route, Sparkles } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
-import { SelectField } from "@/components/tool/SelectField";
-import { EmptyHint } from "@/components/tool/EmptyHint";
-import { Section } from "@/components/tool/Section";
+/**
+ * Next Topic Suggestor pages. The form page holds the fields in the body and the suggest action in
+ * the footer. The result page holds a checklist of topics, and the footer shows how many are kept.
+ */
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Check, Route, Sparkles } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
+import { ActionButton, ChoiceChips, ErrorText, Field, Panel, TextField } from "@/components/tool/FormControls";
+import { CopyButton } from "@/components/tool/CopyButton";
+import { ListenButton } from "@/components/tool/ListenButton";
 import { SectionTitle } from "@/components/tool/SectionTitle";
+import { keptCount } from "@/lib/kept";
 import type { NextTopicSuggestorState } from "../hooks/useNextTopicSuggestor";
-import { isTopicLevel, LIMITS, topicLevelOptions } from "../options";
-import type { TopicRecommendation } from "../types";
+import { LIMITS } from "../options";
+import type { TopicLevel, TopicRecommendation } from "../types";
 
-export function NextTopicResults({ suggestor }: { suggestor: NextTopicSuggestorState }) {
-  const colors = useThemeColors();
-  const { result, pending } = suggestor;
+const TOPIC_LEVELS: TopicLevel[] = ["Beginner", "Intermediate", "Advanced"];
 
-  if (!result) {
-    return (
-      <EmptyHint
-        icon={Route}
-        title={pending ? "Finding next topics…" : "Your next topics"}
-        hint={pending ? "This can take a moment." : "Describe your broader topic and what you already know in the form, then tap Suggest topics."}
-      />
-    );
-  }
+export function NextTopicForm({ suggestor }: { suggestor: NextTopicSuggestorState }) {
+  const { form, pending, update } = suggestor;
 
   return (
-    <Section>
-      <SectionTitle icon={Route} title="Recommended next topics" />
-      {result.recommendations.length === 0 ? (
-        <Text style={[styles.empty, { color: colors.mutedForeground }]}>No topic recommendations returned. Try again.</Text>
-      ) : (
-        result.recommendations.map((item, index) => (
-          <RecommendationCard key={`${item.topicName}-${index}`} item={item} index={index} />
-        ))
-      )}
-    </Section>
-  );
-}
-
-export function NextTopicFooter({ suggestor }: { suggestor: NextTopicSuggestorState }) {
-  const { form, pending, error, update, suggest } = suggestor;
-
-  return (
-    <View style={styles.footer}>
-      <ScrollView style={styles.fields} contentContainerStyle={styles.fieldsContent} keyboardShouldPersistTaps="handled">
+    <>
+      <Panel>
         <TextField
           label="Broader topic"
           placeholder="e.g. Cybersecurity"
@@ -62,9 +39,18 @@ export function NextTopicFooter({ suggestor }: { suggestor: NextTopicSuggestorSt
           editable={!pending}
           maxLength={LIMITS.specificInterest}
         />
+        <Field label="Topic level">
+          <ChoiceChips
+            options={TOPIC_LEVELS.map((level) => ({ value: level, label: level }))}
+            value={form.topicLevel}
+            onChange={(level) => update("topicLevel", level)}
+          />
+        </Field>
+      </Panel>
+      <Panel>
         <TextField
-          label="Background knowledge"
-          placeholder="What do you already know to build on?"
+          label="What you already know"
+          placeholder="e.g. Flask routing and SQL basics"
           value={form.learnedBefore}
           onChangeText={(text) => update("learnedBefore", text)}
           editable={!pending}
@@ -74,9 +60,8 @@ export function NextTopicFooter({ suggestor }: { suggestor: NextTopicSuggestorSt
           style={styles.compactInput}
         />
         <TextField
-          label="Previously suggested topics (optional)"
-          placeholder="One per line…"
-          hint="These will not be repeated."
+          label="Topics to skip (optional)"
+          placeholder="One per line"
           value={form.previousSuggestions}
           onChangeText={(text) => update("previousSuggestions", text)}
           editable={!pending}
@@ -85,8 +70,8 @@ export function NextTopicFooter({ suggestor }: { suggestor: NextTopicSuggestorSt
           style={styles.compactInput}
         />
         <TextField
-          label="Custom input (optional)"
-          placeholder="Specific constraints or requests…"
+          label="Other requests (optional)"
+          placeholder="Constraints or requests…"
           value={form.customUserInput}
           onChangeText={(text) => update("customUserInput", text)}
           editable={!pending}
@@ -95,19 +80,19 @@ export function NextTopicFooter({ suggestor }: { suggestor: NextTopicSuggestorSt
           voice
           style={styles.compactInput}
         />
-        <SelectField
-          label="Topic level"
-          options={topicLevelOptions}
-          value={form.topicLevel}
-          onChange={(value) => {
-            if (isTopicLevel(value)) update("topicLevel", value);
-          }}
-          allowCustom={false}
-        />
-      </ScrollView>
-      <ErrorText message={error} />
+      </Panel>
+    </>
+  );
+}
+
+export function NextTopicFormFooter({ suggestor, notice }: { suggestor: NextTopicSuggestorState; notice: string | null }) {
+  const { pending, error, suggest } = suggestor;
+
+  return (
+    <View style={styles.footer}>
+      <ErrorText message={error ?? notice} />
       <ActionButton
-        label={pending ? "Finding next topics…" : "Suggest topics"}
+        label={pending ? "Finding next topics…" : "Suggest next topics"}
         icon={Sparkles}
         loading={pending}
         onPress={suggest}
@@ -116,30 +101,108 @@ export function NextTopicFooter({ suggestor }: { suggestor: NextTopicSuggestorSt
   );
 }
 
-function RecommendationCard({ item, index }: { item: TopicRecommendation; index: number }) {
+export function NextTopicResults({ topics, onToggle }: { topics: TopicRecommendation[]; onToggle: (index: number) => void }) {
   const colors = useThemeColors();
+  const plain = topics.map((item) => (item.reason ? `${item.topicName}: ${item.reason}` : item.topicName)).join("\n");
+  const keptTotal = keptCount(topics);
+
   return (
-    <Panel>
-      <View style={styles.cardHeader}>
-        <View style={[styles.badge, { backgroundColor: colors.muted }]}>
-          <Text style={[styles.badgeText, { color: colors.primary }]}>{index + 1}</Text>
+    <View style={styles.results}>
+      <View style={styles.resultsHeader}>
+        <View style={styles.resultsTitle}>
+          <SectionTitle icon={Route} title="Suggested topics" />
         </View>
-        <Text style={[styles.cardTitle, { color: colors.foreground }]}>{item.topicName}</Text>
+        <ListenButton text={plain} label="topics" />
+        <CopyButton text={plain} label="Copy topics" />
       </View>
-      {item.reason !== "" && <Text style={[styles.reason, { color: colors.mutedForeground }]}>{item.reason}</Text>}
-    </Panel>
+      {keptTotal > 0 ? (
+        <View style={styles.status}>
+          <Check size={14} color={colors.primary} />
+          <Text style={[typeScale.caption, { color: colors.mutedForeground }]}>{keptTotal} kept</Text>
+        </View>
+      ) : null}
+      <View style={[styles.list, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        {topics.map((item, index) => (
+          <TopicRow key={`${item.topicName}-${index}`} item={item} divided={index > 0} onToggle={() => onToggle(index)} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export function NextTopicResultFooter({
+  error,
+  pending,
+  onFindMore,
+}: {
+  error: string | null;
+  pending: boolean;
+  onFindMore: () => void;
+}) {
+  return (
+    <View style={styles.footer}>
+      <ErrorText message={error} />
+      <ActionButton label="Find more" icon={Sparkles} loading={pending} onPress={onFindMore} />
+    </View>
+  );
+}
+
+function TopicRow({ item, divided, onToggle }: { item: TopicRecommendation; divided: boolean; onToggle: () => void }) {
+  const colors = useThemeColors();
+  const checked = item.kept;
+  return (
+    <Pressable
+      onPress={onToggle}
+      accessibilityRole="checkbox"
+      accessibilityLabel={`Keep ${item.topicName}`}
+      accessibilityState={{ checked }}
+      style={({ pressed }) => [
+        styles.row,
+        divided && { borderTopWidth: 1, borderTopColor: colors.border },
+        pressed && { backgroundColor: colors.muted },
+      ]}
+    >
+      <View
+        style={[
+          styles.check,
+          { borderColor: checked ? colors.primary : colors.border, backgroundColor: checked ? colors.primary : colors.background },
+        ]}
+      >
+        {checked ? <Check size={16} color={colors.primaryForeground} /> : null}
+      </View>
+      <View style={styles.rowText}>
+        <Text style={[styles.topic, { color: colors.foreground }]}>{item.topicName}</Text>
+        {item.reason !== "" && <Text style={[styles.reason, { color: colors.mutedForeground }]}>{item.reason}</Text>}
+      </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  footer: { gap: spacing.md },
-  fields: { maxHeight: 360 },
-  fieldsContent: { gap: spacing.md },
   compactInput: { minHeight: 72 },
-  empty: { fontSize: 14, textAlign: "center", paddingVertical: spacing.md },
-  cardHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  badge: { width: 28, height: 28, borderRadius: radius.full / 2, alignItems: "center", justifyContent: "center" },
-  badgeText: { fontSize: 14, fontWeight: "700" },
-  cardTitle: { flex: 1, fontSize: 17, fontWeight: "600" },
-  reason: { fontSize: 14, lineHeight: 21 },
+  footer: { gap: spacing.md },
+  results: { gap: spacing.md },
+  resultsHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  resultsTitle: { flex: 1 },
+  status: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
+  list: { borderWidth: 1, borderRadius: shape.lg, overflow: "hidden" },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    minHeight: 56,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  check: {
+    width: 24,
+    height: 24,
+    borderWidth: 1,
+    borderRadius: shape.xs,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rowText: { flex: 1, gap: spacing.xs },
+  topic: { ...typeScale.body, fontWeight: "600" },
+  reason: { ...typeScale.label, fontWeight: "400" },
 });

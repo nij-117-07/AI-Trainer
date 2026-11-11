@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { ResetButton } from "@/components/tool/ResetButton";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { SolverFormFields, SolverFormFooter } from "@/features/testing-portal/components/SolverForm";
+import { SolverResultView } from "@/features/testing-portal/components/SolverResultView";
 import { useSolverSetup } from "@/features/testing-portal/hooks/useSolverSetup";
 
 export default function SolverNewRoute() {
@@ -16,6 +17,7 @@ export default function SolverNewRoute() {
       footer={<SolverFormFooter setup={setup} />}
     >
       <SolverFormFields setup={setup} />
+      {setup.unsaved && <SolverResultView saved={setup.unsaved} />}
     </ToolScreen>
   );
 }

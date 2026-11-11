@@ -2,11 +2,11 @@
 import { StyleSheet, Text } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SearchX } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { NoteEditFields, NoteEditFooter } from "@/features/brain-dump/components/NoteEditForm";
+import { NoteEditActions, NoteEditFields, NoteEditFooter } from "@/features/brain-dump/components/NoteEditForm";
 import { useNoteEditor, useStoredNote } from "@/features/brain-dump/hooks/useNoteEditor";
 import type { Note } from "@/features/brain-dump/types";
 
@@ -38,8 +38,8 @@ export default function BrainDumpEditRoute() {
 
 const styles = StyleSheet.create({
   loading: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
+    fontWeight: "400",
     paddingHorizontal: spacing.xs,
   },
 });
@@ -49,7 +49,12 @@ function NoteEditPage({ note }: { note: Note }) {
   const editor = useNoteEditor(note, () => router.back());
 
   return (
-    <ToolScreen title="Edit note" usesAi={false} footer={<NoteEditFooter editor={editor} />}>
+    <ToolScreen
+      title="Edit note"
+      usesAi={false}
+      headerRight={<NoteEditActions editor={editor} />}
+      footer={<NoteEditFooter editor={editor} />}
+    >
       <Section>
         <NoteEditFields editor={editor} />
       </Section>

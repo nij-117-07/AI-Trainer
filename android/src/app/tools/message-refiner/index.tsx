@@ -26,7 +26,7 @@ export default function MessageRefinerRoute() {
           <EmptyHint
             icon={MessageSquareText}
             title="No refined message yet"
-            hint="Tap New message, paste your draft, and choose a tone."
+            hint="Paste your draft and pick a tone to start."
           />
         )}
       </Section>

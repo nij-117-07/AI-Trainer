@@ -3,7 +3,8 @@
  * State for one saved tree: loading, ticking skills, editing levels, and the "what's next" update.
  * Every change reloads the library first, so a change made elsewhere is not overwritten.
  */
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "@/hooks/useRequest";
 import type { SkillArchitectTree, SkillLevel } from "../types";
@@ -24,17 +25,19 @@ export function useSkillTree(treeId: string) {
   const [progressNote, setProgressNote] = useState("");
   const request = useRequest(updateSkillTree);
 
-  useEffect(() => {
-    let active = true;
-    loadTrees().then((list) => {
-      if (!active) return;
-      setTrees(list);
-      setLoaded(true);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadTrees().then((list) => {
+        if (!active) return;
+        setTrees(list);
+        setLoaded(true);
+      });
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   const tree = findTree(trees, treeId);
 

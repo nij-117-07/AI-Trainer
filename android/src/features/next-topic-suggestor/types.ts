@@ -14,6 +14,7 @@ export interface NextTopicFormValues {
 export interface TopicRecommendation {
   topicName: string;
   reason: string;
+  kept: boolean;
 }
 
 export interface NextTopicResult {

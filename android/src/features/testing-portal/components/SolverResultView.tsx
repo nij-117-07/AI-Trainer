@@ -1,120 +1,108 @@
 // src/features/testing-portal/components/SolverResultView.tsx
 /**
- * The saved solution: the question, its four options, and the model's choice with its reasoning.
- * The chosen option is marked with a border and the words "Model answer", not by colour alone.
+ * The saved solution. The model's answer comes first, with a copy action. The reasoning and the
+ * question with its options sit under disclosures, so the page stays short until the user asks.
  */
 import { StyleSheet, Text, View } from "react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { CircleCheck, FileText, Lightbulb } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
+import { CopyButton } from "@/components/tool/CopyButton";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { ListenButton } from "@/components/tool/ListenButton";
-import { Panel } from "@/components/tool/FormControls";
+import { ResultCallout } from "@/components/tool/ResultCallout";
 import { OPTION_KEYS } from "../types";
 import type { SavedSolve } from "../lib/persistence";
 
 export function SolverResultView({ saved }: { saved: SavedSolve }) {
   const colors = useThemeColors();
+  const answerText = saved.options[saved.correctOption];
 
   return (
-    <Panel>
-      {saved.question !== "" && (
-        <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.mutedForeground }]}>Question</Text>
-          <Text selectable style={[styles.question, { color: colors.foreground }]}>
-            {saved.question}
+    <>
+      <ResultCallout icon={CircleCheck} title="Model answer" tone="emerald">
+        <View style={styles.answerRow}>
+          <Text selectable style={[styles.answer, { color: colors.foreground }]}>
+            {saved.correctOption}. {answerText}
           </Text>
-          {saved.context !== "" && (
-            <Text style={[styles.context, { color: colors.mutedForeground }]}>Context: {saved.context}</Text>
-          )}
+          <CopyButton text={`${saved.correctOption}. ${answerText}`} label="Copy answer" />
         </View>
+      </ResultCallout>
+
+      {saved.reasoning !== "" && (
+        <Disclosure title="Reasoning" icon={Lightbulb} summary={saved.reasoning}>
+          <Text selectable style={[styles.body, { color: colors.foreground }]}>
+            {saved.reasoning}
+          </Text>
+          <ListenButton text={saved.reasoning} label="Reasoning" />
+        </Disclosure>
       )}
 
-      <View style={[styles.section, styles.divided, { borderTopColor: colors.border }]}>
-        {OPTION_KEYS.map((key) => {
-          const chosen = key === saved.correctOption;
-          return (
-            <View
-              key={key}
-              style={[styles.option, { borderColor: chosen ? colors.primary : colors.border }]}
-            >
-              <View style={[styles.letter, { borderColor: chosen ? colors.primary : colors.border }]}>
-                <Text style={[styles.letterText, { color: colors.foreground }]}>{key}</Text>
+      <Disclosure title="Question and options" icon={FileText} summary={saved.question || undefined}>
+        {saved.question !== "" && (
+          <Text selectable style={[styles.body, { color: colors.foreground }]}>
+            {saved.question}
+          </Text>
+        )}
+        {saved.context !== "" && (
+          <Text style={[styles.caption, { color: colors.mutedForeground }]}>Context: {saved.context}</Text>
+        )}
+        <View style={styles.options}>
+          {OPTION_KEYS.map((key) => {
+            const chosen = key === saved.correctOption;
+            const text = saved.options[key];
+            return (
+              <View
+                key={key}
+                accessible
+                accessibilityLabel={chosen ? `${key}, model answer: ${text}` : `${key}: ${text}`}
+                style={[styles.option, { borderColor: chosen ? colors.primary : colors.border }]}
+              >
+                <Text style={[styles.letter, { color: colors.foreground }]}>{key}</Text>
+                <Text style={[styles.body, styles.optionText, { color: colors.foreground }]}>{text}</Text>
+                {chosen && <CircleCheck size={18} color={colors.primary} />}
               </View>
-              <Text style={[styles.optionText, { color: colors.foreground }]}>{saved.options[key]}</Text>
-              {chosen && <Text style={[styles.tag, { color: colors.primary }]}>Model answer</Text>}
-            </View>
-          );
-        })}
-      </View>
-
-      <View style={[styles.section, styles.divided, { borderTopColor: colors.border }]}>
-        <Text style={[styles.heading, { color: colors.foreground }]}>Reasoning</Text>
-        <Text selectable style={[styles.body, { color: colors.mutedForeground }]}>
-          {saved.reasoning}
-        </Text>
-        <ListenButton text={saved.reasoning} label="Reasoning" />
-      </View>
-    </Panel>
+            );
+          })}
+        </View>
+      </Disclosure>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  section: {
+  answerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  answer: {
+    ...typeScale.title,
+    flex: 1,
+  },
+  body: {
+    ...typeScale.body,
+  },
+  caption: {
+    ...typeScale.caption,
+  },
+  options: {
     gap: spacing.sm,
-  },
-  divided: {
-    borderTopWidth: 1,
-    paddingTop: spacing.lg,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  question: {
-    fontSize: 16,
-    lineHeight: 23,
-    fontWeight: "500",
-  },
-  context: {
-    fontSize: 13,
-    lineHeight: 19,
   },
   option: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
     borderWidth: 1,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
+    borderRadius: shape.lg,
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
   letter: {
-    width: 26,
-    height: 26,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  letterText: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
+    width: spacing.xl,
   },
   optionText: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  tag: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  heading: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  body: {
-    fontSize: 14,
-    lineHeight: 21,
   },
 });

@@ -4,8 +4,8 @@
  */
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps, type ViewStyle } from "react-native";
-import type { LucideIcon } from "lucide-react-native";
-import { cardPadding, radius, shape, spacing, useThemeColors } from "@/theme";
+import { CircleAlert, type LucideIcon } from "lucide-react-native";
+import { cardPadding, radius, shape, spacing, touchTarget, typeScale, useLayout, useThemeColors } from "@/theme";
 import { appendTranscript } from "@/features/chatbot/lib/voice-text";
 import { VoiceInputRow } from "./VoiceInputRow";
 
@@ -14,7 +14,9 @@ export const pointerCursor = { cursor: "pointer" } as ViewStyle;
 
 export function Panel({ children }: { children: ReactNode }) {
   const colors = useThemeColors();
-  return <View style={[styles.panel, { backgroundColor: colors.card, borderColor: colors.border }]}>{children}</View>;
+  const { size } = useLayout();
+  const padding = size === "phone" ? cardPadding.compact : cardPadding.medium;
+  return <View style={[styles.panel, { backgroundColor: colors.card, borderColor: colors.border, padding }]}>{children}</View>;
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
@@ -34,9 +36,12 @@ interface TextFieldProps extends TextInputProps {
   voice?: boolean;
 }
 
+/** Share of the limit at which the character counter appears. */
+const COUNTER_THRESHOLD = 0.8;
+
 export function TextField({ label, hint, multiline = false, voice = false, style, ...inputProps }: TextFieldProps) {
   const colors = useThemeColors();
-  const { value, onChangeText, editable } = inputProps;
+  const { value, onChangeText, editable, maxLength } = inputProps;
   return (
     <Field label={label} hint={hint}>
       <TextInput
@@ -54,6 +59,11 @@ export function TextField({ label, hint, multiline = false, voice = false, style
         ]}
         {...inputProps}
       />
+      {maxLength !== undefined && (value?.length ?? 0) >= maxLength * COUNTER_THRESHOLD ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.counter, { color: colors.mutedForeground }]}>
+          {`${value?.length ?? 0} / ${maxLength}`}
+        </Text>
+      ) : null}
       {voice ? (
         <VoiceInputRow
           disabled={editable === false}
@@ -74,9 +84,10 @@ interface ChoiceChipsProps<T extends string | number> {
   value: T;
   onChange: (value: T) => void;
   wrap?: boolean;
+  disabled?: boolean;
 }
 
-export function ChoiceChips<T extends string | number>({ options, value, onChange, wrap = true }: ChoiceChipsProps<T>) {
+export function ChoiceChips<T extends string | number>({ options, value, onChange, wrap = true, disabled = false }: ChoiceChipsProps<T>) {
   const colors = useThemeColors();
   return (
     <View style={[styles.chips, wrap && styles.chipsWrap]}>
@@ -86,8 +97,9 @@ export function ChoiceChips<T extends string | number>({ options, value, onChang
           <Pressable
             key={String(option.value)}
             onPress={() => onChange(option.value)}
+            disabled={disabled}
             accessibilityRole="button"
-            accessibilityState={{ selected }}
+            accessibilityState={{ selected, disabled }}
             style={[
               styles.chip,
               pointerCursor,
@@ -152,9 +164,10 @@ export function ErrorText({ message }: { message: string | null }) {
   const colors = useThemeColors();
   if (!message) return null;
   return (
-    <Text accessibilityRole="alert" style={[styles.error, { color: colors.destructive }]}>
-      {message}
-    </Text>
+    <View accessibilityRole="alert" style={styles.errorRow}>
+      <CircleAlert size={16} color={colors.destructive} />
+      <Text style={[styles.error, styles.errorText, { color: colors.destructive }]}>{message}</Text>
+    </View>
   );
 }
 
@@ -172,13 +185,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
   },
+  counter: {
+    ...typeScale.caption,
+    alignSelf: "flex-end",
+  },
   hint: {
     fontSize: 13,
     lineHeight: 18,
   },
   input: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     fontSize: 16,
@@ -198,11 +215,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    minHeight: 44,
+    minHeight: touchTarget,
     justifyContent: "center",
   },
   chipText: {
-    fontSize: 14,
+    ...typeScale.label,
     fontWeight: "500",
   },
   button: {
@@ -210,12 +227,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.sm,
-    minHeight: 50,
-    borderRadius: radius.full,
+    minHeight: touchTarget,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.xl,
   },
   buttonText: {
-    fontSize: 16,
+    ...typeScale.label,
     fontWeight: "600",
   },
   pressed: {
@@ -224,8 +241,16 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.6,
   },
+  errorRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
   error: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  errorText: {
+    flex: 1,
   },
 });

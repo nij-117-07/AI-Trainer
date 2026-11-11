@@ -5,10 +5,11 @@
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { FileText, ListChecks, MessageSquareText, Sparkles } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { CopyButton } from "@/components/tool/CopyButton";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -65,7 +66,6 @@ export function MessageRefinerResultView({ saved, onChange }: MessageRefinerResu
         />
         <TextField
           label="Message"
-          hint="You can edit it. Copy and Listen use the text shown here."
           value={result.refinedMessage}
           onChangeText={(text) => update({ refinedMessage: text })}
           editable={!busy}
@@ -82,7 +82,6 @@ export function MessageRefinerResultView({ saved, onChange }: MessageRefinerResu
       <Panel>
         <TextField
           label="Change it with AI"
-          hint="The AI rewrites the refined message. Your tone, audience, and goal are kept."
           placeholder="e.g. make it shorter, sound less formal, add a deadline"
           value={instruction}
           onChangeText={setInstruction}
@@ -113,14 +112,11 @@ export function MessageRefinerResultView({ saved, onChange }: MessageRefinerResu
       )}
 
       {form.message.trim() !== "" && (
-        <>
-          <SectionTitle icon={FileText} title="Your draft" />
-          <View style={[styles.draft, { borderColor: colors.border }]}>
-            <Text selectable style={[styles.draftText, { color: colors.mutedForeground }]}>
-              {form.message}
-            </Text>
-          </View>
-        </>
+        <Disclosure title="Your draft" icon={FileText} summary={form.message}>
+          <Text selectable style={[styles.draftText, { color: colors.mutedForeground }]}>
+            {form.message}
+          </Text>
+        </Disclosure>
       )}
     </>
   );
@@ -128,7 +124,6 @@ export function MessageRefinerResultView({ saved, onChange }: MessageRefinerResu
 
 const styles = StyleSheet.create({
   actions: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" },
-  item: { fontSize: 14, lineHeight: 21 },
-  draft: { borderWidth: 1, borderRadius: radius.md, padding: spacing.md },
-  draftText: { fontSize: 14, lineHeight: 21 },
+  item: typeScale.body,
+  draftText: typeScale.body,
 });

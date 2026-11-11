@@ -1,13 +1,12 @@
 /** RSS Manager list: the saved feed providers, with enable, fetch, edit, and delete. Add and edit happen on their own pages. */
 import { useCallback, useState } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Plus, Settings2 } from "lucide-react-native";
-import { useThemeColors } from "@/theme";
+import { shape, typeScale, useThemeColors } from "@/theme";
 import { confirmAction } from "@/features/chatbot/lib/confirm";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { ActionButton, ErrorText } from "@/components/tool/FormControls";
-import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { messageOf } from "../../lib/errors";
@@ -69,24 +68,21 @@ export function RssManagerScreen() {
             </Text>
           )
         ) : list.length === 0 ? (
-          <EmptyHint
-            icon={Settings2}
-            title="No feeds yet"
-            hint="Tap Add feed to start. Any blog, news site, or RSS or Atom feed works."
-          />
+          <EmptyHint icon={Settings2} title="No feeds yet" hint="Any blog, news site, or RSS or Atom feed works." />
         ) : (
-          <CardGrid>
-            {list.map((feed) => (
+          <View style={[styles.group, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {list.map((feed, index) => (
               <FeedCard
                 key={feed.id}
                 feed={feed}
                 busy={busyId === feed.id}
+                divider={index > 0}
                 onEdit={() => router.push({ pathname: "/tools/rss/manager/edit", params: { feedId: feed.id } })}
                 onDelete={() => confirmDelete(feed)}
                 onToggle={(enabled) => void handleToggle(feed, enabled)}
               />
             ))}
-          </CardGrid>
+          </View>
         )}
       </Section>
     </ToolScreen>
@@ -95,7 +91,11 @@ export function RssManagerScreen() {
 
 const styles = StyleSheet.create({
   note: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...typeScale.caption,
+  },
+  group: {
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    overflow: "hidden",
   },
 });

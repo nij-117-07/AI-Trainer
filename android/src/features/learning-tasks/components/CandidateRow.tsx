@@ -1,10 +1,11 @@
 // src/features/learning-tasks/components/CandidateRow.tsx
-/** One generated task with a checkbox. Tap the title to read its details before choosing. */
+/** One generated task with a check to keep it. Tap the title to read its details before choosing. */
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Check, ChevronDown, ChevronUp } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { ChevronDown, ChevronUp, Circle, CircleCheck } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import type { GuideTask } from "@/features/guides/types";
+import { IconButton } from "./IconButton";
 import { TaskDetails } from "./LearningTaskRow";
 
 interface CandidateRowProps {
@@ -20,22 +21,13 @@ export function CandidateRow({ task, selected, onToggle }: CandidateRowProps) {
   return (
     <View style={[styles.row, { backgroundColor: colors.card, borderColor: selected ? colors.primary : colors.border }]}>
       <View style={styles.head}>
-        <Pressable
+        <IconButton
+          icon={selected ? CircleCheck : Circle}
+          label={selected ? `Drop "${task.title}"` : `Keep "${task.title}"`}
+          checked={selected}
+          color={selected ? colors.primary : colors.mutedForeground}
           onPress={onToggle}
-          accessibilityRole="checkbox"
-          accessibilityLabel={`Add "${task.title}" to my list`}
-          accessibilityState={{ checked: selected }}
-          hitSlop={10}
-          style={[
-            styles.checkbox,
-            {
-              borderColor: selected ? colors.primary : colors.border,
-              backgroundColor: selected ? colors.primary : colors.background,
-            },
-          ]}
-        >
-          {selected ? <Check size={14} color={colors.primaryForeground} /> : null}
-        </Pressable>
+        />
 
         <Pressable
           onPress={() => setOpen((value) => !value)}
@@ -67,34 +59,26 @@ export function CandidateRow({ task, selected, onToggle }: CandidateRowProps) {
 const styles = StyleSheet.create({
   row: {
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     overflow: "hidden",
   },
   head: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    alignItems: "center",
-    justifyContent: "center",
+    minHeight: 56,
+    paddingHorizontal: spacing.xs,
   },
   titleArea: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 44,
+    minHeight: 48,
+    paddingHorizontal: spacing.xs,
   },
   title: {
+    ...typeScale.body,
     flex: 1,
-    fontSize: 15,
     fontWeight: "600",
   },
   body: {

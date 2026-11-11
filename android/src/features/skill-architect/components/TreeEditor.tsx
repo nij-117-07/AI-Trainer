@@ -2,8 +2,8 @@
 /** Edit mode for a saved tree: rename levels and root skills, add skills, and remove skills. Saved only on Save. */
 import { Pressable, StyleSheet, View } from "react-native";
 import { Plus, X } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, Panel, TextField } from "@/components/tool/FormControls";
+import { shape, spacing, touchTarget, useThemeColors } from "@/theme";
+import { Panel, TextField } from "@/components/tool/FormControls";
 import type { SkillLevel } from "../types";
 import { SKILL_LIMITS } from "../lib/validate";
 
@@ -62,17 +62,28 @@ export function TreeEditor({ levels, onChange }: TreeEditorProps) {
                 accessibilityRole="button"
                 accessibilityLabel={`Remove root skill ${skillIndex + 1}`}
                 style={({ pressed }) => [
-                  styles.removeButton,
+                  styles.iconButton,
                   { borderColor: colors.border },
                   pressed && { backgroundColor: colors.muted },
                 ]}
               >
-                <X size={16} color={colors.mutedForeground} />
+                <X size={20} color={colors.foreground} />
               </Pressable>
             </View>
           ))}
 
-          <ActionButton label="Add root skill" icon={Plus} variant="outline" onPress={() => addSkill(levelIndex)} />
+          <Pressable
+            onPress={() => addSkill(levelIndex)}
+            accessibilityRole="button"
+            accessibilityLabel={`Add root skill to level ${levelIndex + 1}`}
+            style={({ pressed }) => [
+              styles.addButton,
+              { borderColor: colors.border },
+              pressed && { backgroundColor: colors.muted },
+            ]}
+          >
+            <Plus size={20} color={colors.foreground} />
+          </Pressable>
         </Panel>
       ))}
     </>
@@ -88,13 +99,22 @@ const styles = StyleSheet.create({
   skillField: {
     flex: 1,
   },
-  removeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: spacing.xs,
+  },
+  addButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-start",
   },
 });

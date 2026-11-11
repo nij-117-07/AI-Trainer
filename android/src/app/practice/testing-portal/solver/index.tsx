@@ -18,7 +18,7 @@ export default function SolverRoute() {
       title="Solve an MCQ"
       footer={
         <ActionButton
-          label={solver.solution ? "New question" : "Solve with AI"}
+          label={solver.solution ? "New question" : "Solve question"}
           icon={Target}
           onPress={() => router.push("/practice/testing-portal/solver/new")}
         />
@@ -31,7 +31,7 @@ export default function SolverRoute() {
           <EmptyHint
             icon={Target}
             title="No question yet"
-            hint="Tap Solve with AI, paste the question and its four options, then solve it."
+            hint="Add the question and its four options. The AI picks the answer and explains why."
           />
         ) : (
           <PortalLoading />

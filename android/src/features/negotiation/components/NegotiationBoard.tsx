@@ -6,9 +6,10 @@
  */
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Flag, Gavel } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Flag, Gavel, Target } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, Panel } from "@/components/tool/FormControls";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { useToolScroll } from "@/components/tool/ToolScrollContext";
 import type { NegotiationSession } from "../types";
@@ -36,7 +37,9 @@ export function NegotiationBoard({ session, busy, ending, onEnd, onKeepNegotiati
     <>
       <Panel>
         <View style={styles.headerRow}>
-          <Text style={[styles.title, { color: colors.foreground }]}>{scenario.title || "Negotiation"}</Text>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>
+            {scenario.title || "Negotiation"}
+          </Text>
           {scenario.opponentRole ? (
             <View style={[styles.pill, { borderColor: colors.border }]}>
               <Text style={[styles.pillText, { color: colors.foreground }]}>{scenario.opponentRole}</Text>
@@ -44,8 +47,18 @@ export function NegotiationBoard({ session, busy, ending, onEnd, onKeepNegotiati
           ) : null}
         </View>
         {scenario.context ? <Text style={[styles.body, { color: colors.mutedForeground }]}>{scenario.context}</Text> : null}
-        <ListenButton text={scenario.context} label="Scenario" />
+        <ListenButton text={scenario.context} label="scenario" />
 
+        {!session.complete ? (
+          ending ? (
+            <ActionButton label="Keep negotiating" variant="outline" disabled={busy} onPress={onKeepNegotiating} />
+          ) : (
+            <ActionButton label="End & evaluate" icon={Flag} variant="outline" disabled={busy} onPress={onEnd} />
+          )
+        ) : null}
+      </Panel>
+
+      <Disclosure title="Brief" icon={Target} summary={scenario.yourGoal ? `Your goal: ${scenario.yourGoal}` : undefined}>
         <View style={styles.briefGrid}>
           <BriefSide
             heading="Your role"
@@ -66,41 +79,24 @@ export function NegotiationBoard({ session, busy, ending, onEnd, onKeepNegotiati
             {scenario.keyIssues.join(" · ")}
           </Text>
         ) : null}
-
-        {!session.complete ? (
-          ending ? (
-            <ActionButton label="Keep negotiating" variant="outline" disabled={busy} onPress={onKeepNegotiating} />
-          ) : (
-            <ActionButton label="End & evaluate" icon={Flag} variant="outline" disabled={busy} onPress={onEnd} />
-          )
-        ) : null}
-        {ending && !session.complete ? (
-          <Text style={[styles.body, { color: colors.mutedForeground }]}>
-            Describe how it ended in the message box, then tap Evaluate outcome.
-          </Text>
-        ) : null}
-      </Panel>
+      </Disclosure>
 
       {session.report ? <NegotiationReport report={session.report} outcome={session.finalOutcome} /> : null}
 
-      <Panel>
-        <Transcript entries={session.log} />
+      <Transcript entries={session.log} />
 
-        {busy ? (
-          <Text accessibilityLiveRegion="polite" style={[styles.body, { color: colors.mutedForeground }]}>
-            {ending ? "Evaluating the negotiation…" : "The opponent is replying…"}
-          </Text>
-        ) : null}
+      {busy ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.body, { color: colors.mutedForeground }]}>
+          {ending ? "Evaluating the negotiation…" : "The opponent is replying…"}
+        </Text>
+      ) : null}
 
-        {session.complete ? (
-          <View style={styles.closed}>
-            <Gavel size={16} color={colors.mutedForeground} />
-            <Text style={[styles.body, { color: colors.mutedForeground }]}>
-              Session closed — {session.finalOutcome}.
-            </Text>
-          </View>
-        ) : null}
-      </Panel>
+      {session.complete ? (
+        <View style={styles.closed}>
+          <Gavel size={16} color={colors.mutedForeground} />
+          <Text style={[styles.body, { color: colors.mutedForeground }]}>Session closed — {session.finalOutcome}.</Text>
+        </View>
+      ) : null}
     </>
   );
 }
@@ -109,13 +105,15 @@ function BriefSide({ heading, role, goal, constraints }: { heading: string; role
   const colors = useThemeColors();
   return (
     <View style={styles.briefSide}>
-      <Text style={[styles.caption, { color: colors.mutedForeground }]}>{heading}</Text>
+      <Text accessibilityRole="header" style={[styles.strong, { color: colors.mutedForeground }]}>
+        {heading}
+      </Text>
       <Text style={[styles.strong, { color: colors.foreground }]}>{role || "—"}</Text>
-      <Text style={[styles.small, { color: colors.mutedForeground }]}>
+      <Text style={[styles.body, { color: colors.mutedForeground }]}>
         <Text style={[styles.strong, { color: colors.foreground }]}>Goal: </Text>
         {goal || "—"}
       </Text>
-      <Text style={[styles.small, { color: colors.mutedForeground }]}>
+      <Text style={[styles.body, { color: colors.mutedForeground }]}>
         <Text style={[styles.strong, { color: colors.foreground }]}>Constraints: </Text>
         {constraints || "—"}
       </Text>
@@ -133,22 +131,20 @@ const styles = StyleSheet.create({
   },
   title: {
     flexShrink: 1,
-    fontSize: 17,
-    fontWeight: "600",
+    ...typeScale.title,
   },
   pill: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   pillText: {
-    fontSize: 13,
+    ...typeScale.body,
     fontWeight: "500",
   },
   body: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...typeScale.body,
   },
   briefGrid: {
     flexDirection: "row",
@@ -160,17 +156,9 @@ const styles = StyleSheet.create({
     flexBasis: 150,
     gap: spacing.xs,
   },
-  caption: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
   strong: {
-    fontSize: 14,
+    ...typeScale.body,
     fontWeight: "600",
-  },
-  small: {
-    fontSize: 13,
-    lineHeight: 19,
   },
   closed: {
     flexDirection: "row",

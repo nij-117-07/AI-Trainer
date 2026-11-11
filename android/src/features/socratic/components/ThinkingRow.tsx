@@ -1,13 +1,13 @@
 // src/features/socratic/components/ThinkingRow.tsx
-/** Spinner and status line shown in the chat while the challenger is working. */
+/** Quiet status line shown where the challenger's reply will appear while it works. */
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useThemeColors } from "@/theme";
 
 export function ThinkingRow({ label }: { label: string }) {
   const colors = useThemeColors();
   return (
     <View style={styles.row} accessibilityLiveRegion="polite">
-      <ActivityIndicator color={colors.primary} />
+      <ActivityIndicator size="small" color={colors.primary} />
       <Text style={[styles.text, { color: colors.mutedForeground }]}>{label}</Text>
     </View>
   );
@@ -20,6 +20,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   text: {
-    fontSize: 14,
+    ...typeScale.body,
   },
 });

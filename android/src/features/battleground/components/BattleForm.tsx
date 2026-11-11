@@ -6,8 +6,7 @@
 import { StyleSheet, View } from "react-native";
 import { Swords } from "lucide-react-native";
 import { spacing } from "@/theme";
-import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
-import { SelectField } from "@/components/tool/SelectField";
+import { ActionButton, ChoiceChips, ErrorText, Field, TextField } from "@/components/tool/FormControls";
 import type { BattleSetupState } from "../hooks/useBattleSetup";
 import { DIFFICULTY_OPTIONS } from "../options";
 import type { BattleDifficulty } from "../types";
@@ -17,6 +16,21 @@ export function BattleFormFields({ setup }: { setup: BattleSetupState }) {
 
   return (
     <>
+      <TextField
+        label="Battleground topic"
+        placeholder="e.g. Cybersecurity Ransomware Attack"
+        value={form.topic}
+        onChangeText={(text) => update("topic", text)}
+        editable={!pending}
+        maxLength={300}
+      />
+      <Field label="Difficulty">
+        <ChoiceChips
+          options={DIFFICULTY_OPTIONS}
+          value={form.difficulty}
+          onChange={(value) => update("difficulty", value as BattleDifficulty)}
+        />
+      </Field>
       <TextField
         label="Callsign (optional)"
         placeholder="e.g. Viper"
@@ -51,21 +65,6 @@ export function BattleFormFields({ setup }: { setup: BattleSetupState }) {
         multiline
         voice
       />
-      <TextField
-        label="Battleground topic"
-        placeholder="e.g. Cybersecurity Ransomware Attack"
-        value={form.topic}
-        onChangeText={(text) => update("topic", text)}
-        editable={!pending}
-        maxLength={300}
-      />
-      <SelectField
-        label="Difficulty"
-        options={DIFFICULTY_OPTIONS}
-        value={form.difficulty}
-        onChange={(value) => update("difficulty", value as BattleDifficulty)}
-        allowCustom={false}
-      />
     </>
   );
 }
@@ -77,7 +76,7 @@ export function BattleFormFooter({ setup }: { setup: BattleSetupState }) {
     <View style={styles.footer}>
       <ErrorText message={error} />
       <ActionButton
-        label={pending ? "Deploying forces…" : "Enter the battleground"}
+        label={pending ? "Starting battle…" : "Start battle"}
         icon={Swords}
         loading={pending}
         onPress={() => void submit()}

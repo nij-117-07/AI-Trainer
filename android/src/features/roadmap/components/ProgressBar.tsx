@@ -1,12 +1,12 @@
 // src/features/roadmap/components/ProgressBar.tsx
-/** Completion bar for a roadmap, counting main points and subpoints together. */
+/** Thin completion bar with the count in words, counting main points and subpoints together. */
 import { StyleSheet, Text, View } from "react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import type { RoadmapProgress } from "../types";
 
 export function ProgressBar({ done, total, percent }: RoadmapProgress) {
   const colors = useThemeColors();
-  const label = total === 0 ? "No items yet" : `${done} of ${total} done · ${percent}%`;
+  const label = total === 0 ? "No items yet" : `${done} of ${total} done`;
   return (
     <View
       accessible
@@ -25,17 +25,20 @@ export function ProgressBar({ done, total, percent }: RoadmapProgress) {
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: spacing.xs,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   track: {
-    height: 8,
-    borderRadius: radius.full,
+    flex: 1,
+    height: 6,
+    borderRadius: shape.full,
     overflow: "hidden",
   },
   fill: {
     height: "100%",
   },
   label: {
-    fontSize: 13,
+    ...typeScale.caption,
   },
 });

@@ -18,23 +18,23 @@ export default function ExecutiveEqRoute() {
   return (
     <ToolScreen
       title="Executive EQ Trainer"
-      headerRight={<ResetButton onPress={game.reset} />}
+      headerRight={<ResetButton onPress={game.reset} accessibilityLabel="Reset simulation" />}
       footer={
         session ? (
           <AnswerComposer
-            label="Your response (each reply is graded)"
+            label="Your reply"
             value={game.message}
             placeholder="Say it without saying it…"
             maxLength={2000}
             pending={game.busy}
             error={game.error}
-            submitLabel="Send"
+            submitLabel="Send reply"
             onChangeText={game.setMessage}
             onSubmit={() => void game.send()}
           />
         ) : (
           <ActionButton
-            label="New simulation"
+            label="Start simulation"
             icon={Briefcase}
             onPress={() => router.push("/practice/executive-eq/new")}
           />
@@ -46,7 +46,7 @@ export default function ExecutiveEqRoute() {
           <>
             <SimulationBoard session={session} busy={game.busy} />
             <ActionButton
-              label="Start a different simulation"
+              label="Start new simulation"
               icon={Briefcase}
               variant="outline"
               onPress={() => router.push("/practice/executive-eq/new")}
@@ -57,7 +57,7 @@ export default function ExecutiveEqRoute() {
             <EmptyHint
               icon={Briefcase}
               title="No simulation yet"
-              hint="Tap New simulation to describe your role and goal, then enter the boardroom."
+              hint="Describe your role and goal to begin."
             />
           )
         )}

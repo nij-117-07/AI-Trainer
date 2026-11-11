@@ -102,9 +102,19 @@ describe("normalizeDraft", () => {
 
   it("restores a pending batch and drops it when it is empty", () => {
     expect(normalizeDraft({ batch: [{ topicName: "XSS", reason: "" }] }).batch).toEqual([
-      { topicName: "XSS", reason: "" },
+      { topicName: "XSS", reason: "", kept: false },
     ]);
     expect(normalizeDraft({ batch: [] }).batch).toBeNull();
+  });
+
+  it("keeps a stored kept flag and defaults it to false", () => {
+    const { batch } = normalizeDraft({
+      batch: [
+        { topicName: "XSS", reason: "", kept: true },
+        { topicName: "CSRF", reason: "" },
+      ],
+    });
+    expect(batch?.map((topic) => topic.kept)).toEqual([true, false]);
   });
 });
 

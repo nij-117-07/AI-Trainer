@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Users } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { Disclosure } from "@/components/tool/Disclosure";
 import { SIDE_CHOICES } from "../options";
 import type { DebateSession, DebateSide } from "../types";
@@ -74,16 +74,16 @@ const styles = StyleSheet.create({
   column: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.md,
     padding: spacing.md,
     gap: spacing.xs,
   },
   columnSide: {
-    fontSize: 12,
+    ...typeScale.label,
     fontWeight: "600",
   },
   columnName: {
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
 });

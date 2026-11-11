@@ -1,17 +1,17 @@
 // src/features/counters/components/CountdownCard.tsx
-/** One countdown: the time left, its progress, and start, pause, and reset. Delete asks first. */
+/** One countdown: the time left, its progress, and icon buttons for start, pause, and reset. Delete asks first. */
 import { useEffect, useRef, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Pause, Play, RotateCcw, Trash2 } from "lucide-react-native";
-import { radius, spacing, useLayout, useThemeColors } from "@/theme";
-import { Panel } from "@/components/tool/FormControls";
+import { cardPadding, shape, spacing, touchTarget, typeScale, useLayout, useThemeColors } from "@/theme";
+import { pointerCursor } from "@/components/tool/FormControls";
 import { ensureCountdownPermission, cancelCountdownEnd, scheduleCountdownEnd } from "../lib/countdown-notifications";
 import { formatClock, idleTimer, pauseTimer, remainingMs, startTimer, syncTimer } from "../lib/timer";
 import type { Countdown, TimerState, TimerStatus } from "../types";
-import { PillButton } from "./PillButton";
+import { IconButton } from "./IconButton";
 
 const STATUS_TEXT: Record<TimerStatus, string> = {
-  idle: "Ready to start",
+  idle: "Ready",
   running: "Running",
   paused: "Paused",
   done: "Time is up",
@@ -83,13 +83,18 @@ export function CountdownCard({ countdown, timer, onChange, onDelete }: Countdow
   }
 
   return (
-    <Panel>
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={1}>
+        <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]} numberOfLines={1}>
           {countdown.name}
         </Text>
-        <Pressable onPress={confirmDelete} accessibilityRole="button" accessibilityLabel={`Delete ${countdown.name}`} style={styles.deleteButton}>
-          <Trash2 size={18} color={colors.destructive} />
+        <Pressable
+          onPress={confirmDelete}
+          accessibilityRole="button"
+          accessibilityLabel={`Delete ${countdown.name}`}
+          style={({ pressed }) => [styles.deleteButton, pointerCursor, pressed && styles.pressed]}
+        >
+          <Trash2 size={20} color={colors.destructive} />
         </Pressable>
       </View>
 
@@ -111,38 +116,44 @@ export function CountdownCard({ countdown, timer, onChange, onDelete }: Countdow
       </View>
       <Text
         accessibilityLiveRegion="polite"
-        style={[styles.status, { color: done ? colors.primary : colors.mutedForeground }]}
+        style={[typeScale.label, { color: done ? colors.primary : colors.mutedForeground }]}
       >
-        {STATUS_TEXT[timer.status]} · set for {formatClock(durationMs)}
+        {STATUS_TEXT[timer.status]}
       </Text>
 
       <View style={styles.buttons}>
         {done ? (
-          <PillButton label="Restart" accessibilityLabel={`Restart ${countdown.name}`} icon={RotateCcw} primary onPress={reset} />
+          <View />
         ) : (
-          <>
-            <PillButton
-              label={toggleLabel}
-              accessibilityLabel={`${toggleLabel} ${countdown.name}`}
-              icon={running ? Pause : Play}
-              primary
-              onPress={togglePlay}
-            />
-            <PillButton
-              label="Reset"
-              accessibilityLabel={`Reset ${countdown.name}`}
-              icon={RotateCcw}
-              disabled={timer.status === "idle"}
-              onPress={reset}
-            />
-          </>
+          <IconButton
+            accessibilityLabel={`Reset ${countdown.name}`}
+            icon={RotateCcw}
+            disabled={timer.status === "idle"}
+            onPress={reset}
+          />
+        )}
+        {done ? (
+          <IconButton accessibilityLabel={`Restart ${countdown.name}`} icon={RotateCcw} primary onPress={reset} />
+        ) : (
+          <IconButton
+            accessibilityLabel={`${toggleLabel} ${countdown.name}`}
+            icon={running ? Pause : Play}
+            primary
+            onPress={togglePlay}
+          />
         )}
       </View>
-    </Panel>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  card: {
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    padding: cardPadding.compact,
+    gap: spacing.md,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -150,15 +161,14 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
-    fontSize: 17,
-    fontWeight: "600",
+    ...typeScale.title,
   },
   deleteButton: {
-    width: 44,
-    height: 44,
+    width: touchTarget,
+    height: touchTarget,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: radius.full,
+    borderRadius: shape.full,
   },
   clock: {
     fontWeight: "700",
@@ -167,19 +177,19 @@ const styles = StyleSheet.create({
   },
   track: {
     height: 8,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     overflow: "hidden",
   },
   fill: {
     height: 8,
-    borderRadius: radius.full,
-  },
-  status: {
-    fontSize: 13,
-    lineHeight: 18,
+    borderRadius: shape.full,
   },
   buttons: {
     flexDirection: "row",
-    gap: spacing.sm,
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  pressed: {
+    opacity: 0.85,
   },
 });

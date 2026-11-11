@@ -5,7 +5,7 @@ import type { NextTopicResult, TopicRecommendation } from "../types";
 
 function toRecommendation(raw: unknown): TopicRecommendation {
   const item = asRecord(raw);
-  return { topicName: textOf(item.topicName), reason: textOf(item.reason) };
+  return { topicName: textOf(item.topicName), reason: textOf(item.reason), kept: item.kept === true };
 }
 
 export function normalizeRecommendations(raw: unknown): NextTopicResult {

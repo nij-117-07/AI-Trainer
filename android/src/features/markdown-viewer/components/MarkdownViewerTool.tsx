@@ -5,14 +5,13 @@
  */
 import { useState } from "react";
 import { Share, StyleSheet, Text, View } from "react-native";
-import { BookOpen, FileText, PenLine, Share2 } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { BookOpen, FileText, Share2 } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ChoiceChips, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { CopyButton } from "@/components/tool/CopyButton";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { Section } from "@/components/tool/Section";
-import { SectionTitle } from "@/components/tool/SectionTitle";
 import type { useMarkdownDraft } from "../hooks/useMarkdownDraft";
 import { SAMPLE_MARKDOWN } from "../lib/sample";
 import { countLines, countWords } from "../lib/stats";
@@ -47,7 +46,6 @@ export function MarkdownViewerBody({ draft, mode, onModeChange }: MarkdownViewer
           <TextField
             label="Markdown"
             placeholder={"# Title\n\nWrite **bold**, *italic*, lists, and `code`…"}
-            hint="Headings, bold and italic, lists, quotes, and code blocks are shown in Preview."
             value={content}
             onChangeText={draft.setContent}
             multiline
@@ -70,11 +68,10 @@ export function MarkdownViewerBody({ draft, mode, onModeChange }: MarkdownViewer
         <EmptyHint
           icon={BookOpen}
           title="Nothing to preview"
-          hint="Switch to Write and type some Markdown. It appears here as it will read."
+          hint="Type some Markdown in Write to see it here."
         />
       ) : (
         <Panel>
-          <SectionTitle icon={BookOpen} title="Preview" />
           <MarkdownText content={content} />
         </Panel>
       )}
@@ -85,7 +82,7 @@ export function MarkdownViewerBody({ draft, mode, onModeChange }: MarkdownViewer
 function StatsLine({ content }: { content: string }) {
   const colors = useThemeColors();
   return (
-    <Text style={[styles.stats, { color: colors.mutedForeground }]}>
+    <Text style={[typeScale.caption, { color: colors.mutedForeground }]}>
       {countWords(content)} words · {countLines(content)} lines
     </Text>
   );
@@ -119,14 +116,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing.sm,
   },
-  stats: {
-    fontSize: 13,
-  },
   editor: {
     minHeight: 320,
+    borderRadius: shape.lg,
     fontFamily: "monospace",
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   footer: {
     gap: spacing.md,

@@ -7,7 +7,7 @@
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Laugh, Lightbulb, Sparkles, Target } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ChoiceChips, Panel } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -67,7 +67,7 @@ export function JokeLabRoundView({ round, game, onNewScenario }: JokeLabRoundVie
             <EvaluationCard evaluation={latest.evaluation} />
           </>
         ) : (
-          <EmptyNote message="Type your joke in the box, then submit it to get it scored." />
+          <EmptyNote message="No attempts yet." />
         )}
       </Panel>
 
@@ -121,10 +121,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   historyItem: {
-    fontSize: 12,
+    ...typeScale.body,
     borderWidth: 1,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
+    borderRadius: shape.full,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     overflow: "hidden",
   },
