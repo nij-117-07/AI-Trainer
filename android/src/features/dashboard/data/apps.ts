@@ -50,6 +50,8 @@ import {
   Target,
   Telescope,
   Timer,
+  TrendingUp,
+  Trophy,
   type LucideIcon,
 } from "lucide-react-native";
 import type { Tone } from "@/theme";
@@ -253,6 +255,15 @@ export const APPS: AppCard[] = [
     tone: "emerald",
   },
   {
+    key: "challenge-giver",
+    title: "Challenge Giver",
+    description: "Get short, hands-on challenges for a topic at your level and time, with success criteria and hints to use when stuck.",
+    route: "/learning/challenges",
+    icon: Trophy,
+    group: "learning",
+    tone: "amber",
+  },
+  {
     key: "resource-suggestor",
     title: "Resource Suggestor",
     description: "Find books, courses, and articles that fit the topic and your level.",
@@ -438,6 +449,15 @@ export const APPS: AppCard[] = [
     description: "Analyse your messages, get critical coaching, and rewrite them more concisely.",
     route: "/practice/clarity-trainer",
     icon: MessageCircleQuestion,
+    group: "practice",
+    tone: "emerald",
+  },
+  {
+    key: "confidence-builder",
+    title: "Confidence Builder",
+    description: "Take small, real-world steps to feel more confident. Rate your confidence before and after each task and watch it grow.",
+    route: "/practice/confidence-builder",
+    icon: TrendingUp,
     group: "practice",
     tone: "emerald",
   },
