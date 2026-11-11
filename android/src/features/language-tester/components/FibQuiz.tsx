@@ -1,167 +1,264 @@
 // src/features/language-tester/components/FibQuiz.tsx
 /**
- * Fill-in-the-blank quiz. Each sentence has a typed answer, checked against the model for typos,
- * correctness, and grammar. Feedback stays on the question until the quiz is reset.
+ * Fill-in-the-blank round. Shows one sentence at a time, or all of them. The gap is a slot that
+ * shows the typed word, then the verdict. The answer box and Next sentence sit in the screen footer
+ * (FibFooter), except in the all-sentences view, where each sentence has its own answer box.
  */
-import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Check } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
-import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ChevronLeft, ChevronRight, CircleCheck, CircleX, Lightbulb, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { AnswerComposer } from "@/components/tool/AnswerComposer";
 import { CardGrid } from "@/components/tool/CardGrid";
+import { ChoiceChips, ErrorText, Panel, pointerCursor } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
-import { StepNavigator } from "@/components/tool/StepNavigator";
-import { evaluateFibAnswer } from "../lib/generators";
-import { errorMessage } from "../lib/text";
-import { useRunSignal } from "../hooks/useRunSignal";
-import type { FibEvaluation, FibQuestion, FibResult } from "../types";
-import { EmptyNote, FeedbackBox, FormWidth, QuestionHeading, QuizModeBar, ScorePill, type QuizMode } from "./QuizParts";
-import { usePersistedRunState } from "@/hooks/usePersistedRunState";
+import { ResultCallout } from "@/components/tool/ResultCallout";
+import { Section } from "@/components/tool/Section";
+import type { FibEvaluation } from "../types";
+import { EmptyNote, ScorePill } from "./QuizParts";
+import type { FibMode, FibRound } from "./FibPractice";
 
-const STORAGE_KEY = "language-learner.language-tester.fib.run.v1";
+const MODES: { value: FibMode; label: string }[] = [
+  { value: "step", label: "One at a time" },
+  { value: "list", label: "All sentences" },
+];
 
-export function FibQuiz({ result }: { result: FibResult }) {
-  const { settings } = useAiSettings();
-  const nextSignal = useRunSignal();
-  const [mode, setMode] = useState<QuizMode>("list");
-  const [activeIndex, setActiveIndex] = useState(0);
-  const runId = JSON.stringify(result);
-  const [answers, setAnswers] = usePersistedRunState<Record<number, string>>(`${STORAGE_KEY}.answers`, runId, {});
-  const [feedback, setFeedback] = usePersistedRunState<Record<number, FibEvaluation>>(
-    `${STORAGE_KEY}.feedback`,
-    runId,
-    {},
-  );
-  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const total = result.questions.length;
-  const checkedCount = Object.keys(feedback).length;
-
-  async function check(index: number) {
-    const question = result.questions[index];
-    const userAnswer = (answers[index] ?? "").trim();
-    if (!question || !userAnswer || pendingIndex !== null || feedback[index]) return;
-    setPendingIndex(index);
-    setError(null);
-    try {
-      const evaluation = await evaluateFibAnswer(
-        settings,
-        { sentenceContext: question.sentence, correctWord: question.correctWord, userAnswer },
-        nextSignal(),
-      );
-      setFeedback((current) => ({ ...current, [index]: evaluation }));
-    } catch (err) {
-      setError(errorMessage(err, "Failed to check your answer."));
-    } finally {
-      setPendingIndex(null);
-    }
-  }
-
-  const cards = result.questions.map((question, index) =>
-    mode === "list" || index === activeIndex ? (
-      <QuestionCard
-        key={index}
-        index={index}
-        question={question}
-        answer={answers[index] ?? ""}
-        evaluation={feedback[index]}
-        isChecking={pendingIndex === index}
-        onChangeAnswer={(text) => setAnswers((current) => ({ ...current, [index]: text }))}
-        onCheck={() => void check(index)}
-      />
-    ) : null,
-  );
+export function FibQuiz({ round }: { round: FibRound }) {
+  const { mode, total, checkedCount, index } = round;
+  const colors = useThemeColors();
 
   return (
-    <View style={styles.quiz}>
-      <FormWidth>
-        <View style={styles.toolbar}>
-          <QuizModeBar mode={mode} onChange={setMode} />
-          <ScorePill text={`${checkedCount}/${total} checked`} />
-        </View>
+    <Section>
+      <View style={styles.toolbar}>
+        <ChoiceChips options={MODES} value={mode} onChange={round.setMode} />
+        <ScorePill text={`${checkedCount}/${total} checked`} />
+      </View>
 
-        {mode === "step" && total > 0 && (
-          <StepNavigator
-            index={activeIndex}
-            total={total}
-            onPrevious={() => setActiveIndex((index) => Math.max(0, index - 1))}
-            onNext={() => setActiveIndex((index) => Math.min(total - 1, index + 1))}
-          />
-        )}
+      {total === 0 && <EmptyNote message="No sentences were returned. Try generating again." />}
 
-        <ErrorText message={error} />
+      {mode === "step" && total > 0 && (
+        <Panel>
+          <StepBar index={index} total={total} onChange={round.goTo} />
+          <QuestionBody round={round} index={index} inline={false} />
+        </Panel>
+      )}
 
-        {total === 0 && <EmptyNote message="No sentences were returned. Try generating again." />}
-      </FormWidth>
+      {mode === "list" && total > 0 && (
+        <>
+          <ErrorText message={round.error ?? (round.saveError ? "Changes couldn't be saved. They'll try again." : null)} />
+          <CardGrid>
+            {round.questions.map((_, position) => (
+              <Panel key={position}>
+                <Text accessibilityRole="header" style={[typeScale.label, { color: colors.mutedForeground }]}>
+                  Sentence {position + 1}
+                </Text>
+                <QuestionBody round={round} index={position} inline />
+              </Panel>
+            ))}
+          </CardGrid>
+        </>
+      )}
+    </Section>
+  );
+}
 
-      {mode === "list" ? <CardGrid>{cards}</CardGrid> : <FormWidth>{cards}</FormWidth>}
+export function FibIconButton({
+  icon: Icon,
+  label,
+  onPress,
+  disabled = false,
+}: {
+  icon: LucideIcon;
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  const colors = useThemeColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => [
+        styles.iconButton,
+        pointerCursor,
+        { borderColor: colors.border },
+        pressed && !disabled && { backgroundColor: colors.muted },
+        disabled && styles.disabled,
+      ]}
+    >
+      <Icon size={20} color={colors.foreground} />
+    </Pressable>
+  );
+}
+
+function StepBar({ index, total, onChange }: { index: number; total: number; onChange: (index: number) => void }) {
+  const colors = useThemeColors();
+  return (
+    <View style={styles.stepBar}>
+      <FibIconButton
+        icon={ChevronLeft}
+        label="Show previous sentence"
+        disabled={index === 0}
+        onPress={() => onChange(index - 1)}
+      />
+      <Text style={[typeScale.label, { color: colors.mutedForeground }]}>
+        Sentence {index + 1} of {total}
+      </Text>
+      <FibIconButton
+        icon={ChevronRight}
+        label="Show next sentence"
+        disabled={index >= total - 1}
+        onPress={() => onChange(index + 1)}
+      />
     </View>
   );
 }
 
-interface QuestionCardProps {
+interface QuestionBodyProps {
+  round: FibRound;
   index: number;
-  question: FibQuestion;
-  answer: string;
-  evaluation: FibEvaluation | undefined;
-  isChecking: boolean;
-  onChangeAnswer: (text: string) => void;
-  onCheck: () => void;
+  inline: boolean;
 }
 
-function QuestionCard({ index, question, answer, evaluation, isChecking, onChangeAnswer, onCheck }: QuestionCardProps) {
+function QuestionBody({ round, index, inline }: QuestionBodyProps) {
   const colors = useThemeColors();
-  const locked = evaluation !== undefined || isChecking;
+  const question = round.questions[index];
+  const evaluation = round.feedback[index];
+  const answer = round.answers[index] ?? "";
+  const hasHint = question.hint !== "" || question.contextClue !== "";
+  const hintOpen = hasHint && round.hintsOpen[index] === true;
+  const checking = round.pendingIndex === index;
+  const [before, after] = splitAtGap(question.sentence);
 
   return (
-    <Panel>
-      <QuestionHeading index={index} text={question.sentence} />
-      <ListenButton text={question.sentence} label="Sentence" />
-      {question.hint !== "" && <Text style={[styles.muted, { color: colors.mutedForeground }]}>Hint: {question.hint}</Text>}
-      {question.contextClue !== "" && (
-        <Text style={[styles.muted, styles.italic, { color: colors.mutedForeground }]}>{question.contextClue}</Text>
-      )}
+    <View style={styles.body}>
+      <View style={styles.sentence}>
+        {before !== "" && <Text style={[typeScale.title, { color: colors.foreground }]}>{before}</Text>}
+        <GapSlot answer={answer} evaluation={evaluation} correctWord={question.correctWord} />
+        {after !== "" && <Text style={[typeScale.title, { color: colors.foreground }]}>{after}</Text>}
+      </View>
 
-      <TextField
-        label="Your answer"
-        placeholder="Type your answer…"
-        value={answer}
-        onChangeText={onChangeAnswer}
-        editable={!locked}
-        maxLength={500}
-        voice
-      />
-      <ActionButton
-        label={isChecking ? "Checking…" : evaluation ? "Checked" : "Check answer"}
-        icon={evaluation ? Check : undefined}
-        loading={isChecking}
-        disabled={evaluation !== undefined || answer.trim() === ""}
-        variant="outline"
-        onPress={onCheck}
-      />
+      <View style={styles.actions}>
+        {hasHint && (
+          <Pressable
+            onPress={() => round.toggleHint(index)}
+            accessibilityRole="button"
+            accessibilityLabel={hintOpen ? "Hide hint" : "Show hint"}
+            accessibilityState={{ expanded: hintOpen }}
+            style={({ pressed }) => [
+              styles.hintButton,
+              pointerCursor,
+              { borderColor: colors.border, backgroundColor: colors.card },
+              pressed && { backgroundColor: colors.muted },
+            ]}
+          >
+            <Lightbulb size={18} color={colors.primary} />
+            <Text style={[typeScale.label, { color: colors.foreground }]}>Hint</Text>
+          </Pressable>
+        )}
+        <ListenButton text={question.sentence} label="Sentence" />
+      </View>
 
-      {evaluation && (
-        <FeedbackBox
-          tone={evaluation.isCorrect ? "emerald" : "rose"}
-          title={evaluation.status === "typo" ? "Almost! Small typo." : evaluation.isCorrect ? "Correct" : "Not quite."}
-        >
-          {evaluation.feedback !== "" && <Text style={[styles.body, { color: colors.foreground }]}>{evaluation.feedback}</Text>}
-          {evaluation.improvementTip !== "" && (
-            <Text style={[styles.muted, { color: colors.mutedForeground }]}>Tip: {evaluation.improvementTip}</Text>
+      {hintOpen && (
+        <View style={[styles.hint, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+          {question.hint !== "" && <Text style={[typeScale.body, { color: colors.foreground }]}>{question.hint}</Text>}
+          {question.contextClue !== "" && (
+            <Text style={[typeScale.body, styles.italic, { color: colors.mutedForeground }]}>{question.contextClue}</Text>
           )}
-          <ListenButton text={evaluation.feedback} label="Feedback" />
-        </FeedbackBox>
+        </View>
       )}
-    </Panel>
+
+      {evaluation && <Verdict evaluation={evaluation} />}
+
+      {inline && evaluation === undefined && (
+        <AnswerComposer
+          label="Your answer"
+          placeholder="Type the missing word…"
+          value={answer}
+          maxLength={500}
+          pending={checking}
+          error={null}
+          submitLabel="Check answer"
+          onChangeText={(text) => round.changeAnswer(index, text)}
+          onSubmit={() => void round.check(index)}
+        />
+      )}
+    </View>
+  );
+}
+
+/** Text before and after the first gap ("____"). */
+function splitAtGap(sentence: string): [string, string] {
+  const parts = sentence.split(/_{2,}/);
+  return [parts[0].trim(), parts.slice(1).join("____").trim()];
+}
+
+function GapSlot({
+  answer,
+  evaluation,
+  correctWord,
+}: {
+  answer: string;
+  evaluation: FibEvaluation | undefined;
+  correctWord: string;
+}) {
+  const colors = useThemeColors();
+  const typed = answer.trim() !== "";
+  const tone = evaluation ? (evaluation.isCorrect ? "emerald" : "rose") : null;
+  const palette = tone ? colors.tone[tone] : null;
+  const state = evaluation ? (evaluation.isCorrect ? "Correct" : "Not quite") : typed ? "filled" : "empty";
+  const Icon = evaluation?.isCorrect ? CircleCheck : CircleX;
+
+  return (
+    <View style={styles.gap} accessible accessibilityLabel={`Gap 1, ${state}`}>
+      <View
+        style={[
+          styles.slot,
+          {
+            borderColor: palette ? palette.border : colors.primary,
+            backgroundColor: palette ? palette.bg : colors.card,
+          },
+        ]}
+      >
+        {evaluation && palette && <Icon size={18} color={palette.fg} />}
+        <Text
+          style={[
+            typeScale.title,
+            {
+              color: palette ? palette.fg : typed ? colors.foreground : colors.mutedForeground,
+            },
+          ]}
+        >
+          {typed ? answer.trim() : "1"}
+        </Text>
+      </View>
+      {evaluation && !evaluation.isCorrect && (
+        <Text style={[typeScale.label, { color: colors.foreground }]}>Answer: {correctWord}</Text>
+      )}
+    </View>
+  );
+}
+
+function Verdict({ evaluation }: { evaluation: FibEvaluation }) {
+  const colors = useThemeColors();
+  return (
+    <ResultCallout
+      icon={evaluation.isCorrect ? CircleCheck : CircleX}
+      title={evaluation.isCorrect ? "Correct" : "Not quite"}
+      tone={evaluation.isCorrect ? "emerald" : "rose"}
+    >
+      {evaluation.feedback !== "" && <Text style={[typeScale.body, { color: colors.foreground }]}>{evaluation.feedback}</Text>}
+      {evaluation.improvementTip !== "" && (
+        <Text style={[typeScale.body, { color: colors.mutedForeground }]}>Tip: {evaluation.improvementTip}</Text>
+      )}
+      <ListenButton text={evaluation.feedback} label="Feedback" />
+    </ResultCallout>
   );
 }
 
 const styles = StyleSheet.create({
-  quiz: {
-    gap: spacing.lg,
-  },
   toolbar: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -169,15 +266,72 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing.md,
   },
-  muted: {
-    fontSize: 13,
-    lineHeight: 19,
+  stepBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  disabled: {
+    opacity: 0.4,
+  },
+  body: {
+    gap: spacing.lg,
+  },
+  sentence: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  gap: {
+    alignItems: "flex-start",
+    gap: spacing.xs,
+    maxWidth: "100%",
+  },
+  slot: {
+    minWidth: 96,
+    minHeight: touchTarget,
+    maxWidth: "100%",
+    borderWidth: 2,
+    borderRadius: shape.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+  },
+  actions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  hintButton: {
+    minHeight: touchTarget,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderRadius: shape.full,
+    paddingHorizontal: spacing.lg,
+  },
+  hint: {
+    borderWidth: 1,
+    borderRadius: shape.md,
+    padding: spacing.md,
+    gap: spacing.xs,
   },
   italic: {
     fontStyle: "italic",
-  },
-  body: {
-    fontSize: 14,
-    lineHeight: 20,
   },
 });

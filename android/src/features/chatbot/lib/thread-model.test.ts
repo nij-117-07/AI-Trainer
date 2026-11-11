@@ -52,6 +52,23 @@ describe("messages", () => {
     expect(message.error).toContain("interrupted");
   });
 
+  it("keeps a stopped reply stopped, with its partial text", () => {
+    const [message] = normalizeMessages([{ id: "m", role: "assistant", content: "Part", status: "stopped", error: "x" }]);
+    expect(message).toMatchObject({ status: "stopped", content: "Part", error: null });
+  });
+
+  it("loads older saved messages with a valid status", () => {
+    const saved = normalizeMessages([
+      { id: "a", role: "assistant", content: "Old", status: "done" },
+      { id: "b", role: "assistant", content: "Failed", status: "error", error: "Down." },
+      { id: "c", role: "assistant", content: "Odd", status: "refused" },
+      { id: "d", role: "user", content: "Question" },
+    ]);
+    expect(saved.map((m) => m.status)).toEqual(["done", "error", "done", "done"]);
+    expect(saved[1].error).toBe("Down.");
+    expect(saved[2].error).toBeNull();
+  });
+
   it("drops messages with an unknown role", () => {
     expect(normalizeMessages([{ id: "m", role: "system", content: "x" }])).toEqual([]);
   });

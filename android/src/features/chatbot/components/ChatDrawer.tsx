@@ -2,7 +2,7 @@
 /** Chat history with the active persona. A side drawer on phone and tablet, a docked panel on desktop. */
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SquarePen, Trash2, X } from "lucide-react-native";
-import { contentWidth, radius, spacing, useThemeColors } from "@/theme";
+import { contentWidth, shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { pointerCursor } from "@/components/tool/FormControls";
 import { formatUpdated } from "../lib/thread-model";
 import type { ChatThread } from "../types";
@@ -150,14 +150,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   title: {
-    fontSize: 18,
+    ...typeScale.title,
     fontWeight: "700",
   },
   closeButton: {
-    width: 44,
-    height: 44,
+    width: touchTarget,
+    height: touchTarget,
     marginRight: -spacing.md,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -166,11 +166,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.sm,
-    height: 46,
-    borderRadius: radius.full,
+    height: touchTarget,
+    borderRadius: shape.full,
   },
   newChatText: {
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
   list: {
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.xs,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     paddingLeft: spacing.md,
     paddingRight: spacing.xs,
     paddingVertical: spacing.xs,
@@ -192,18 +192,17 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   rowTitle: {
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "500",
   },
   deleteButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
   hint: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
 });

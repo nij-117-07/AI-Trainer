@@ -1,17 +1,18 @@
 /**
- * Translator: contextual translation with a chosen tone, reference material, and cultural notes.
- * The form is the side panel on tablet and desktop and the first part of the page on phones. The
- * last translation is kept on the device and shown in the results.
+ * Translator: contextual translation with a chosen tone, optional notes, and notes on the choices made.
+ * On phones the source comes first and the translation below it. On tablet and desktop the source
+ * and the translation sit side by side. The Translate action is always the footer.
  */
 import { useEffect, useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Languages, Lightbulb, Sparkles } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, typeScale, useLayout, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { ActiveLanguageNotice } from "@/features/language-profiles/components/ActiveLanguageNotice";
 import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
 import { CopyButton } from "@/components/tool/CopyButton";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
@@ -22,7 +23,7 @@ import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { translateText } from "../lib/generators";
 import { TONE_OPTIONS } from "../options";
-import { usePersistedTranslation } from "../hooks/usePersistedTranslation";
+import { SAVE_FAILED_MESSAGE, usePersistedTranslation } from "../hooks/usePersistedTranslation";
 import type { TranslationResponse, TranslatorFormValues } from "../types";
 
 export interface TranslatorState {
@@ -30,6 +31,7 @@ export interface TranslatorState {
   result: TranslationResponse | null;
   pending: boolean;
   error: string | null;
+  saveError: boolean;
   update: <K extends keyof TranslatorFormValues>(key: K, value: TranslatorFormValues[K]) => void;
   submit: () => Promise<void>;
   reset: () => void;
@@ -38,7 +40,7 @@ export interface TranslatorState {
 export function useTranslator(): TranslatorState {
   const { settings } = useAiSettings();
   const { activeProfile } = useLanguageProfiles();
-  const { form, setForm, result, setResult, reset: resetSaved } = usePersistedTranslation();
+  const { form, setForm, result, setResult, reset: resetSaved, saveError } = usePersistedTranslation();
   const request = useRequest(translateText);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -75,62 +77,34 @@ export function useTranslator(): TranslatorState {
     result,
     pending: request.pending,
     error: request.error,
+    saveError,
     update,
     submit,
     reset,
   };
 }
 
-export function TranslatorResults({ translator }: { translator: TranslatorState }) {
-  const { result } = translator;
+export function TranslatorPanes({ translator }: { translator: TranslatorState }) {
+  const { size } = useLayout();
+  const sideBySide = size !== "phone";
 
   return (
-    <Section>
-      {result ? (
-        <>
-          <ResultCallout icon={Languages} title="Translation" tone="sky">
-            <MarkdownText content={quote(result.translatedText)} />
-            <View style={styles.actions}>
-              <ListenButton text={result.translatedText} label="Translation" />
-              {result.translatedText !== "" && (
-                <CopyButton text={result.translatedText} label="Copy translation" />
-              )}
-            </View>
-          </ResultCallout>
-
-          {result.culturalNotes !== "" && (
-            <Panel>
-              <SectionTitle icon={Lightbulb} title="Cultural notes" />
-              <MarkdownText content={result.culturalNotes} />
-              <ListenButton text={result.culturalNotes} label="Cultural notes" />
-            </Panel>
-          )}
-
-          {result.rationale !== "" && (
-            <Panel>
-              <SectionTitle icon={Languages} title="Why this translation" />
-              <MarkdownText content={result.rationale} />
-              <ListenButton text={result.rationale} label="Explanation" />
-            </Panel>
-          )}
-        </>
-      ) : (
-        <EmptyHint
-          icon={Languages}
-          title="No translation yet"
-          hint="Enter text in the form, choose a tone, then tap Translate."
-        />
-      )}
-    </Section>
+    <View style={[styles.panes, sideBySide && styles.panesWide]}>
+      <View style={sideBySide && styles.pane}>
+        <TranslatorSource translator={translator} />
+      </View>
+      <View style={sideBySide && styles.pane}>
+        <TranslatorResults translator={translator} />
+      </View>
+    </View>
   );
 }
 
-export function TranslatorFooter({ translator }: { translator: TranslatorState }) {
-  const colors = useThemeColors();
-  const { form, pending, error, update, submit } = translator;
+function TranslatorSource({ translator }: { translator: TranslatorState }) {
+  const { form, pending, update } = translator;
 
   return (
-    <View style={styles.form}>
+    <Panel>
       <ActiveLanguageNotice />
       <TextField
         label="Text to translate"
@@ -150,7 +124,7 @@ export function TranslatorFooter({ translator }: { translator: TranslatorState }
         customPlaceholder="e.g. Friendly, Legal, Humorous"
       />
       <TextField
-        label="User instructions (optional)"
+        label="Notes (optional)"
         placeholder="e.g. avoid gendered pronouns, keep glossary terms as-is…"
         value={form.customInstructions}
         onChangeText={(text) => update("customInstructions", text)}
@@ -159,14 +133,67 @@ export function TranslatorFooter({ translator }: { translator: TranslatorState }
         multiline
         voice
       />
-      {pending ? (
-        <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
-          Working on your translation. This can take a moment.
+    </Panel>
+  );
+}
+
+export function TranslatorResults({ translator }: { translator: TranslatorState }) {
+  const colors = useThemeColors();
+  const { result } = translator;
+
+  if (!result) {
+    return <EmptyHint icon={Languages} title="No translation yet" hint="Your translation appears here." />;
+  }
+
+  const notes = result.rationale !== "" || result.culturalNotes !== "";
+
+  return (
+    <Section>
+      <ResultCallout icon={Languages} title="Translation" tone="sky">
+        <Text selectable style={[styles.translation, { color: colors.foreground }]}>
+          {result.translatedText === "" ? "No translation returned." : result.translatedText}
         </Text>
-      ) : null}
+        <View style={styles.actions}>
+          {result.translatedText !== "" && (
+            <>
+              <ListenButton text={result.translatedText} label="Translation" />
+              <CopyButton text={result.translatedText} label="Copy translation" />
+            </>
+          )}
+        </View>
+      </ResultCallout>
+
+      {notes && (
+        <Disclosure title="Notes on choices" summary={summaryOf(result.rationale) || summaryOf(result.culturalNotes)}>
+          {result.rationale !== "" && (
+            <View style={styles.note}>
+              <MarkdownText content={result.rationale} />
+              <ListenButton text={result.rationale} label="Explanation" />
+            </View>
+          )}
+
+          {result.culturalNotes !== "" && (
+            <View style={styles.note}>
+              <SectionTitle icon={Lightbulb} title="Cultural notes" />
+              <MarkdownText content={result.culturalNotes} />
+              <ListenButton text={result.culturalNotes} label="Cultural notes" />
+            </View>
+          )}
+        </Disclosure>
+      )}
+    </Section>
+  );
+}
+
+export function TranslatorFooter({ translator }: { translator: TranslatorState }) {
+  const { pending, error, saveError, submit } = translator;
+
+  return (
+    <View style={styles.footer}>
       <ErrorText message={error} />
+      <ErrorText message={saveError ? SAVE_FAILED_MESSAGE : null} />
       <ActionButton
-        label={pending ? "Translating with context…" : "Translate"}
+        label={pending ? "Translating…" : "Translate"}
         icon={Sparkles}
         loading={pending}
         onPress={submit}
@@ -175,23 +202,37 @@ export function TranslatorFooter({ translator }: { translator: TranslatorState }
   );
 }
 
-function quote(text: string): string {
-  if (text === "") return "_No translation returned._";
-  return `> ${text.replace(/\n/g, "\n> ")}`;
+function summaryOf(text: string): string {
+  const line = text.split("\n").find((item) => item.trim() !== "") ?? "";
+  return line.replace(/[*_`#>]/g, "").trim();
 }
 
 const styles = StyleSheet.create({
-  form: {
+  panes: {
     gap: spacing.lg,
   },
-  status: {
-    fontSize: 13,
-    lineHeight: 18,
+  panesWide: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  pane: {
+    flex: 1,
+    minWidth: 0,
+  },
+  translation: {
+    ...typeScale.title,
+    fontWeight: "400",
   },
   actions: {
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
+    gap: spacing.sm,
+  },
+  note: {
+    gap: spacing.sm,
+  },
+  footer: {
     gap: spacing.sm,
   },
 });

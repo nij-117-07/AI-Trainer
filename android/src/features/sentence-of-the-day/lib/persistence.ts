@@ -5,6 +5,8 @@ import { isRecord } from "./text";
 export const SENTENCE_FORM_KEY = "language-learner.sentence-of-the-day.generate.v2";
 export const SENTENCE_RESULT_KEY = "language-learner.sentence-of-the-day.sentence.v1";
 
+export const SAVE_FAILED_MESSAGE = "Changes couldn't be saved. They'll try again.";
+
 /** Takes each saved field only when its type matches the default, so a damaged draft falls back per field. */
 export function mergeSavedForm<T extends object>(defaults: T, saved: unknown): T {
   if (!isRecord(saved)) return defaults;

@@ -5,6 +5,8 @@ import { isRecord } from "./text";
 export const IDIOMS_FORM_KEY = "language-learner.idioms.generate.v2";
 export const IDIOMS_LESSON_KEY = "language-learner.idioms.lesson.v1";
 
+export const SAVE_FAILED_MESSAGE = "Changes couldn't be saved. They'll try again.";
+
 /** Takes each saved field only when its type matches the default, so a damaged draft falls back per field. */
 export function mergeSavedForm<T extends object>(defaults: T, saved: unknown): T {
   if (!isRecord(saved)) return defaults;

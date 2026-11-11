@@ -5,11 +5,14 @@
  */
 import {
   ANSWER_STATUSES,
+  CHALLENGE_VERDICTS,
   OPTION_KEYS,
   type AnswerStatus,
   type AssessmentQuestion,
   type AssessmentResult,
+  type ChallengeEvaluation,
   type ChallengeResult,
+  type ChallengeVerdict,
   type FibEvaluation,
   type FibQuestion,
   type FibResult,
@@ -79,6 +82,16 @@ export function normalizeEvaluation(raw: unknown): FibEvaluation {
   };
 }
 
+export function normalizeChallengeEvaluation(raw: unknown): ChallengeEvaluation {
+  const source = isRecord(raw) ? raw : {};
+  const verdict = textOf(source.verdict);
+  return {
+    verdict: isChallengeVerdict(verdict) ? verdict : "incorrect",
+    whatWasRight: textOf(source.whatWasRight),
+    improvement: textOf(source.improvement),
+  };
+}
+
 export function normalizeChallenge(raw: unknown, testType: TestType): ChallengeResult {
   const source = isRecord(raw) ? raw : {};
   return {
@@ -116,4 +129,8 @@ function isOptionKey(value: string): value is OptionKey {
 
 function isAnswerStatus(value: string): value is AnswerStatus {
   return (ANSWER_STATUSES as readonly string[]).includes(value);
+}
+
+function isChallengeVerdict(value: string): value is ChallengeVerdict {
+  return (CHALLENGE_VERDICTS as readonly string[]).includes(value);
 }

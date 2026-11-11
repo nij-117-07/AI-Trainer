@@ -6,6 +6,8 @@ import type { LanguageProfilesState } from "../types";
 
 const STORAGE_KEY = "language-learner.profiles.v1";
 
+export const SAVE_FAILED_MESSAGE = "Changes couldn't be saved. They'll try again.";
+
 export async function loadLanguageProfiles(): Promise<LanguageProfilesState> {
   return normalizeProfilesState(await loadDocument<unknown>(STORAGE_KEY, null));
 }

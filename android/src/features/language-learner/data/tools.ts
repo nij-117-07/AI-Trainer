@@ -28,7 +28,7 @@ export const LANGUAGE_TOOLS: LanguageTool[] = [
   {
     key: "language-profiles",
     title: "Language Profiles",
-    description: "Set your native and target languages once. Every sub-app uses the active profile.",
+    description: "Languages used by every sub-app",
     route: "/language-learner/profiles",
     icon: SlidersHorizontal,
     tone: "amber",
@@ -36,7 +36,7 @@ export const LANGUAGE_TOOLS: LanguageTool[] = [
   {
     key: "idioms",
     title: "Idioms",
-    description: "Explain idiomatic expressions with meaning, cultural context, and real-world usage.",
+    description: "Meaning and usage of idioms",
     route: "/language-learner/idioms",
     icon: Quote,
     tone: "amber",
@@ -44,7 +44,7 @@ export const LANGUAGE_TOOLS: LanguageTool[] = [
   {
     key: "word-of-the-day",
     title: "Word of the Day",
-    description: "Explore a word in depth: meaning, origin, usage, and example sentences.",
+    description: "Meaning, origin, and examples",
     route: "/language-learner/word-of-the-day",
     icon: BookA,
     tone: "sky",
@@ -52,7 +52,7 @@ export const LANGUAGE_TOOLS: LanguageTool[] = [
   {
     key: "sentence-of-the-day",
     title: "Sentence of the Day",
-    description: "Learn a sentence each day with its breakdown, translation, and usage notes.",
+    description: "A daily sentence, broken down",
     route: "/language-learner/sentence-of-the-day",
     icon: CalendarDays,
     tone: "emerald",
@@ -60,7 +60,7 @@ export const LANGUAGE_TOOLS: LanguageTool[] = [
   {
     key: "translator",
     title: "Translator",
-    description: "Translate text with context, tone, and notes on the choices made.",
+    description: "Translate with context and notes",
     route: "/language-learner/translator",
     icon: Languages,
     tone: "sky",
@@ -68,7 +68,7 @@ export const LANGUAGE_TOOLS: LanguageTool[] = [
   {
     key: "rewriter",
     title: "Rewriter",
-    description: "Rewrite text in a chosen style, level, or register and explain the changes.",
+    description: "Rewrite in a new style or level",
     route: "/language-learner/rewriter",
     icon: PenLine,
     tone: "rose",
@@ -76,7 +76,7 @@ export const LANGUAGE_TOOLS: LanguageTool[] = [
   {
     key: "lesson",
     title: "Language Lesson",
-    description: "Generate a structured lesson for the language and level you choose.",
+    description: "A structured lesson by level",
     route: "/language-learner/lesson",
     icon: BookOpenText,
     tone: "emerald",
@@ -84,7 +84,7 @@ export const LANGUAGE_TOOLS: LanguageTool[] = [
   {
     key: "poet-engine",
     title: "Poet Engine",
-    description: "Explain the poetic devices and language in a poem or verse.",
+    description: "Explain the devices in a poem",
     route: "/language-learner/poet-engine",
     icon: Feather,
     tone: "rose",
@@ -92,7 +92,7 @@ export const LANGUAGE_TOOLS: LanguageTool[] = [
   {
     key: "language-tester",
     title: "Language Tester",
-    description: "Test your skills with assessments, fill-in-the-blank, translation challenges, and roleplay.",
+    description: "Quizzes and translation challenges",
     route: "/language-learner/language-tester",
     icon: GraduationCap,
     tone: "amber",
@@ -100,7 +100,7 @@ export const LANGUAGE_TOOLS: LanguageTool[] = [
   {
     key: "roleplay",
     title: "Roleplay",
-    description: "Converse in character with a role you choose, and manage your saved roles.",
+    description: "Talk in character with a role",
     route: "/language-learner/roleplay",
     icon: Drama,
     tone: "emerald",

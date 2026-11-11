@@ -1,26 +1,24 @@
 // src/app/language-learner/translator/index.tsx
 import { ResetButton } from "@/components/tool/ResetButton";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { useLayout } from "@/theme";
 import {
   TranslatorFooter,
-  TranslatorResults,
+  TranslatorPanes,
   useTranslator,
 } from "@/features/translator/components/TranslatorTool";
 
 export default function TranslatorRoute() {
   const translator = useTranslator();
-  const { size } = useLayout();
-  const sideForm = size !== "phone";
 
   return (
     <ToolScreen
       title="Translator"
-      headerRight={<ResetButton onPress={translator.reset} />}
-      footer={sideForm ? <TranslatorFooter translator={translator} /> : undefined}
+      wide
+      footerSide={false}
+      headerRight={<ResetButton onPress={translator.reset} accessibilityLabel="Reset translator" />}
+      footer={<TranslatorFooter translator={translator} />}
     >
-      {sideForm ? null : <TranslatorFooter translator={translator} />}
-      <TranslatorResults translator={translator} />
+      <TranslatorPanes translator={translator} />
     </ToolScreen>
   );
 }

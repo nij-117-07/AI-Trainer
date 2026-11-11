@@ -8,6 +8,7 @@ import { isRecord } from "../lib/text";
 export function usePersistedValue<T>(key: string, initial: T, restore: (saved: unknown) => T) {
   const [value, setValue] = useState<T>(initial);
   const [loaded, setLoaded] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const restoreRef = useRef(restore);
   restoreRef.current = restore;
 
@@ -28,10 +29,13 @@ export function usePersistedValue<T>(key: string, initial: T, restore: (saved: u
 
   useEffect(() => {
     if (!loaded) return;
-    saveDocument(key, value).catch(() => undefined);
+    saveDocument(key, value).then(
+      () => setSaveError(false),
+      () => setSaveError(true),
+    );
   }, [loaded, key, value]);
 
-  return [value, setValue] as const;
+  return [value, setValue, saveError] as const;
 }
 
 interface SavedTool<TForm, TResult> {
@@ -41,8 +45,10 @@ interface SavedTool<TForm, TResult> {
 
 /** One quiz tool's form draft and last generated result. */
 export function usePersistedTool<TForm extends object, TResult>(key: string, defaults: TForm) {
-  const [state, setState] = usePersistedValue<SavedTool<TForm, TResult>>(key, { form: defaults, result: null }, (saved) =>
-    restoreTool<TForm, TResult>(defaults, saved),
+  const [state, setState, saveError] = usePersistedValue<SavedTool<TForm, TResult>>(
+    key,
+    { form: defaults, result: null },
+    (saved) => restoreTool<TForm, TResult>(defaults, saved),
   );
 
   const setForm = useCallback(
@@ -55,7 +61,7 @@ export function usePersistedTool<TForm extends object, TResult>(key: string, def
   );
   const reset = useCallback(() => setState({ form: defaults, result: null }), [defaults, setState]);
 
-  return { form: state.form, setForm, result: state.result, setResult, reset };
+  return { form: state.form, setForm, result: state.result, setResult, reset, saveError };
 }
 
 function restoreTool<TForm extends object, TResult>(defaults: TForm, saved: unknown): SavedTool<TForm, TResult> {

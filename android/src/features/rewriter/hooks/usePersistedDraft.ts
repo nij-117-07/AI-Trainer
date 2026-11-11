@@ -17,6 +17,7 @@ export function usePersistedDraft<TForm extends object, TResult>(
   const [form, setForm] = useState<TForm>(defaults);
   const [result, setResult] = useState<TResult | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -40,7 +41,10 @@ export function usePersistedDraft<TForm extends object, TResult>(
   useEffect(() => {
     if (!loaded) return;
     const state: SavedDraft<TForm, TResult> = { form, result };
-    saveDocument(storageKey, state).catch(() => undefined);
+    saveDocument(storageKey, state).then(
+      () => setSaveError(false),
+      () => setSaveError(true),
+    );
   }, [loaded, storageKey, form, result]);
 
   const reset = useCallback(() => {
@@ -48,5 +52,5 @@ export function usePersistedDraft<TForm extends object, TResult>(
     setResult(null);
   }, [defaults]);
 
-  return { form, setForm, result, setResult, reset };
+  return { form, setForm, result, setResult, reset, saveError };
 }

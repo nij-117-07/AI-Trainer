@@ -65,14 +65,15 @@ export function normalizeMessages(value: unknown): ChatMessage[] {
     const role = raw.role === "user" || raw.role === "assistant" ? raw.role : null;
     if (typeof raw.id !== "string" || !role) return [];
     const interrupted = raw.status === "streaming";
-    const failed = interrupted || raw.status === "error";
+    const status: MessageStatus =
+      raw.status === "stopped" ? "stopped" : interrupted || raw.status === "error" ? "error" : "done";
     return [
       {
         id: raw.id,
         role,
         content: typeof raw.content === "string" ? raw.content : "",
-        status: failed ? "error" : "done",
-        error: interrupted ? INTERRUPTED : typeof raw.error === "string" ? raw.error : null,
+        status,
+        error: interrupted ? INTERRUPTED : status === "error" && typeof raw.error === "string" ? raw.error : null,
         createdAt: typeof raw.createdAt === "string" ? raw.createdAt : new Date(0).toISOString(),
       },
     ];

@@ -16,6 +16,7 @@ export interface LanguageProfilesContextValue {
   profiles: LanguageProfile[];
   activeProfile: LanguageProfile;
   loaded: boolean;
+  saveError: boolean;
   upsertProfile: (profile: LanguageProfile) => Promise<void>;
   removeProfile: (id: string) => Promise<void>;
   activateProfile: (id: string) => Promise<void>;

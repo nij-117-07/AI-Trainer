@@ -45,7 +45,7 @@ export function Disclosure({ title, icon: Icon, summary, defaultOpen = false, op
             <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>{title}</Text>
           </View>
           {summary ? (
-            <Text numberOfLines={2} style={[styles.summary, { color: colors.mutedForeground }]}>
+            <Text numberOfLines={1} style={[styles.summary, { color: colors.mutedForeground }]}>
               {summary}
             </Text>
           ) : null}

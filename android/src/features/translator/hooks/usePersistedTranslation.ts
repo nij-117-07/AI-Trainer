@@ -10,6 +10,8 @@ type SavedState = { form: TranslatorFormValues; result: TranslationResponse | nu
 
 const DEFAULTS: TranslatorFormValues = TRANSLATOR_DEFAULTS;
 
+export const SAVE_FAILED_MESSAGE = "Changes couldn't be saved. They'll try again.";
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -28,6 +30,7 @@ export function usePersistedTranslation() {
   const [form, setForm] = useState<TranslatorFormValues>(DEFAULTS);
   const [result, setResult] = useState<TranslationResponse | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -49,7 +52,10 @@ export function usePersistedTranslation() {
   useEffect(() => {
     if (!loaded) return;
     const state: SavedState = { form, result };
-    saveDocument(TRANSLATOR_STORAGE_KEY, state).catch(() => undefined);
+    saveDocument(TRANSLATOR_STORAGE_KEY, state).then(
+      () => setSaveError(false),
+      () => setSaveError(true),
+    );
   }, [loaded, form, result]);
 
   const reset = useCallback(() => {
@@ -57,5 +63,5 @@ export function usePersistedTranslation() {
     setResult(null);
   }, []);
 
-  return { form, setForm, result, setResult, reset };
+  return { form, setForm, result, setResult, reset, saveError };
 }

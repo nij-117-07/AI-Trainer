@@ -15,3 +15,8 @@ export function listOf(value: unknown): unknown[] {
 export function textOf(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
+
+/** The first line of a persona prompt, shown as a one-line scenario. */
+export function scenarioOf(prompt: string): string {
+  return prompt.trim().split("\n")[0]?.trim() ?? "";
+}

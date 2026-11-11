@@ -93,6 +93,26 @@ export interface ChallengeResult {
   culturalTip: string;
 }
 
+export const CHALLENGE_VERDICTS = ["correct", "partial", "incorrect"] as const;
+export type ChallengeVerdict = (typeof CHALLENGE_VERDICTS)[number];
+
+export interface ChallengeAnswerCheckValues {
+  challengePrompt: string;
+  modelAnswer: string;
+  userAttempt: string;
+}
+
+export interface ChallengeEvaluation {
+  verdict: ChallengeVerdict;
+  whatWasRight: string;
+  improvement: string;
+}
+
+export interface ChallengeAttempt {
+  text: string;
+  evaluation: ChallengeEvaluation | null;
+}
+
 export interface RoleplaySettings {
   targetLanguage: string;
   level: string;

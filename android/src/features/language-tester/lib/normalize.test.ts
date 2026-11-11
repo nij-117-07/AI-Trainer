@@ -2,6 +2,7 @@
 import {
   normalizeAssessment,
   normalizeChallenge,
+  normalizeChallengeEvaluation,
   normalizeEvaluation,
   normalizeFeedback,
   normalizeFibQuestions,
@@ -82,6 +83,19 @@ describe("normalizeEvaluation", () => {
   it("derives the status from isCorrect when the status is unknown", () => {
     expect(normalizeEvaluation({ isCorrect: true, status: "great" }).status).toBe("correct");
     expect(normalizeEvaluation({ isCorrect: false }).status).toBe("incorrect");
+  });
+});
+
+describe("normalizeChallengeEvaluation", () => {
+  it("keeps a valid verdict and reads both notes", () => {
+    expect(
+      normalizeChallengeEvaluation({ verdict: "partial", whatWasRight: "The meaning is clear.", improvement: "Use 'je'." }),
+    ).toEqual({ verdict: "partial", whatWasRight: "The meaning is clear.", improvement: "Use 'je'." });
+  });
+
+  it("treats an unknown verdict as incorrect", () => {
+    expect(normalizeChallengeEvaluation({ verdict: "great" }).verdict).toBe("incorrect");
+    expect(normalizeChallengeEvaluation(undefined)).toEqual({ verdict: "incorrect", whatWasRight: "", improvement: "" });
   });
 });
 

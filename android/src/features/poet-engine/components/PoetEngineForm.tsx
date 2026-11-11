@@ -4,24 +4,25 @@
  * pinned in the footer; on tablet and desktop the form sits in the side panel. A successful
  * explanation is saved and onGenerated returns to the Poet Engine page.
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Feather } from "lucide-react-native";
+import { Sparkles } from "lucide-react-native";
 import { spacing } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { languagePair } from "@/features/language-profiles/lib/profiles";
 import {
   ActionButton,
+  ChoiceChips,
   ErrorText,
+  Field,
   TextField,
 } from "@/components/tool/FormControls";
-import { SelectField } from "@/components/tool/SelectField";
 import { useRequest } from "@/hooks/useRequest";
-import { saveDocument } from "@/lib/document-store";
 import { explainConcept } from "../lib/generators";
-import { POET_ENGINE_RESULT_KEY } from "../lib/persistence";
-import { POETIC_STYLE_OPTIONS } from "../options";
+import { POET_ENGINE_RESULT_KEY, SAVE_FAILED_MESSAGE } from "../lib/persistence";
+import { saveResult } from "../lib/result-store";
+import { POETIC_STYLE_OPTIONS, POET_MOOD_OPTIONS } from "../options";
 import { usePersistedForm } from "../hooks/usePersistedDraft";
 import type { ConceptFormValues } from "../types";
 
@@ -34,10 +35,13 @@ const DEFAULTS: ConceptFormValues = {
   userCustomInstruction: "",
 };
 
+const CUSTOM = "__custom__";
+
 export interface PoetEngineFormState {
   form: ConceptFormValues;
   pending: boolean;
   error: string | null;
+  saveError: boolean;
   update: <K extends keyof ConceptFormValues>(
     key: K,
     value: ConceptFormValues[K],
@@ -49,7 +53,7 @@ export interface PoetEngineFormState {
 export function usePoetEngineForm(onGenerated: () => void): PoetEngineFormState {
   const { settings } = useAiSettings();
   const { activeProfile } = useLanguageProfiles();
-  const { form, setForm, reset: resetForm } = usePersistedForm<ConceptFormValues>(DEFAULTS);
+  const { form, setForm, reset: resetForm, saveError } = usePersistedForm<ConceptFormValues>(DEFAULTS);
   const request = useRequest(explainConcept);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -72,7 +76,7 @@ export function usePoetEngineForm(onGenerated: () => void): PoetEngineFormState 
     controllerRef.current = controller;
     const explanation = await request.run(settings, { ...form, ...languagePair(activeProfile) }, controller.signal);
     if (!explanation || controller.signal.aborted) return;
-    await saveDocument(POET_ENGINE_RESULT_KEY, explanation).catch(() => undefined);
+    await saveResult(POET_ENGINE_RESULT_KEY, explanation);
     onGenerated();
   }
 
@@ -80,10 +84,69 @@ export function usePoetEngineForm(onGenerated: () => void): PoetEngineFormState 
     form,
     pending: request.pending,
     error: request.error,
+    saveError,
     update,
     submit,
     reset,
   };
+}
+
+interface ChoiceWithCustomProps {
+  label: string;
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
+  disabled: boolean;
+  customLabel: string;
+  customPlaceholder: string;
+  customMaxLength: number;
+}
+
+/** Preset chips plus a Custom chip that shows a text field. A saved custom value keeps Custom selected. */
+function ChoiceWithCustom({
+  label,
+  options,
+  value,
+  onChange,
+  disabled,
+  customLabel,
+  customPlaceholder,
+  customMaxLength,
+}: ChoiceWithCustomProps) {
+  const [customSelected, setCustomSelected] = useState(false);
+  const isPreset = options.some((option) => option.value === value);
+  const customMode = customSelected || !isPreset;
+
+  return (
+    <>
+      <Field label={label}>
+        <ChoiceChips
+          options={[...options, { value: CUSTOM, label: "Custom" }]}
+          value={customMode ? CUSTOM : value}
+          onChange={(choice) => {
+            if (choice === CUSTOM) {
+              setCustomSelected(true);
+              onChange("");
+              return;
+            }
+            setCustomSelected(false);
+            onChange(choice);
+          }}
+          disabled={disabled}
+        />
+      </Field>
+      {customMode && (
+        <TextField
+          label={customLabel}
+          placeholder={customPlaceholder}
+          value={value}
+          onChangeText={onChange}
+          editable={!disabled}
+          maxLength={customMaxLength}
+        />
+      )}
+    </>
+  );
 }
 
 export function PoetEngineFormFields({ poet }: { poet: PoetEngineFormState }) {
@@ -99,23 +162,28 @@ export function PoetEngineFormFields({ poet }: { poet: PoetEngineFormState }) {
         editable={!pending}
         maxLength={200}
       />
-      <SelectField
+      <ChoiceWithCustom
         label="Poetic style"
         options={POETIC_STYLE_OPTIONS}
         value={form.poeticStyle}
         onChange={(value) => update("poeticStyle", value)}
+        disabled={pending}
+        customLabel="Custom poetic style"
         customPlaceholder="e.g. Sonnet, Free verse, Limerick"
+        customMaxLength={100}
       />
-      <TextField
-        label="User mood (optional)"
-        placeholder="e.g. mystical, melancholic, joyful"
+      <ChoiceWithCustom
+        label="Mood (optional)"
+        options={POET_MOOD_OPTIONS}
         value={form.userMood}
-        onChangeText={(text) => update("userMood", text)}
-        editable={!pending}
-        maxLength={200}
+        onChange={(value) => update("userMood", value)}
+        disabled={pending}
+        customLabel="Custom mood"
+        customPlaceholder="e.g. playful, bittersweet"
+        customMaxLength={200}
       />
       <TextField
-        label="User instructions (optional)"
+        label="Instructions (optional)"
         placeholder="e.g. nature metaphors, urban settings…"
         value={form.userCustomInstruction}
         onChangeText={(text) => update("userCustomInstruction", text)}
@@ -129,14 +197,15 @@ export function PoetEngineFormFields({ poet }: { poet: PoetEngineFormState }) {
 }
 
 export function PoetEngineFormFooter({ poet }: { poet: PoetEngineFormState }) {
-  const { pending, error, submit } = poet;
+  const { pending, error, saveError, submit } = poet;
 
   return (
     <View style={styles.footer}>
       <ErrorText message={error} />
+      <ErrorText message={saveError ? SAVE_FAILED_MESSAGE : null} />
       <ActionButton
-        label={pending ? "Composing the soul of the word…" : "Explain the concept"}
-        icon={Feather}
+        label={pending ? "Explaining…" : "Explain the concept"}
+        icon={Sparkles}
         loading={pending}
         onPress={submit}
       />

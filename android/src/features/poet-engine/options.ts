@@ -18,3 +18,10 @@ export const POETIC_STYLE_OPTIONS: SelectOption[] = [
   { value: "Metaphorical Prose", label: "Metaphorical Prose" },
   { value: "Ghazal-style", label: "Ghazal-style" },
 ];
+
+/** Mood presets from the webui placeholder. The first one is the backend default. */
+export const POET_MOOD_OPTIONS: SelectOption[] = [
+  { value: "mystical", label: "Mystical" },
+  { value: "melancholic", label: "Melancholic" },
+  { value: "joyful", label: "Joyful" },
+];

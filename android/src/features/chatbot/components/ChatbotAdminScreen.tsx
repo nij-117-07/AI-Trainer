@@ -1,14 +1,13 @@
 // src/features/chatbot/components/ChatbotAdminScreen.tsx
 /** Chatbot admin: create, edit, duplicate, and delete personas, and set chat-wide defaults. */
 import { useState, type ReactNode } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { ArrowLeft, Bot, Check, Copy, Pencil, Plus, Trash2, type LucideIcon } from "lucide-react-native";
+import { ToolScreen } from "@/components/tool/ToolScreen";
 import { CardGrid } from "@/components/tool/CardGrid";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ActionButton, ErrorText, pointerCursor } from "@/components/tool/FormControls";
-import { contentWidth, radius, spacing, useLayout, useThemeColors } from "@/theme";
+import { cardPadding, contentWidth, shape, spacing, touchTarget, typeScale, useLayout, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { isSpeechConfigured, resolveSpeechConnection } from "@/features/ai-settings/lib/speech";
 import { removeChatsForPersona } from "../lib/chat-store";
@@ -25,7 +24,6 @@ type Status = { tone: "busy" | "ok" | "error"; text: string };
 
 export function ChatbotAdminScreen() {
   const colors = useThemeColors();
-  const router = useRouter();
   const { size } = useLayout();
   const config = useChatbotConfig();
   const { settings: aiSettings } = useAiSettings();
@@ -34,11 +32,7 @@ export function ChatbotAdminScreen() {
   const [status, setStatus] = useState<Status | null>(null);
   const busy = status?.tone === "busy";
   const sideBySide = size === "desktop";
-
-  const back = () => {
-    if (router.canGoBack()) router.back();
-    else router.replace("/tools");
-  };
+  const cardPad = size === "phone" ? cardPadding.compact : cardPadding.medium;
 
   async function attempt(action: () => Promise<void>, success: string) {
     setStatus({ tone: "busy", text: "Working…" });
@@ -100,151 +94,129 @@ export function ChatbotAdminScreen() {
     status?.tone === "error" ? colors.destructive : status?.tone === "ok" ? colors.tone.emerald.fg : colors.mutedForeground;
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "left", "right"]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Pressable
-          onPress={editing ? () => setEditing(null) : back}
-          accessibilityRole="button"
-          accessibilityLabel={editing ? "Back to personas" : "Go back"}
-          style={({ pressed }) => [
-            styles.iconButton,
-            pointerCursor,
-            { borderColor: colors.border },
-            pressed && { backgroundColor: colors.muted },
-          ]}
-        >
-          <ArrowLeft size={18} color={colors.foreground} />
-        </Pressable>
-        <Text accessibilityRole="header" numberOfLines={1} style={[styles.headerTitle, { color: colors.foreground }]}>
-          Chatbot admin
-        </Text>
-        <View style={styles.iconSpacer} />
-      </View>
-
-      <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          {!config.loaded ? (
-            <View style={styles.loading}>
-              <ActivityIndicator color={colors.primary} />
-              <Text style={[styles.hint, { color: colors.mutedForeground }]}>Loading personas…</Text>
+    <ToolScreen title="Chatbot admin" usesAi={false} wide>
+      {!config.loaded ? (
+        <View style={styles.loading}>
+          <ActivityIndicator color={colors.primary} />
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>Loading personas…</Text>
+        </View>
+      ) : editing ? (
+        <View style={[styles.stack, styles.centered, { maxWidth: contentWidth.form }]}>
+          <ActionButton label="Back to personas" icon={ArrowLeft} variant="outline" onPress={() => setEditing(null)} />
+          <PersonaEditor
+            key={editing === "new" ? "new" : editing.id}
+            persona={editing === "new" ? null : editing}
+            onSave={savePersona}
+            onCancel={() => setEditing(null)}
+          />
+        </View>
+      ) : (
+        <View style={sideBySide ? styles.split : styles.stack}>
+          <View style={[styles.stack, sideBySide && styles.grow]}>
+            <View style={styles.intro}>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>
+                Personas
+              </Text>
+              <Text style={[styles.description, { color: colors.mutedForeground }]}>
+                Each persona has its own instructions and model settings. Pick one on the chatbot page to chat with it.
+              </Text>
             </View>
-          ) : editing ? (
-            <View style={[styles.centered, { maxWidth: contentWidth.form }]}>
-              <PersonaEditor
-                key={editing === "new" ? "new" : editing.id}
-                persona={editing === "new" ? null : editing}
-                onSave={savePersona}
-                onCancel={() => setEditing(null)}
-              />
-            </View>
-          ) : (
-            <View style={[styles.centered, { maxWidth: size === "phone" ? undefined : contentWidth.wide }]}>
-              <View style={sideBySide ? styles.split : styles.stack}>
-                <View style={[styles.stack, sideBySide && styles.grow]}>
-                  <View style={styles.intro}>
-                    <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>
-                      Personas
-                    </Text>
-                    <Text style={[styles.description, { color: colors.mutedForeground }]}>
-                      Each persona has its own instructions and model settings. Pick one on the chatbot page to chat with it.
-                    </Text>
-                  </View>
 
-                  <ErrorText message={config.loadError} />
+            <ErrorText message={config.loadError} />
 
-                  {status ? (
-                    <Text accessibilityLiveRegion="polite" style={[styles.status, { color: statusColor }]}>
-                      {status.text}
-                    </Text>
-                  ) : null}
+            {status ? (
+              <Text accessibilityLiveRegion="polite" style={[styles.status, { color: statusColor }]}>
+                {status.text}
+              </Text>
+            ) : null}
 
-                  <ActionButton label="New persona" icon={Plus} onPress={() => setEditing("new")} disabled={busy} />
+            <ActionButton label="New persona" icon={Plus} onPress={() => setEditing("new")} disabled={busy} />
 
-                  {config.personas.length === 0 ? (
-                    config.loadError ? null : (
-                      <EmptyHint icon={Bot} title="No personas yet" hint="Create a persona to start chatting." />
-                    )
-                  ) : (
-                    <CardGrid>
-                      {config.personas.map((persona) => {
-                        const isDefault = persona.id === config.settings.defaultPersonaId;
-                        return (
-                          <View key={persona.id} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                            <View style={styles.cardTop}>
-                              <PersonaAvatar emoji={persona.avatar} size={40} />
-                              <View style={styles.cardText}>
-                                <View style={styles.nameRow}>
-                                  <Text numberOfLines={1} style={[styles.name, { color: colors.foreground }]}>
-                                    {persona.name}
-                                  </Text>
-                                  {isDefault ? (
-                                    <Text style={[styles.badge, { color: colors.tone.emerald.fg, borderColor: colors.border }]}>Default</Text>
-                                  ) : null}
-                                </View>
-                                <Text numberOfLines={2} style={[styles.hint, { color: colors.mutedForeground }]}>
-                                  {persona.description || "No description yet"}
-                                </Text>
-                                <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-                                  {persona.model || "Model from AI settings"} · Temp {persona.temperature.toFixed(2)} · Top P{" "}
-                                  {persona.topP.toFixed(2)}
-                                  {persona.maxTokens > 0 ? ` · ${persona.maxTokens} max tokens` : ""}
-                                </Text>
-                              </View>
-                            </View>
-                            <View style={styles.actions}>
-                              <ActionLink
-                                label="Edit"
-                                accessibilityLabel={`Edit ${persona.name}`}
-                                icon={Pencil}
-                                disabled={busy}
-                                onPress={() => setEditing(persona)}
-                              />
-                              {!isDefault ? (
-                                <ActionLink
-                                  label="Make default"
-                                  accessibilityLabel={`Make ${persona.name} the default persona`}
-                                  icon={Check}
-                                  disabled={busy}
-                                  onPress={() => makeDefault(persona)}
-                                />
-                              ) : null}
-                              <ActionLink
-                                label="Duplicate"
-                                accessibilityLabel={`Duplicate ${persona.name}`}
-                                icon={Copy}
-                                disabled={busy}
-                                onPress={() => duplicate(persona)}
-                              />
-                              <ActionLink
-                                label="Delete"
-                                accessibilityLabel={`Delete ${persona.name}`}
-                                icon={Trash2}
-                                danger
-                                disabled={busy}
-                                onPress={() => remove(persona)}
-                              />
-                            </View>
+            {config.personas.length === 0 ? (
+              config.loadError ? null : (
+                <EmptyHint icon={Bot} title="No personas yet" hint="Create a persona to start chatting." />
+              )
+            ) : (
+              <CardGrid>
+                {config.personas.map((persona) => {
+                  const isDefault = persona.id === config.settings.defaultPersonaId;
+                  return (
+                    <View
+                      key={persona.id}
+                      style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border, padding: cardPad }]}
+                    >
+                      <View style={styles.cardTop}>
+                        <PersonaAvatar emoji={persona.avatar} size={40} />
+                        <View style={styles.cardText}>
+                          <View style={styles.nameRow}>
+                            <Text numberOfLines={1} style={[styles.name, { color: colors.foreground }]}>
+                              {persona.name}
+                            </Text>
+                            {isDefault ? (
+                              <Text style={[styles.badge, { color: colors.tone.emerald.fg, borderColor: colors.border }]}>Default</Text>
+                            ) : null}
                           </View>
-                        );
-                      })}
-                    </CardGrid>
-                  )}
-                </View>
+                          <Text numberOfLines={2} style={[styles.hint, { color: colors.mutedForeground }]}>
+                            {persona.description || "No description yet"}
+                          </Text>
+                          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+                            {persona.model || "Model from AI settings"} · Temp {persona.temperature.toFixed(2)} · Top P{" "}
+                            {persona.topP.toFixed(2)}
+                            {persona.maxTokens > 0 ? ` · ${persona.maxTokens} max tokens` : ""}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.actions}>
+                        <ActionLink
+                          label="Edit"
+                          accessibilityLabel={`Edit ${persona.name}`}
+                          icon={Pencil}
+                          disabled={busy}
+                          onPress={() => setEditing(persona)}
+                        />
+                        {!isDefault ? (
+                          <ActionLink
+                            label="Make default"
+                            accessibilityLabel={`Make ${persona.name} the default persona`}
+                            icon={Check}
+                            disabled={busy}
+                            onPress={() => makeDefault(persona)}
+                          />
+                        ) : null}
+                        <ActionLink
+                          label="Duplicate"
+                          accessibilityLabel={`Duplicate ${persona.name}`}
+                          icon={Copy}
+                          disabled={busy}
+                          onPress={() => duplicate(persona)}
+                        />
+                        <ActionLink
+                          label="Delete"
+                          accessibilityLabel={`Delete ${persona.name}`}
+                          icon={Trash2}
+                          danger
+                          disabled={busy}
+                          onPress={() => remove(persona)}
+                        />
+                      </View>
+                    </View>
+                  );
+                })}
+              </CardGrid>
+            )}
+          </View>
 
-                <View style={sideBySide ? styles.sidePane : [styles.centered, { maxWidth: contentWidth.form }]}>
-                  <ChatbotSettingsCard
-                    settings={config.settings}
-                    personas={config.personas}
-                    speechReady={speechReady}
-                    onSave={(next) => config.saveSettingsValues(next)}
-                  />
-                </View>
-              </View>
-            </View>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          <View style={sideBySide ? styles.sidePane : [styles.centered, { maxWidth: contentWidth.form }]}>
+            <ChatbotSettingsCard
+              settings={config.settings}
+              personas={config.personas}
+              speechReady={speechReady}
+              onSave={(next) => config.saveSettingsValues(next)}
+            />
+          </View>
+        </View>
+      )}
+    </ToolScreen>
   );
 }
 
@@ -275,49 +247,18 @@ function ActionLink({
       style={({ pressed }) => [
         styles.actionLink,
         pointerCursor,
-        { borderColor: colors.border },
+        { borderColor: danger ? colors.destructive : colors.border },
         pressed && { backgroundColor: colors.muted },
         disabled && styles.disabled,
       ]}
     >
-      <Icon size={14} color={tint} />
+      <Icon size={18} color={tint} />
       <Text style={[styles.actionText, { color: tint }]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  header: {
-    height: 64,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.lg,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    flexShrink: 1,
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  iconSpacer: {
-    width: 44,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing["2xl"],
-  },
   centered: {
     width: "100%",
     alignSelf: "center",
@@ -345,26 +286,20 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "700",
-    letterSpacing: -0.4,
+    ...typeScale.headline,
   },
   description: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
   status: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
   },
   hint: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
   card: {
     borderWidth: 1,
-    borderRadius: radius["2xl"],
-    padding: spacing.lg,
+    borderRadius: shape.lg,
     gap: spacing.md,
   },
   cardTop: {
@@ -382,16 +317,16 @@ const styles = StyleSheet.create({
   },
   name: {
     flexShrink: 1,
-    fontSize: 16,
-    fontWeight: "700",
+    ...typeScale.bodyLarge,
+    fontWeight: "600",
   },
   badge: {
-    fontSize: 11,
+    ...typeScale.caption,
     fontWeight: "600",
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: spacing.xs,
     overflow: "hidden",
   },
   actions: {
@@ -403,13 +338,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
-    minHeight: 44,
+    minHeight: touchTarget,
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
   },
   actionText: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
   disabled: {

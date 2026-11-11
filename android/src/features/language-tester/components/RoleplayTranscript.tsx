@@ -1,58 +1,85 @@
 // src/features/language-tester/components/RoleplayTranscript.tsx
 /**
- * Roleplay conversation. User lines sit on the right; character lines sit on the left with the
- * coach's critique, fluency score, and strategies inside the same bubble.
+ * Roleplay conversation. Your lines sit on the right in a tonal bubble. The partner's lines take the
+ * full width with a small avatar, and the coach's feedback sits under each one.
  */
+import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { Target } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Bot, RefreshCcw, Target } from "lucide-react-native";
+import { shape, spacing, typeScale, useThemeColors } from "@/theme";
+import { ActionButton, ErrorText } from "@/components/tool/FormControls";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { useToolScroll } from "@/components/tool/ToolScrollContext";
 import type { ChatTurn, RoleplayFeedback } from "../types";
-import { EmptyNote } from "./QuizParts";
 
-export function RoleplayTranscript({ turns, pending }: { turns: ChatTurn[]; pending: boolean }) {
+interface RoleplayTranscriptProps {
+  turns: ChatTurn[];
+  pending: boolean;
+  error: string | null;
+  onRetry: () => void;
+}
+
+export function RoleplayTranscript({ turns, pending, error, onRetry }: RoleplayTranscriptProps) {
   const colors = useThemeColors();
+  const scroll = useToolScroll();
+
+  useEffect(() => {
+    scroll?.current?.scrollToEnd({ animated: true });
+  }, [turns.length, pending, scroll]);
 
   if (turns.length === 0 && !pending) {
-    return (
-      <EmptyNote message="Set a language and scenario, then deliver your first line to begin the coached conversation." />
-    );
+    return <EmptyHint icon={Bot} title="Start the scene" hint="Write your first line in the message box." />;
   }
 
   return (
-    <View style={styles.list}>
+    <View accessibilityRole="list" accessibilityLabel="Conversation" style={styles.list}>
       {turns.map((turn, index) => (
-        <TurnBubble key={index} turn={turn} />
+        <TurnView key={index} turn={turn} />
       ))}
       {pending && (
-        <View accessibilityLiveRegion="polite" style={styles.pending}>
-          <ActivityIndicator color={colors.primary} />
-          <Text style={[styles.pendingText, { color: colors.mutedForeground }]}>The character is replying…</Text>
+        <View accessibilityLiveRegion="polite" style={styles.thinking}>
+          <ActivityIndicator size="small" color={colors.mutedForeground} />
+          <Text style={[typeScale.caption, { color: colors.mutedForeground }]}>Thinking</Text>
+        </View>
+      )}
+      {error && !pending && (
+        <View style={styles.errorBox}>
+          <ErrorText message={error} />
+          <ActionButton label="Retry" icon={RefreshCcw} variant="outline" onPress={onRetry} />
         </View>
       )}
     </View>
   );
 }
 
-function TurnBubble({ turn }: { turn: ChatTurn }) {
+function TurnView({ turn }: { turn: ChatTurn }) {
   const colors = useThemeColors();
 
   if (turn.role === "user") {
     return (
-      <View style={[styles.bubble, styles.userBubble, { backgroundColor: colors.primary }]}>
-        <Text selectable style={[styles.userText, { color: colors.primaryForeground }]}>
-          {turn.content}
-        </Text>
+      <View style={styles.userRow}>
+        <View style={[styles.userBubble, { backgroundColor: colors.muted }]}>
+          <Text selectable accessibilityLabel={`You: ${turn.content}`} style={[typeScale.body, { color: colors.foreground }]}>
+            {turn.content}
+          </Text>
+        </View>
       </View>
     );
   }
 
   return (
-    <View style={[styles.bubble, styles.assistantBubble, { backgroundColor: colors.muted }]}>
-      <MarkdownText content={turn.content} />
-      <ListenButton text={turn.content} label="Reply" />
-      {turn.feedback && <FeedbackPanel feedback={turn.feedback} />}
+    <View style={styles.partnerRow}>
+      <View style={[styles.avatar, { backgroundColor: colors.muted }]}>
+        <Bot size={18} color={colors.foreground} />
+      </View>
+      <View style={styles.partnerBody}>
+        <Text style={[typeScale.caption, { color: colors.mutedForeground }]}>Partner</Text>
+        <MarkdownText content={turn.content} />
+        <ListenButton text={turn.content} label="Reply" />
+        {turn.feedback && <FeedbackPanel feedback={turn.feedback} />}
+      </View>
     </View>
   );
 }
@@ -65,12 +92,7 @@ function FeedbackPanel({ feedback }: { feedback: RoleplayFeedback }) {
   return (
     <View style={[styles.feedback, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={styles.feedbackHeader}>
-        <View style={styles.feedbackTitle}>
-          <Target size={14} color={colors.mutedForeground} />
-          <Text accessibilityRole="header" style={[styles.feedbackLabel, { color: colors.foreground }]}>
-            Coach feedback
-          </Text>
-        </View>
+        <Target size={16} color={colors.mutedForeground} />
         <View
           accessibilityLiveRegion="polite"
           style={[
@@ -80,8 +102,9 @@ function FeedbackPanel({ feedback }: { feedback: RoleplayFeedback }) {
         >
           <Text
             style={[
+              typeScale.caption,
               styles.pillText,
-              { color: feedback.isGoalAchieved ? colors.tone.emerald.fg : colors.mutedForeground },
+              { color: feedback.isGoalAchieved ? colors.tone.emerald.fg : colors.foreground },
             ]}
           >
             Fluency {score}/10{goal}
@@ -90,7 +113,7 @@ function FeedbackPanel({ feedback }: { feedback: RoleplayFeedback }) {
       </View>
       {feedback.linguisticCritique !== "" && (
         <>
-          <Text style={[styles.critique, { color: colors.mutedForeground }]}>{feedback.linguisticCritique}</Text>
+          <Text style={[typeScale.body, { color: colors.mutedForeground }]}>{feedback.linguisticCritique}</Text>
           <ListenButton text={feedback.linguisticCritique} label="Feedback" />
         </>
       )}
@@ -103,35 +126,49 @@ function FeedbackPanel({ feedback }: { feedback: RoleplayFeedback }) {
 
 const styles = StyleSheet.create({
   list: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
-  bubble: {
-    maxWidth: "88%",
-    borderRadius: radius.xl,
-    padding: spacing.md,
-    gap: spacing.sm,
+  userRow: {
+    alignItems: "flex-end",
   },
   userBubble: {
-    alignSelf: "flex-end",
+    maxWidth: "80%",
+    borderTopLeftRadius: shape.lg,
+    borderTopRightRadius: shape.xs,
+    borderBottomLeftRadius: shape.lg,
+    borderBottomRightRadius: shape.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
-  assistantBubble: {
-    alignSelf: "flex-start",
+  partnerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
   },
-  userText: {
-    fontSize: 15,
-    lineHeight: 22,
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  pending: {
+  partnerBody: {
+    flex: 1,
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
+  thinking: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
   },
-  pendingText: {
-    fontSize: 13,
+  errorBox: {
+    gap: spacing.md,
   },
   feedback: {
+    alignSelf: "stretch",
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
     gap: spacing.sm,
   },
@@ -139,29 +176,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
-    justifyContent: "space-between",
     gap: spacing.sm,
   },
-  feedbackTitle: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  feedbackLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
   pill: {
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
   pillText: {
-    fontSize: 12,
     fontWeight: "600",
-  },
-  critique: {
-    fontSize: 13,
-    lineHeight: 19,
   },
 });

@@ -5,12 +5,12 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleShee
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ArrowLeft, ChevronDown, Menu, SquarePen } from "lucide-react-native";
-import { contentWidth, radius, spacing, useLayout, useThemeColors } from "@/theme";
+import { contentWidth, shape, spacing, touchTarget, typeScale, useLayout, useThemeColors } from "@/theme";
 import { pointerCursor } from "@/components/tool/FormControls";
+import { UndoSnackbar } from "@/components/tool/UndoSnackbar";
 import { useChatbot } from "../hooks/useChatbot";
 import { useReplySpeech } from "../hooks/useReplySpeech";
 import { useVoiceInput } from "../hooks/useVoiceInput";
-import { confirmAction } from "../lib/confirm";
 import { appendTranscript, formatElapsed } from "../lib/voice-text";
 import { ChatDrawer } from "./ChatDrawer";
 import { Composer } from "./Composer";
@@ -76,6 +76,10 @@ export function ChatbotScreen() {
     void chat.send();
   };
 
+  const errors = [voice.error, speech.error, chat.error].filter(
+    (text, index, all): text is string => Boolean(text) && all.indexOf(text) === index,
+  );
+
   const startNewChat = () => {
     speech.stop();
     chat.startNewChat();
@@ -132,11 +136,10 @@ export function ChatbotScreen() {
               void chat.openThread(id);
               setDrawerOpen(false);
             }}
-            onDelete={(id) =>
-              confirmAction("Delete this chat?", "It will be removed from this device.", () => {
-                void chat.deleteThread(id);
-              })
-            }
+            onDelete={(id) => {
+              chat.deleteThread(id);
+              setDrawerOpen(false);
+            }}
           />
 
           <KeyboardAvoidingView style={styles.main} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -169,10 +172,20 @@ export function ChatbotScreen() {
                 </Text>
               ) : null}
 
-              {speech.error || voice.error || chat.error ? (
-                <Text accessibilityRole="alert" style={[styles.error, { color: colors.destructive }]}>
-                  {voice.error ?? speech.error ?? chat.error}
+              {errors.map((text) => (
+                <Text key={text} accessibilityRole="alert" style={[styles.error, { color: colors.destructive }]}>
+                  {text}
                 </Text>
+              ))}
+
+              {chat.pendingDelete ? (
+                <View style={styles.snackbarAnchor}>
+                  <UndoSnackbar
+                    message={`Deleted chat ${chat.pendingDelete.title}`}
+                    onUndo={chat.undoDelete}
+                    onDismiss={() => void chat.commitDelete()}
+                  />
+                </View>
               ) : null}
 
               <View style={styles.composerWrap}>
@@ -262,10 +275,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   iconButton: {
-    height: 44,
-    minWidth: 44,
+    height: touchTarget,
+    minWidth: touchTarget,
     paddingHorizontal: spacing.sm,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -276,14 +289,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.sm,
-    height: 44,
+    height: touchTarget,
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
   },
   personaName: {
+    ...typeScale.body,
     flexShrink: 1,
-    fontSize: 15,
     fontWeight: "600",
   },
   split: {
@@ -305,26 +318,28 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   status: {
-    fontSize: 13,
+    ...typeScale.caption,
     textAlign: "center",
     paddingBottom: spacing.xs,
   },
   error: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xs,
   },
+  snackbarAnchor: {
+    height: 0,
+  },
   hint: {
-    fontSize: 15,
+    ...typeScale.body,
   },
   linkButton: {
-    minHeight: 44,
+    minHeight: touchTarget,
     justifyContent: "center",
     paddingHorizontal: spacing.md,
   },
   link: {
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
 });

@@ -1,7 +1,7 @@
 // src/features/chatbot/components/EmptyChat.tsx
 /** Shown before the first message: the persona's introduction and its starter prompts. */
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { pointerCursor } from "@/components/tool/FormControls";
 import type { Persona } from "../types";
 import { PersonaAvatar } from "./PersonaAvatar";
@@ -56,12 +56,10 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   title: {
-    fontSize: 22,
-    fontWeight: "700",
+    ...typeScale.headline,
   },
   description: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
     textAlign: "center",
     maxWidth: 420,
   },
@@ -72,19 +70,18 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   label: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
   starter: {
-    minHeight: 44,
+    minHeight: touchTarget,
     justifyContent: "center",
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
   starterText: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
   },
 });

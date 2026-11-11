@@ -1,30 +1,31 @@
 /**
  * Rewriter: rewrites text for a tone, audience, and goal, with the rationale and the changes made.
- * The form is the side panel on tablet and desktop and the first part of the page on phones. The
- * last rewrite is kept on the device and shown in the results.
+ * The original text and its options sit beside the rewrite on wide windows and above it on phones.
+ * The last rewrite is kept on the device and shown in the results.
  */
 import { useEffect, useRef } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Lightbulb, ListChecks, PenLine, Sparkles } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ArrowUp, Lightbulb, ListChecks, PenLine, Sparkles } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import {
   ActionButton,
+  ChoiceChips,
   ErrorText,
-  Panel,
+  Field,
+  pointerCursor,
   TextField,
 } from "@/components/tool/FormControls";
 import { CopyButton } from "@/components/tool/CopyButton";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { SelectField } from "@/components/tool/SelectField";
-import { Section } from "@/components/tool/Section";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { ResultCallout } from "@/components/tool/ResultCallout";
-import { SectionTitle } from "@/components/tool/SectionTitle";
 import { useRequest } from "@/hooks/useRequest";
 import { rewriteText } from "../lib/generators";
-import { REWRITER_STORAGE_KEY } from "../lib/persistence";
+import { REWRITER_STORAGE_KEY, SAVE_FAILED_MESSAGE } from "../lib/persistence";
 import {
   AUDIENCE_OPTIONS,
   TONE_OPTIONS,
@@ -46,6 +47,7 @@ export interface RewriterState {
   result: RewriteResult | null;
   pending: boolean;
   error: string | null;
+  saveError: boolean;
   update: <K extends keyof RewriteFormValues>(key: K, value: RewriteFormValues[K]) => void;
   submit: () => Promise<void>;
   reset: () => void;
@@ -53,7 +55,7 @@ export interface RewriterState {
 
 export function useRewriter(): RewriterState {
   const { settings } = useAiSettings();
-  const { form, setForm, result, setResult, reset: resetSaved } = usePersistedDraft<
+  const { form, setForm, result, setResult, reset: resetSaved, saveError } = usePersistedDraft<
     RewriteFormValues,
     RewriteResult
   >(REWRITER_STORAGE_KEY, DEFAULTS);
@@ -85,68 +87,24 @@ export function useRewriter(): RewriterState {
     result,
     pending: request.pending,
     error: request.error,
+    saveError,
     update,
     submit,
     reset,
   };
 }
 
-export function RewriterResults({ rewriter }: { rewriter: RewriterState }) {
-  const colors = useThemeColors();
-  const { result } = rewriter;
+export function RewriterSource({ rewriter }: { rewriter: RewriterState }) {
+  const { form, pending, update } = rewriter;
+  const goalOptions = TRANSFORMATION_GOAL_OPTIONS.some((option) => option.value === form.transformationGoal)
+    ? TRANSFORMATION_GOAL_OPTIONS
+    : [...TRANSFORMATION_GOAL_OPTIONS, { value: form.transformationGoal, label: form.transformationGoal }];
 
   return (
-    <Section>
-      {result ? (
-        <>
-          <ResultCallout icon={PenLine} title="Rewritten text" tone="emerald">
-            <MarkdownText
-              content={result.rewrittenText ? quote(result.rewrittenText) : "_No rewrite was returned._"}
-            />
-            <View style={styles.actions}>
-              <ListenButton text={result.rewrittenText} label="Rewrite" />
-              {result.rewrittenText !== "" && (
-                <CopyButton text={result.rewrittenText} label="Copy rewrite" />
-              )}
-            </View>
-          </ResultCallout>
-
-          {result.rationale !== "" && (
-            <ResultCallout icon={Lightbulb} title="Rationale" tone="sky">
-              <MarkdownText content={result.rationale} />
-              <ListenButton text={result.rationale} label="Rationale" />
-            </ResultCallout>
-          )}
-
-          <Panel>
-            <SectionTitle icon={ListChecks} title="Improvements made" />
-            {result.improvementsMade.length === 0 ? (
-              <Text style={[styles.empty, { color: colors.mutedForeground }]}>No improvements were listed.</Text>
-            ) : (
-              <MarkdownText content={result.improvementsMade.map((item) => `- ${item}`).join("\n")} />
-            )}
-          </Panel>
-        </>
-      ) : (
-        <EmptyHint
-          icon={PenLine}
-          title="No rewrite yet"
-          hint="Enter text in the form, set the tone and audience, then tap Rewrite."
-        />
-      )}
-    </Section>
-  );
-}
-
-export function RewriterFooter({ rewriter }: { rewriter: RewriterState }) {
-  const colors = useThemeColors();
-  const { form, pending, error, update, submit } = rewriter;
-
-  return (
-    <View style={styles.form}>
+    <View style={styles.stack}>
       <TextField
         label="Original text"
-        placeholder="Paste the text you want to rewrite…"
+        placeholder="e.g. Paste a paragraph from an email"
         value={form.originalText}
         onChangeText={(text) => update("originalText", text)}
         editable={!pending}
@@ -155,7 +113,7 @@ export function RewriterFooter({ rewriter }: { rewriter: RewriterState }) {
         voice
       />
       <SelectField
-        label="Target tone"
+        label="Tone"
         options={TONE_OPTIONS}
         value={form.targetTone}
         onChange={(value) => update("targetTone", value)}
@@ -168,16 +126,17 @@ export function RewriterFooter({ rewriter }: { rewriter: RewriterState }) {
         onChange={(value) => update("audience", value)}
         customPlaceholder="e.g. Hiring managers, Kids aged 8–10"
       />
-      <SelectField
-        label="Transformation goal"
-        options={TRANSFORMATION_GOAL_OPTIONS}
-        value={form.transformationGoal}
-        onChange={(value) => update("transformationGoal", value)}
-        customPlaceholder="e.g. Formalise, Localise, Bullet points"
-      />
+      <Field label="Goal">
+        <ChoiceChips
+          options={goalOptions}
+          value={form.transformationGoal}
+          onChange={(value) => update("transformationGoal", value)}
+          disabled={pending}
+        />
+      </Field>
       <TextField
-        label="User instructions (optional)"
-        placeholder="e.g. keep it under 15 words…"
+        label="Instructions (optional)"
+        placeholder="e.g. Keep it under 15 words"
         value={form.customInstructions}
         onChangeText={(text) => update("customInstructions", text)}
         editable={!pending}
@@ -185,12 +144,64 @@ export function RewriterFooter({ rewriter }: { rewriter: RewriterState }) {
         multiline
         voice
       />
-      {pending ? (
-        <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
-          Working on your rewrite. This can take a moment.
-        </Text>
-      ) : null}
+    </View>
+  );
+}
+
+export function RewriterResults({ rewriter }: { rewriter: RewriterState }) {
+  const colors = useThemeColors();
+  const { result, pending, update } = rewriter;
+
+  if (!result) {
+    return <EmptyHint icon={PenLine} title="No rewrite yet" hint="Your rewrite appears here." />;
+  }
+
+  const rewritten = result.rewrittenText;
+
+  return (
+    <View style={styles.stack}>
+      <ResultCallout icon={PenLine} title="Rewrite" tone="emerald">
+        {rewritten ? (
+          <MarkdownText content={rewritten} />
+        ) : (
+          <Text style={[styles.empty, { color: colors.mutedForeground }]}>No rewrite was returned.</Text>
+        )}
+        <View style={styles.actions}>
+          <ListenButton text={rewritten} label="Rewrite" />
+          {rewritten !== "" && (
+            <>
+              <CopyButton text={rewritten} label="Copy rewrite" />
+              <UseAsOriginalButton disabled={pending} onPress={() => update("originalText", rewritten)} />
+            </>
+          )}
+        </View>
+      </ResultCallout>
+
+      {result.rationale !== "" && (
+        <Disclosure title="Rationale" icon={Lightbulb} summary={oneLine(result.rationale)}>
+          <MarkdownText content={result.rationale} />
+          <ListenButton text={result.rationale} label="Rationale" />
+        </Disclosure>
+      )}
+
+      <Disclosure title="Changes made" icon={ListChecks} summary={changesSummary(result.improvementsMade)}>
+        {result.improvementsMade.length === 0 ? (
+          <Text style={[styles.empty, { color: colors.mutedForeground }]}>No changes were listed.</Text>
+        ) : (
+          <MarkdownText content={result.improvementsMade.map((item) => `- ${item}`).join("\n")} />
+        )}
+      </Disclosure>
+    </View>
+  );
+}
+
+export function RewriterFooter({ rewriter }: { rewriter: RewriterState }) {
+  const { pending, error, saveError, submit } = rewriter;
+
+  return (
+    <View style={styles.footer}>
       <ErrorText message={error} />
+      <ErrorText message={saveError ? SAVE_FAILED_MESSAGE : null} />
       <ActionButton
         label={pending ? "Rewriting…" : "Rewrite"}
         icon={Sparkles}
@@ -201,20 +212,44 @@ export function RewriterFooter({ rewriter }: { rewriter: RewriterState }) {
   );
 }
 
-function quote(text: string): string {
-  return text
-    .split("\n")
-    .map((line) => `> ${line}`)
-    .join("\n");
+function UseAsOriginalButton({ disabled, onPress }: { disabled: boolean; onPress: () => void }) {
+  const colors = useThemeColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel="Use rewrite as original"
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => [
+        styles.iconButton,
+        pointerCursor,
+        { borderColor: colors.border, backgroundColor: colors.card },
+        pressed && { backgroundColor: colors.muted },
+        disabled && styles.disabled,
+      ]}
+    >
+      <ArrowUp size={20} color={colors.foreground} />
+    </Pressable>
+  );
+}
+
+function oneLine(text: string): string {
+  return text.replace(/[`*_#>]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function changesSummary(items: string[]): string {
+  if (items.length === 0) return "No changes listed";
+  const count = `${items.length} ${items.length === 1 ? "change" : "changes"}`;
+  return `${count}: ${oneLine(items[0])}`;
 }
 
 const styles = StyleSheet.create({
-  form: {
+  stack: {
     gap: spacing.lg,
   },
-  status: {
-    fontSize: 13,
-    lineHeight: 18,
+  footer: {
+    gap: spacing.sm,
   },
   actions: {
     flexDirection: "row",
@@ -222,9 +257,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
   },
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderWidth: 1,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  disabled: {
+    opacity: 0.5,
+  },
   empty: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: spacing.sm,
+    ...typeScale.body,
   },
 });

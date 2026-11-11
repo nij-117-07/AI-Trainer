@@ -12,7 +12,7 @@ export default function IdiomsNewRoute() {
   return (
     <ToolScreen
       title="New idiom"
-      headerRight={<ResetButton onPress={idioms.reset} />}
+      headerRight={<ResetButton onPress={idioms.reset} accessibilityLabel="Reset form" />}
       footerSide={false}
       footer={<IdiomsFormFooter idioms={idioms} />}
     >

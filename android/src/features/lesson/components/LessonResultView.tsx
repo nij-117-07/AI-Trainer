@@ -1,94 +1,154 @@
 // src/features/lesson/components/LessonResultView.tsx
 /**
- * Renders a generated lesson: header, comparative analysis, deep dive, vocabulary, practice
- * exercises, insider tip, and homework. Vocabulary is shown as cards because the Markdown view
- * has no table support.
+ * Renders a generated lesson in three parts (Lesson, Vocabulary, Practice) that switch in place
+ * with a segmented control. Long text sits under Disclosures, the first one open. Vocabulary is
+ * shown as cards because the Markdown view has no table support.
  */
-import { StyleSheet, Text, View } from "react-native";
-import { BookOpenText, Languages, ListChecks, Lightbulb, Target } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { Panel } from "@/components/tool/FormControls";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { BookOpenText, Languages, Lightbulb, ListChecks, Target } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { pointerCursor } from "@/components/tool/FormControls";
 import { CardGrid } from "@/components/tool/CardGrid";
+import { CopyButton } from "@/components/tool/CopyButton";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
-import { ResultCallout } from "@/components/tool/ResultCallout";
-import { SectionTitle } from "@/components/tool/SectionTitle";
-import type { Lesson } from "../types";
+import type { Lesson, VocabularyEntry } from "../types";
+
+type Part = "lesson" | "vocabulary" | "practice";
+
+const PARTS: { value: Part; label: string }[] = [
+  { value: "lesson", label: "Lesson" },
+  { value: "vocabulary", label: "Vocabulary" },
+  { value: "practice", label: "Practice" },
+];
 
 export function LessonResultView({ lesson }: { lesson: Lesson }) {
   const colors = useThemeColors();
+  const [part, setPart] = useState<Part>("lesson");
+  const exercises = practiceText(lesson.practice);
+
   return (
     <>
       {lesson.header !== "" && (
-        <Panel>
-          <Text accessibilityRole="header" style={[styles.header, { color: colors.foreground }]}>
-            {lesson.header}
-          </Text>
-        </Panel>
+        <Text accessibilityRole="header" style={[styles.header, { color: colors.foreground }]}>
+          {lesson.header}
+        </Text>
       )}
 
-      <Panel>
-        <SectionTitle icon={Languages} title="Comparative analysis" />
-        {lesson.comparativeAnalysis !== "" ? (
-          <MarkdownText content={lesson.comparativeAnalysis} />
-        ) : (
-          <EmptyNote message="Nothing was returned." />
-        )}
-        <ListenButton text={lesson.comparativeAnalysis} label="Analysis" />
-      </Panel>
+      <PartSegments value={part} onChange={setPart} />
 
-      <Panel>
-        <SectionTitle icon={BookOpenText} title="Deep dive" />
-        {lesson.deepDive !== "" ? <MarkdownText content={lesson.deepDive} /> : <EmptyNote message="Nothing was returned." />}
-        <ListenButton text={lesson.deepDive} label="Deep dive" />
-      </Panel>
-
-      <Panel>
-        <SectionTitle icon={ListChecks} title="Vocabulary" />
-        {lesson.vocabulary.length === 0 ? (
-          <EmptyNote message="No vocabulary returned." />
-        ) : (
-          <CardGrid>
-            {lesson.vocabulary.map((entry, index) => (
-              <View
-                key={`${entry.word}-${index}`}
-                style={[styles.word, { backgroundColor: colors.background, borderColor: colors.border }]}
-              >
-                <Text selectable style={[styles.wordText, { color: colors.foreground }]}>
-                  {entry.word}
-                </Text>
-                {entry.ipa !== "" && <Text style={[styles.ipa, { color: colors.mutedForeground }]}>/{entry.ipa}/</Text>}
-                {entry.translation !== "" && <Text style={[styles.body, { color: colors.foreground }]}>{entry.translation}</Text>}
-                {entry.example !== "" && <Text style={[styles.example, { color: colors.mutedForeground }]}>{entry.example}</Text>}
-              </View>
-            ))}
-          </CardGrid>
-        )}
-      </Panel>
-
-      <Panel>
-        <SectionTitle icon={Target} title="Practice" />
-        {lesson.practice.length === 0 ? (
-          <EmptyNote message="No exercises returned." />
-        ) : (
-          <MarkdownText content={lesson.practice.map((item, index) => `${index + 1}. ${item}`).join("\n")} />
-        )}
-      </Panel>
-
-      {lesson.nuance !== "" && (
-        <ResultCallout icon={Lightbulb} title="Insider tip" tone="sky">
-          <MarkdownText content={lesson.nuance} />
-          <ListenButton text={lesson.nuance} label="Insider tip" />
-        </ResultCallout>
+      {part === "lesson" && (
+        <>
+          <Disclosure defaultOpen icon={Languages} title="Comparative analysis" summary={summaryOf(lesson.comparativeAnalysis)}>
+            <SectionBody text={lesson.comparativeAnalysis} label="Analysis" />
+          </Disclosure>
+          <Disclosure icon={BookOpenText} title="Deep dive" summary={summaryOf(lesson.deepDive)}>
+            <SectionBody text={lesson.deepDive} label="Deep dive" />
+          </Disclosure>
+          {lesson.nuance !== "" && (
+            <Disclosure icon={Lightbulb} title="Insider tip" summary={summaryOf(lesson.nuance)}>
+              <SectionBody text={lesson.nuance} label="Insider tip" />
+            </Disclosure>
+          )}
+        </>
       )}
 
-      {lesson.homework !== "" && (
-        <ResultCallout icon={Target} title="Homework mission" tone="amber">
-          <MarkdownText content={lesson.homework} />
-          <ListenButton text={lesson.homework} label="Homework" />
-        </ResultCallout>
+      {part === "vocabulary" && <VocabularyPart vocabulary={lesson.vocabulary} />}
+
+      {part === "practice" && (
+        <>
+          <Disclosure defaultOpen icon={ListChecks} title="Exercises" summary={summaryOf(exercises)}>
+            <SectionBody text={exercises} label="Exercises" emptyMessage="No exercises returned." />
+          </Disclosure>
+          {lesson.homework !== "" && (
+            <Disclosure icon={Target} title="Homework" summary={summaryOf(lesson.homework)}>
+              <SectionBody text={lesson.homework} label="Homework" />
+            </Disclosure>
+          )}
+        </>
       )}
     </>
+  );
+}
+
+function PartSegments({ value, onChange }: { value: Part; onChange: (part: Part) => void }) {
+  const colors = useThemeColors();
+  return (
+    <View
+      accessibilityRole="tablist"
+      accessibilityLabel="Lesson parts"
+      style={[styles.segments, { borderColor: colors.border, backgroundColor: colors.card }]}
+    >
+      {PARTS.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            onPress={() => onChange(option.value)}
+            accessibilityRole="tab"
+            accessibilityLabel={option.label}
+            accessibilityState={{ selected }}
+            style={[styles.segment, pointerCursor, selected && { backgroundColor: colors.primary }]}
+          >
+            <Text style={[styles.segmentText, { color: selected ? colors.primaryForeground : colors.foreground }]}>
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function VocabularyPart({ vocabulary }: { vocabulary: VocabularyEntry[] }) {
+  if (vocabulary.length === 0) return <EmptyNote message="No vocabulary returned." />;
+  return (
+    <>
+      <CardGrid>
+        {vocabulary.map((entry, index) => (
+          <WordCard key={`${entry.word}-${index}`} entry={entry} />
+        ))}
+      </CardGrid>
+      <Actions text={vocabularyText(vocabulary)} label="Vocabulary" />
+    </>
+  );
+}
+
+function WordCard({ entry }: { entry: VocabularyEntry }) {
+  const colors = useThemeColors();
+  return (
+    <View style={[styles.word, { backgroundColor: colors.background, borderColor: colors.border }]}>
+      <View style={styles.wordBody}>
+        <Text selectable style={[styles.wordText, { color: colors.foreground }]}>
+          {entry.word}
+        </Text>
+        {entry.ipa !== "" && <Text style={[styles.body, { color: colors.mutedForeground }]}>/{entry.ipa}/</Text>}
+        {entry.translation !== "" && <Text style={[styles.body, { color: colors.foreground }]}>{entry.translation}</Text>}
+        {entry.example !== "" && <Text style={[styles.example, { color: colors.mutedForeground }]}>{entry.example}</Text>}
+      </View>
+      <ListenButton text={entry.word} label={entry.word} />
+    </View>
+  );
+}
+
+function SectionBody({ text, label, emptyMessage = "Nothing was returned." }: { text: string; label: string; emptyMessage?: string }) {
+  return (
+    <>
+      {text !== "" ? <MarkdownText content={text} /> : <EmptyNote message={emptyMessage} />}
+      <Actions text={text} label={label} />
+    </>
+  );
+}
+
+function Actions({ text, label }: { text: string; label: string }) {
+  if (text === "") return null;
+  return (
+    <View style={styles.actions}>
+      <CopyButton text={text} label={`Copy ${label.toLowerCase()}`} />
+      <ListenButton text={text} label={label} />
+    </View>
   );
 }
 
@@ -97,32 +157,71 @@ function EmptyNote({ message }: { message: string }) {
   return <Text style={[styles.body, { color: colors.mutedForeground }]}>{message}</Text>;
 }
 
+function practiceText(practice: string[]): string {
+  return practice.map((item, index) => `${index + 1}. ${item}`).join("\n");
+}
+
+function vocabularyText(vocabulary: VocabularyEntry[]): string {
+  return vocabulary
+    .map((entry) => [entry.word, entry.ipa ? `/${entry.ipa}/` : "", entry.translation, entry.example].filter(Boolean).join(" — "))
+    .join("\n");
+}
+
+/** First non-empty line of the text, without Markdown marks, for a Disclosure summary. */
+function summaryOf(text: string): string | undefined {
+  const line = text
+    .split("\n")
+    .map((row) => row.replace(/^\s*(?:[-+*]|\d+\.)\s+/, "").replace(/[*_`#>]/g, "").trim())
+    .find(Boolean);
+  return line || undefined;
+}
+
 const styles = StyleSheet.create({
   header: {
-    fontSize: 22,
-    fontWeight: "700",
-    lineHeight: 28,
+    ...typeScale.title,
   },
-  body: {
-    fontSize: 15,
-    lineHeight: 22,
+  segments: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderRadius: shape.full,
+    padding: spacing.xs,
+  },
+  segment: {
+    flex: 1,
+    minHeight: touchTarget,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  segmentText: {
+    ...typeScale.label,
+    fontWeight: "600",
   },
   word: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.lg,
+  },
+  wordBody: {
+    flex: 1,
     gap: spacing.xs,
   },
   wordText: {
-    fontSize: 17,
-    fontWeight: "600",
+    ...typeScale.title,
   },
-  ipa: {
-    fontSize: 14,
+  body: {
+    ...typeScale.body,
   },
   example: {
-    fontSize: 14,
+    ...typeScale.body,
     fontStyle: "italic",
-    lineHeight: 20,
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
 });

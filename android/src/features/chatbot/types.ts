@@ -26,7 +26,7 @@ export interface ChatbotSettings {
 }
 
 export type MessageRole = "user" | "assistant";
-export type MessageStatus = "done" | "streaming" | "error";
+export type MessageStatus = "done" | "streaming" | "stopped" | "error";
 
 export interface ChatMessage {
   id: string;

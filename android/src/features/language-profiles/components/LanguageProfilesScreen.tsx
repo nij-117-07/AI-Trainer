@@ -1,20 +1,21 @@
-// src/features/language-profiles/components/LanguageProfilesScreen.tsx
 /**
  * Manage language profiles. Each profile is a native and target language pair. The active profile
  * is used by every Language Learner sub-app, so the user sets languages once here.
  */
-import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { Check, Pencil, Plus, Trash2 } from "lucide-react-native";
-import { contentWidth, radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField } from "@/components/tool/FormControls";
-import { CardGrid } from "@/components/tool/CardGrid";
-import { Section } from "@/components/tool/Section";
-import { SectionTitle } from "@/components/tool/SectionTitle";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Plus, Trash2, X, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, touchTarget, useThemeColors } from "@/theme";
+import { ActionButton, ErrorText, TextField, pointerCursor } from "@/components/tool/FormControls";
+import { SelectField } from "@/components/tool/SelectField";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { createProfileId, describePair, validateProfile } from "../lib/profiles";
+import { UndoSnackbar } from "@/components/tool/UndoSnackbar";
+import { LANGUAGE_OPTIONS } from "@/features/joke-coach/options";
+import { createProfileId, validateProfile } from "../lib/profiles";
+import { SAVE_FAILED_MESSAGE } from "../lib/profiles-storage";
 import { useLanguageProfiles } from "../providers/LanguageProfilesProvider";
 import type { LanguageProfile } from "../types";
+import { ProfileRow } from "./ProfileRow";
 
 type ProfileDraft = Omit<LanguageProfile, "id"> & { id: string | null };
 
@@ -22,10 +23,34 @@ const EMPTY_DRAFT: ProfileDraft = { id: null, name: "", nativeLanguage: "", targ
 
 export function LanguageProfilesScreen() {
   const colors = useThemeColors();
-  const { profiles, activeProfile, upsertProfile, removeProfile, activateProfile } = useLanguageProfiles();
+  const { profiles, activeProfile, saveError, upsertProfile, removeProfile, activateProfile } = useLanguageProfiles();
   const [draft, setDraft] = useState<ProfileDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<LanguageProfile | null>(null);
+  const pendingRef = useRef<LanguageProfile | null>(null);
+  const removeRef = useRef(removeProfile);
+  removeRef.current = removeProfile;
+
+  const visibleProfiles = pending ? profiles.filter((profile) => profile.id !== pending.id) : profiles;
+
+  const commitPending = useCallback(async () => {
+    const target = pendingRef.current;
+    if (!target) return;
+    pendingRef.current = null;
+    setPending(null);
+    try {
+      await removeRef.current(target.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete the profile. Please try again.");
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      void commitPending();
+    };
+  }, [commitPending]);
 
   function update<K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) {
     setDraft((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -34,6 +59,11 @@ export function LanguageProfilesScreen() {
 
   function startEdit(profile: LanguageProfile) {
     setDraft({ ...profile });
+    setError(null);
+  }
+
+  function startAdd() {
+    setDraft({ ...EMPTY_DRAFT });
     setError(null);
   }
 
@@ -74,200 +104,162 @@ export function LanguageProfilesScreen() {
   }
 
   function handleDelete(profile: LanguageProfile) {
-    if (profiles.length <= 1) {
+    if (visibleProfiles.length <= 1) {
       setError("Keep at least one language profile.");
       return;
     }
-    Alert.alert("Delete profile", `Delete "${profile.name}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          void run(async () => {
-            await removeProfile(profile.id);
-            if (draft?.id === profile.id) setDraft(null);
-          }, "Could not delete the profile. Please try again.");
-        },
-      },
-    ]);
+    void commitPending();
+    pendingRef.current = profile;
+    setPending(profile);
+    setDraft(null);
+    setError(null);
   }
 
+  function deleteDraft() {
+    const stored = profiles.find((profile) => profile.id === draft?.id);
+    if (stored) handleDelete(stored);
+  }
+
+  function undoDelete() {
+    pendingRef.current = null;
+    setPending(null);
+  }
+
+  const editing = draft !== null;
+  const title = draft ? (draft.id ? "Edit profile" : "New profile") : "Language profiles";
+
+  const headerRight = draft ? (
+    <>
+      {draft.id ? (
+        <HeaderIcon
+          icon={Trash2}
+          label={`Delete profile ${draft.name}`}
+          color={colors.destructive}
+          disabled={busy}
+          onPress={deleteDraft}
+        />
+      ) : null}
+      <HeaderIcon icon={X} label="Close profile editor" disabled={busy} onPress={closeEditor} />
+    </>
+  ) : (
+    <HeaderIcon icon={Plus} label="Add profile" disabled={busy} onPress={startAdd} />
+  );
+
+  const footer = draft ? (
+    <View style={styles.footer}>
+      <ErrorText message={error} />
+      <ActionButton label={busy ? "Saving…" : "Save profile"} loading={busy} onPress={handleSave} />
+    </View>
+  ) : undefined;
+
   return (
-    <ToolScreen title="Language Profiles" wide>
-      <Section>
-        <Text style={[styles.intro, { color: colors.mutedForeground }]}>
-          Set your native and target languages once. Every Language Learner sub-app uses the active profile.
-        </Text>
-
-        <ErrorText message={error} />
-
-        {draft ? (
-          <View style={styles.form}>
-            <Panel>
-              <SectionTitle icon={draft.id ? Pencil : Plus} title={draft.id ? "Edit profile" : "New profile"} />
-              <TextField
-                label="Profile name"
-                placeholder="e.g. English to French"
-                value={draft.name}
-                onChangeText={(text) => update("name", text)}
-                editable={!busy}
-                maxLength={100}
-              />
-              <TextField
-                label="Native language"
-                placeholder="e.g. English"
-                hint="The language you explain things in."
-                value={draft.nativeLanguage}
-                onChangeText={(text) => update("nativeLanguage", text)}
-                editable={!busy}
-                maxLength={100}
-              />
-              <TextField
-                label="Target language"
-                placeholder="e.g. French"
-                hint="The language you are learning."
-                value={draft.targetLanguage}
-                onChangeText={(text) => update("targetLanguage", text)}
-                editable={!busy}
-                maxLength={100}
-              />
-              <ActionButton label={busy ? "Saving…" : "Save profile"} loading={busy} onPress={handleSave} />
-              <ActionButton label="Cancel" variant="outline" onPress={closeEditor} disabled={busy} />
-            </Panel>
-          </View>
-        ) : (
-          <ActionButton
-            label="Add profile"
-            icon={Plus}
-            variant="outline"
-            onPress={() => {
-              setDraft({ ...EMPTY_DRAFT });
-              setError(null);
-            }}
-            disabled={busy}
+    <ToolScreen title={title} wide={!editing} usesAi={false} headerRight={headerRight} footer={footer}>
+      {draft ? (
+        <>
+          <TextField
+            label="Profile name"
+            placeholder="e.g. English to French"
+            value={draft.name}
+            onChangeText={(text) => update("name", text)}
+            editable={!busy}
+            maxLength={100}
           />
-        )}
-
-        <CardGrid>
-          {profiles.map((profile) => {
-            const active = profile.id === activeProfile.id;
-            return (
-              <View
+          <SelectField
+            label="Native language"
+            options={LANGUAGE_OPTIONS}
+            value={draft.nativeLanguage}
+            onChange={(value) => update("nativeLanguage", value)}
+            customPlaceholder="e.g. Swahili"
+          />
+          <SelectField
+            label="Target language"
+            options={LANGUAGE_OPTIONS}
+            value={draft.targetLanguage}
+            onChange={(value) => update("targetLanguage", value)}
+            customPlaceholder="e.g. Swahili"
+          />
+        </>
+      ) : (
+        <>
+          <ErrorText message={error} />
+          <ErrorText message={saveError ? SAVE_FAILED_MESSAGE : null} />
+          <View style={[styles.list, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {visibleProfiles.map((profile, index) => (
+              <ProfileRow
                 key={profile.id}
-                style={[
-                  styles.card,
-                  { backgroundColor: colors.card, borderColor: active ? colors.primary : colors.border },
-                ]}
-              >
-                <Pressable
-                  onPress={() => void run(() => activateProfile(profile.id), "Could not switch profile.")}
-                  disabled={busy || active}
-                  accessibilityRole="radio"
-                  accessibilityLabel={`Use ${profile.name}`}
-                  accessibilityState={{ selected: active, disabled: busy }}
-                  style={({ pressed }) => [styles.cardMain, pressed && { opacity: 0.85 }]}
-                >
-                  <View
-                    style={[
-                      styles.radio,
-                      { borderColor: active ? colors.primary : colors.border, backgroundColor: active ? colors.primary : colors.background },
-                    ]}
-                  >
-                    {active ? <Check size={14} color={colors.primaryForeground} /> : null}
-                  </View>
-                  <View style={styles.cardText}>
-                    <Text style={[styles.cardTitle, { color: colors.foreground }]}>{profile.name}</Text>
-                    <Text style={[styles.cardSubtitle, { color: colors.mutedForeground }]}>{describePair(profile)}</Text>
-                    {active ? <Text style={[styles.activeTag, { color: colors.primary }]}>Active</Text> : null}
-                  </View>
-                </Pressable>
-                <View style={styles.cardActions}>
-                  <Pressable
-                    onPress={() => startEdit(profile)}
-                    disabled={busy}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Edit ${profile.name}`}
-                    style={({ pressed }) => [styles.iconButton, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
-                  >
-                    <Pencil size={18} color={colors.foreground} />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => handleDelete(profile)}
-                    disabled={busy}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Delete ${profile.name}`}
-                    style={({ pressed }) => [styles.iconButton, { borderColor: colors.border }, pressed && { backgroundColor: colors.muted }]}
-                  >
-                    <Trash2 size={18} color={colors.destructive} />
-                  </Pressable>
-                </View>
-              </View>
-            );
-          })}
-        </CardGrid>
-      </Section>
+                profile={profile}
+                active={profile.id === activeProfile.id}
+                disabled={busy}
+                divider={index > 0}
+                onActivate={() => void run(() => activateProfile(profile.id), "Could not switch profile.")}
+                onEdit={() => startEdit(profile)}
+              />
+            ))}
+          </View>
+        </>
+      )}
+
+      {pending ? (
+        <UndoSnackbar
+          message={`Deleted profile ${pending.name}`}
+          onUndo={undoDelete}
+          onDismiss={commitPending}
+        />
+      ) : null}
     </ToolScreen>
   );
 }
 
+function HeaderIcon({
+  icon: Icon,
+  label,
+  onPress,
+  disabled = false,
+  color,
+}: {
+  icon: LucideIcon;
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  color?: string;
+}) {
+  const colors = useThemeColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => [
+        styles.headerIcon,
+        pointerCursor,
+        pressed && { backgroundColor: colors.muted },
+        disabled && styles.disabled,
+      ]}
+    >
+      <Icon size={22} color={color ?? colors.foreground} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  intro: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  form: {
-    width: "100%",
-    maxWidth: contentWidth.form,
-  },
-  card: {
-    borderWidth: 1,
-    borderRadius: radius.xl,
-    padding: spacing.md,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  cardMain: {
-    flex: 1,
-    minHeight: 44,
-    flexDirection: "row",
-    alignItems: "center",
+  footer: {
     gap: spacing.md,
   },
-  radio: {
-    width: 24,
-    height: 24,
-    borderRadius: radius.full,
+  list: {
     borderWidth: 1,
+    borderRadius: shape.lg,
+    overflow: "hidden",
+  },
+  headerIcon: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
-  cardText: {
-    flex: 1,
-    gap: 2,
-  },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  cardSubtitle: {
-    fontSize: 13,
-  },
-  activeTag: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  cardActions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
+  disabled: {
+    opacity: 0.6,
   },
 });

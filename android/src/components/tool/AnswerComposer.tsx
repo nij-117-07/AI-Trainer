@@ -14,6 +14,8 @@ interface AnswerComposerProps {
   pending: boolean;
   error: string | null;
   submitLabel: string;
+  /** Shown beside the spinner while pending, for example "Checking…". */
+  pendingLabel?: string;
   /** Lets an empty message submit, for modes where the text is optional. */
   allowEmpty?: boolean;
   onChangeText: (text: string) => void;
@@ -29,6 +31,7 @@ export function AnswerComposer({
   pending,
   error,
   submitLabel,
+  pendingLabel,
   allowEmpty = false,
   onChangeText,
   onBlur,
@@ -68,13 +71,10 @@ export function AnswerComposer({
             pressed && canSubmit && { opacity: 0.85 },
           ]}
         >
-          {pending ? (
-            <ActivityIndicator color={colors.primaryForeground} />
-          ) : (
-            <Text style={[styles.submitText, { color: canSubmit ? colors.primaryForeground : colors.mutedForeground }]}>
-              {submitLabel}
-            </Text>
-          )}
+          {pending ? <ActivityIndicator color={colors.primaryForeground} /> : null}
+          <Text style={[styles.submitText, { color: canSubmit || pending ? colors.primaryForeground : colors.mutedForeground }]}>
+            {pending ? pendingLabel ?? submitLabel : submitLabel}
+          </Text>
         </Pressable>
       </View>
 

@@ -2,7 +2,7 @@
 /** Sheet for choosing the persona to chat with. Switching starts a new chat. Centered dialog on tablet and desktop. */
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Check, SlidersHorizontal, X } from "lucide-react-native";
-import { radius, spacing, useLayout, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useLayout, useThemeColors } from "@/theme";
 import { pointerCursor } from "@/components/tool/FormControls";
 import type { Persona } from "../types";
 import { PersonaAvatar } from "./PersonaAvatar";
@@ -120,13 +120,13 @@ const styles = StyleSheet.create({
     maxHeight: "75%",
   },
   bottomSheet: {
-    borderTopLeftRadius: radius["2xl"],
-    borderTopRightRadius: radius["2xl"],
+    borderTopLeftRadius: shape.xl,
+    borderTopRightRadius: shape.xl,
   },
   dialog: {
     width: "100%",
     maxWidth: 480,
-    borderRadius: radius["2xl"],
+    borderRadius: shape.xl,
   },
   header: {
     flexDirection: "row",
@@ -138,20 +138,18 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   title: {
-    fontSize: 18,
-    fontWeight: "700",
+    ...typeScale.title,
   },
   closeButton: {
-    width: 44,
-    height: 44,
+    width: touchTarget,
+    height: touchTarget,
     marginRight: -spacing.md,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
   hint: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
   list: {
     gap: spacing.sm,
@@ -160,9 +158,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    minHeight: 44,
+    minHeight: touchTarget,
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: shape.lg,
     padding: spacing.md,
   },
   rowText: {
@@ -170,24 +168,23 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   name: {
-    fontSize: 15,
+    ...typeScale.body,
     fontWeight: "600",
   },
   description: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...typeScale.caption,
   },
   manage: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.sm,
-    height: 46,
+    minHeight: touchTarget,
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
   },
   manageText: {
-    fontSize: 15,
+    ...typeScale.label,
     fontWeight: "600",
   },
 });

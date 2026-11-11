@@ -15,6 +15,6 @@ export const WORD_OF_THE_DAY_DEFAULTS = {
   targetLanguage: "Japanese",
   nativeLanguage: "English",
   userProficiency: "academic",
-  thematicFocus: "Nature",
+  thematicFocus: "",
   customInstructions: "",
 };

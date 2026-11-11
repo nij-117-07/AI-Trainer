@@ -4,8 +4,9 @@
  * signature-descriptions.ts, which is copied from Backend/linguistic/language_tester/services.py.
  */
 import { f } from "@ax-llm/ax";
-import { CEFR_LEVELS, OPTION_KEYS, TEST_TYPES, ANSWER_STATUSES } from "../types";
+import { CEFR_LEVELS, OPTION_KEYS, TEST_TYPES, ANSWER_STATUSES, CHALLENGE_VERDICTS } from "../types";
 import {
+  CHALLENGE_EVALUATOR_DESCRIPTIONS,
   FILL_IN_BLANK_DESCRIPTIONS,
   LANGUAGE_MCQ_DESCRIPTIONS,
   ROLEPLAY_CHAT_DESCRIPTIONS,
@@ -17,6 +18,7 @@ const mcq = LANGUAGE_MCQ_DESCRIPTIONS;
 const fib = FILL_IN_BLANK_DESCRIPTIONS;
 const word = WORD_EVALUATOR_DESCRIPTIONS;
 const challenge = TRANSLATION_CHALLENGE_DESCRIPTIONS;
+const challengeCheck = CHALLENGE_EVALUATOR_DESCRIPTIONS;
 const roleplay = ROLEPLAY_CHAT_DESCRIPTIONS;
 
 const LEVEL_HINT = `One of: ${CEFR_LEVELS.join(", ")}.`;
@@ -108,6 +110,16 @@ export const translationChallengeSignature = f()
   .output("correctReference", f.string(challenge.outputs.correctReference))
   .output("vocabularyHighlights", f.string(challenge.outputs.vocabularyHighlights).array())
   .output("culturalTip", f.string(challenge.outputs.culturalTip).optional())
+  .build();
+
+export const challengeEvaluatorSignature = f()
+  .description(challengeCheck.instruction)
+  .input("challengePrompt", f.string(challengeCheck.inputs.challengePrompt))
+  .input("modelAnswer", f.string(challengeCheck.inputs.modelAnswer))
+  .input("userAttempt", f.string(challengeCheck.inputs.userAttempt))
+  .output("verdict", f.class([...CHALLENGE_VERDICTS], challengeCheck.outputs.verdict))
+  .output("whatWasRight", f.string(challengeCheck.outputs.whatWasRight))
+  .output("improvement", f.string(challengeCheck.outputs.improvement))
   .build();
 
 export const roleplaySignature = f()

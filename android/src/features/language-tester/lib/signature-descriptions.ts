@@ -119,6 +119,22 @@ export const TRANSLATION_CHALLENGE_DESCRIPTIONS = {
   },
 };
 
+// No DSPy counterpart in Backend yet, so this wording exists only in the Ax signature.
+export const CHALLENGE_EVALUATOR_DESCRIPTIONS = {
+  instruction:
+    "You are a Bilingual Assessment Expert. Compare the User's Attempt with the Model Answer for the challenge. Judge the meaning first, then grammar and vocabulary. Answer 'correct' when the meaning and grammar are right, 'partial' when the meaning is right but grammar or wording is off, and 'incorrect' when the meaning is wrong or missing. A different wording that is equally valid counts as correct.",
+  inputs: {
+    challengePrompt: "The instruction and source text the user was given.",
+    modelAnswer: "The ideal translation or explanation.",
+    userAttempt: "What the user wrote.",
+  },
+  outputs: {
+    verdict: "The verdict: correct, partial, or incorrect.",
+    whatWasRight: "One or two sentences on what the user got right. Say so plainly if nothing was right.",
+    improvement: "One or two sentences on what to change to match the Model Answer. Say so briefly if nothing needs changing.",
+  },
+};
+
 export const ROLEPLAY_CHAT_DESCRIPTIONS = {
   instruction:
     "You are a Language Immersion Coach. Your goal is to sustain a realistic conversation in the Target Language. You act as a specific character (e.g., a grumpy waiter, a helpful doctor). You must evaluate the user's response for fluency while keeping the conversation moving forward naturally.",

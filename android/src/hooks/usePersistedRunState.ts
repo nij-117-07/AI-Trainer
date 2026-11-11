@@ -16,13 +16,15 @@ function isSavedRun<T>(saved: unknown, runId: string): saved is SavedRun<T> {
   return typeof saved === "object" && saved !== null && (saved as { runId?: unknown }).runId === runId && "value" in saved;
 }
 
+/** Returns [value, setValue, saveError]. saveError is true while the last write failed (9.3). */
 export function usePersistedRunState<T>(
   storageKey: string,
   runId: string,
   initial: T,
-): [T, Dispatch<SetStateAction<T>>] {
+): [T, Dispatch<SetStateAction<T>>, boolean] {
   const [value, setValue] = useState<T>(initial);
   const [ready, setReady] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const initialRef = useRef(initial);
 
   useEffect(() => {
@@ -44,8 +46,10 @@ export function usePersistedRunState<T>(
   useEffect(() => {
     if (!ready) return;
     const saved: SavedRun<T> = { runId, value };
-    saveDocument(storageKey, saved).catch(() => undefined);
+    saveDocument(storageKey, saved)
+      .then(() => setSaveError(false))
+      .catch(() => setSaveError(true));
   }, [ready, storageKey, runId, value]);
 
-  return [value, setValue];
+  return [value, setValue, saveError];
 }

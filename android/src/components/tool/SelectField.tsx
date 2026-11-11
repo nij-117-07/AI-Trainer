@@ -24,6 +24,7 @@ interface SelectFieldProps {
   customPlaceholder?: string;
   customLabel?: string;
   allowCustom?: boolean;
+  disabled?: boolean;
 }
 
 export function SelectField({
@@ -34,6 +35,7 @@ export function SelectField({
   customPlaceholder,
   customLabel = "Custom…",
   allowCustom = true,
+  disabled = false,
 }: SelectFieldProps) {
   const colors = useThemeColors();
   const [open, setOpen] = useState(false);
@@ -60,14 +62,17 @@ export function SelectField({
     <Field label={label}>
       <Pressable
         onPress={() => setOpen(true)}
+        disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${selectedLabel}`}
         accessibilityHint="Opens the list of options"
+        accessibilityState={{ disabled }}
         style={({ pressed }) => [
           styles.trigger,
           pointerCursor,
           { borderColor: colors.border, backgroundColor: colors.background },
           pressed && { backgroundColor: colors.muted },
+          disabled && { opacity: 0.6 },
         ]}
       >
         <Text style={[styles.triggerText, { color: colors.foreground }]}>{selectedLabel}</Text>

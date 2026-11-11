@@ -1,16 +1,18 @@
 // src/features/idioms/components/IdiomLessonView.tsx
-/** Renders one idiom lesson: the idiom, its meaning and equivalent, context, a dialogue, and a practice prompt. */
-import type { ReactNode } from "react";
+/**
+ * Renders one idiom lesson. The idiom is the hero, its meaning sits in a callout, and the context,
+ * example sentences, practice prompt, and rationale sit under disclosures with one-line summaries.
+ */
 import { StyleSheet, Text, View } from "react-native";
 import { BookOpen, Landmark, Lightbulb, MessagesSquare, PencilLine } from "lucide-react-native";
-import type { LucideIcon } from "lucide-react-native";
-import { spacing, useThemeColors } from "@/theme";
-import { CardGrid } from "@/components/tool/CardGrid";
+import { spacing, typeScale, useThemeColors } from "@/theme";
+import { CopyButton } from "@/components/tool/CopyButton";
+import { Disclosure } from "@/components/tool/Disclosure";
 import { ListenButton } from "@/components/tool/ListenButton";
-import { Panel } from "@/components/tool/FormControls";
 import { MarkdownText } from "@/components/tool/MarkdownText";
-import { SectionTitle } from "@/components/tool/SectionTitle";
+import { ResultCallout } from "@/components/tool/ResultCallout";
 import type { IdiomLesson } from "../types";
+import { plainSummary } from "../lib/text";
 
 interface IdiomLessonViewProps {
   lesson: IdiomLesson;
@@ -21,79 +23,100 @@ export function IdiomLessonView({ lesson, nativeLanguage }: IdiomLessonViewProps
   const colors = useThemeColors();
   const native = nativeLanguage.trim();
   const equivalentLabel = native ? `Equivalent in ${native}` : "Equivalent in your language";
+  const equivalent = lesson.equivalentInNativeLanguage;
+  const meaningText = [lesson.figurativeMeaning, equivalent ? `${equivalentLabel}: ${equivalent}` : ""]
+    .filter((part) => part !== "")
+    .join("\n\n");
+  const examples = lesson.dialogueScenario
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line !== "");
 
   return (
     <>
-      <Panel>
-        <View style={styles.titleRow}>
-          <View style={styles.titleText}>
-            <Text style={[styles.idiom, { color: colors.foreground }]}>{lesson.idiomInTargetLanguage || "Untitled idiom"}</Text>
-            {lesson.phoneticPronunciation !== "" && (
-              <Text style={[styles.phonetic, { color: colors.mutedForeground }]}>{lesson.phoneticPronunciation}</Text>
-            )}
-          </View>
-          <ListenButton text={lesson.idiomInTargetLanguage} label="Idiom" />
+      <View style={styles.hero}>
+        <View style={styles.titleText}>
+          <Text accessibilityRole="header" style={[typeScale.headline, { color: colors.foreground }]}>
+            {lesson.idiomInTargetLanguage || "Untitled idiom"}
+          </Text>
+          {lesson.phoneticPronunciation !== "" && (
+            <Text style={[typeScale.body, styles.phonetic, { color: colors.mutedForeground }]}>{lesson.phoneticPronunciation}</Text>
+          )}
         </View>
-      </Panel>
+        <TextActions text={lesson.idiomInTargetLanguage} label="idiom" />
+      </View>
 
-      <CardGrid>
-        {(lesson.figurativeMeaning !== "" || lesson.equivalentInNativeLanguage !== "") && (
-          <LessonPanel icon={BookOpen} title="What it means">
-            {lesson.figurativeMeaning !== "" && <MarkdownText content={lesson.figurativeMeaning} />}
-            {lesson.equivalentInNativeLanguage !== "" && (
-              <MarkdownText content={`**${equivalentLabel}:** ${lesson.equivalentInNativeLanguage}`} />
-            )}
-          </LessonPanel>
-        )}
-        {lesson.culturalContext !== "" && (
-          <LessonPanel icon={Landmark} title="Cultural context">
-            <MarkdownText content={lesson.culturalContext} />
-          </LessonPanel>
-        )}
-        {lesson.dialogueScenario !== "" && (
-          <LessonPanel icon={MessagesSquare} title="In a real conversation">
-            <MarkdownText content={lesson.dialogueScenario} />
-          </LessonPanel>
-        )}
-        {lesson.practicePrompt !== "" && (
-          <LessonPanel icon={PencilLine} title="Try it yourself">
-            <MarkdownText content={lesson.practicePrompt} />
-          </LessonPanel>
-        )}
-        {lesson.rationale !== "" && (
-          <LessonPanel icon={Lightbulb} title="Why this idiom">
-            <MarkdownText content={lesson.rationale} />
-          </LessonPanel>
-        )}
-      </CardGrid>
+      {meaningText !== "" && (
+        <ResultCallout icon={BookOpen} title="Meaning" tone="sky">
+          {lesson.figurativeMeaning !== "" && <MarkdownText content={lesson.figurativeMeaning} />}
+          {equivalent !== "" && <MarkdownText content={`**${equivalentLabel}:** ${equivalent}`} />}
+          <TextActions text={meaningText} label="meaning" />
+        </ResultCallout>
+      )}
+
+      {lesson.culturalContext !== "" && (
+        <Disclosure icon={Landmark} title="Cultural context" summary={plainSummary(lesson.culturalContext)}>
+          <MarkdownText content={lesson.culturalContext} />
+          <TextActions text={lesson.culturalContext} label="cultural context" />
+        </Disclosure>
+      )}
+
+      {examples.length > 0 && (
+        <Disclosure icon={MessagesSquare} title="Example sentences" summary={plainSummary(lesson.dialogueScenario)}>
+          {examples.map((line, index) => (
+            <View key={index} style={styles.example}>
+              <MarkdownText content={line} />
+              <TextActions text={line} label="example sentence" />
+            </View>
+          ))}
+        </Disclosure>
+      )}
+
+      {lesson.practicePrompt !== "" && (
+        <Disclosure icon={PencilLine} title="Try it yourself" summary={plainSummary(lesson.practicePrompt)}>
+          <MarkdownText content={lesson.practicePrompt} />
+          <TextActions text={lesson.practicePrompt} label="practice prompt" />
+        </Disclosure>
+      )}
+
+      {lesson.rationale !== "" && (
+        <Disclosure icon={Lightbulb} title="Why this idiom" summary={plainSummary(lesson.rationale)}>
+          <MarkdownText content={lesson.rationale} />
+          <TextActions text={lesson.rationale} label="rationale" />
+        </Disclosure>
+      )}
     </>
   );
 }
 
-function LessonPanel({ icon, title, children }: { icon: LucideIcon; title: string; children: ReactNode }) {
+function TextActions({ text, label }: { text: string; label: string }) {
   return (
-    <Panel>
-      <SectionTitle icon={icon} title={title} />
-      {children}
-    </Panel>
+    <View style={styles.actions}>
+      <ListenButton text={text} label={label} />
+      <CopyButton text={text} label={`Copy ${label}`} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleRow: {
+  hero: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: spacing.md,
   },
   titleText: {
     flex: 1,
-  },
-  idiom: {
-    fontSize: 22,
-    fontWeight: "700",
+    gap: spacing.xs,
   },
   phonetic: {
-    fontSize: 15,
     fontStyle: "italic",
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  example: {
+    gap: spacing.sm,
   },
 });

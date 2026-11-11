@@ -11,6 +11,8 @@ import {
   type AnswerCheckValues,
   type AssessmentFormValues,
   type AssessmentResult,
+  type ChallengeAnswerCheckValues,
+  type ChallengeEvaluation,
   type ChallengeFormValues,
   type ChallengeResult,
   type ChatTurn,
@@ -22,6 +24,7 @@ import {
 } from "../types";
 import {
   assessmentSignature,
+  challengeEvaluatorSignature,
   fibSignature,
   roleplaySignature,
   translationChallengeSignature,
@@ -30,6 +33,7 @@ import {
 import {
   normalizeAssessment,
   normalizeChallenge,
+  normalizeChallengeEvaluation,
   normalizeEvaluation,
   normalizeFibQuestions,
   normalizeRoleplayReply,
@@ -113,6 +117,26 @@ export async function evaluateFibAnswer(
   );
   throwIfAborted(signal);
   return normalizeEvaluation(result);
+}
+
+export async function evaluateChallengeAnswer(
+  settings: AiSettings,
+  values: ChallengeAnswerCheckValues,
+  signal?: AbortSignal,
+): Promise<ChallengeEvaluation> {
+  const llm = createLlm(settings);
+  throwIfAborted(signal);
+  const result = await ax(challengeEvaluatorSignature).forward(
+    llm,
+    {
+      challengePrompt: requireText(values.challengePrompt, "Challenge", 4000),
+      modelAnswer: requireText(values.modelAnswer, "Model answer", 4000),
+      userAttempt: requireText(values.userAttempt, "Your answer", 2000),
+    },
+    { modelConfig: { temperature: TEMPERATURE }, abortSignal: signal },
+  );
+  throwIfAborted(signal);
+  return normalizeChallengeEvaluation(result);
 }
 
 export async function generateChallenge(

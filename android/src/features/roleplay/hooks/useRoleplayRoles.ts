@@ -1,9 +1,9 @@
-// src/features/roleplay/hooks/useRoleplayRoles.ts
 /**
  * Saved roles on the device, with the create/edit form for the roles screen. Saving a name that
- * already exists updates that role's prompt, as the webui does.
+ * already exists updates that role's prompt, as the webui does. A deleted role is hidden until the
+ * undo window closes, and is only removed from the device then.
  */
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { EMPTY_ROLE_FORM } from "../options";
 import { loadRoles, saveRoles } from "../lib/persistence";
@@ -22,6 +22,13 @@ export function useRoleplayRoles() {
   const [editing, setEditing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [removed, setRemoved] = useState<string | null>(null);
+  const removedRef = useRef<string | null>(null);
+  const rolesRef = useRef(roles);
+
+  useEffect(() => {
+    rolesRef.current = roles;
+  }, [roles]);
 
   const reload = useCallback(async () => {
     try {
@@ -71,25 +78,47 @@ export function useRoleplayRoles() {
     setSuccess(null);
   }, []);
 
-  const remove = useCallback(
-    async (name: string) => {
-      setActionError(null);
-      setSuccess(null);
-      const next = removeRole(roles, name);
-      try {
-        await saveRoles(next);
+  const commitRemoval = useCallback(() => {
+    const name = removedRef.current;
+    if (name === null) return;
+    removedRef.current = null;
+    setRemoved(null);
+    const previous = rolesRef.current;
+    const next = removeRole(previous, name);
+    rolesRef.current = next;
+    saveRoles(next)
+      .then(() => {
         setRoles(next);
         setSuccess(`Deleted persona "${name}".`);
-        if (roleSlug(form.name) === roleSlug(name)) startNew();
-      } catch (err) {
+      })
+      .catch((err: unknown) => {
+        rolesRef.current = previous;
         setActionError(messageOf(err, "Failed to delete role."));
-      }
+      });
+  }, []);
+
+  useEffect(() => () => commitRemoval(), [commitRemoval]);
+
+  const remove = useCallback(
+    (name: string) => {
+      setActionError(null);
+      setSuccess(null);
+      commitRemoval();
+      removedRef.current = name;
+      setRemoved(name);
+      if (roleSlug(form.name) === roleSlug(name)) startNew();
     },
-    [form.name, roles, startNew],
+    [commitRemoval, form.name, startNew],
   );
 
+  const undoRemoval = useCallback(() => {
+    removedRef.current = null;
+    setRemoved(null);
+  }, []);
+
   return {
-    roles,
+    roles: removed === null ? roles : roles.filter((role) => role.name !== removed),
+    removed,
     loaded,
     loadError,
     reload,
@@ -100,6 +129,8 @@ export function useRoleplayRoles() {
     edit,
     startNew,
     remove,
+    undoRemoval,
+    commitRemoval,
     actionError,
     success,
   };

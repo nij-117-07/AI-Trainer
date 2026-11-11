@@ -11,12 +11,11 @@ import { spacing } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { languagePair } from "@/features/language-profiles/lib/profiles";
-import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
-import { SelectField } from "@/components/tool/SelectField";
+import { ActionButton, ChoiceChips, ErrorText, Field, TextField } from "@/components/tool/FormControls";
 import { useRequest } from "@/hooks/useRequest";
-import { saveDocument } from "@/lib/document-store";
 import { generateLesson } from "../lib/generators";
-import { LESSON_RESULT_KEY } from "../lib/persistence";
+import { LESSON_RESULT_KEY, SAVE_FAILED_MESSAGE } from "../lib/persistence";
+import { saveResult } from "../lib/result-store";
 import { COMPLEXITY_WEIGHT_OPTIONS, CEFR_LEVEL_OPTIONS, LEARNING_FOCUS_OPTIONS, LESSON_DEFAULTS } from "../options";
 import { usePersistedForm } from "../hooks/usePersistedDraft";
 import type { LessonFormValues } from "../types";
@@ -25,6 +24,7 @@ export interface LessonFormState {
   form: LessonFormValues;
   pending: boolean;
   error: string | null;
+  saveError: boolean;
   update: <K extends keyof LessonFormValues>(key: K, value: LessonFormValues[K]) => void;
   submit: () => Promise<void>;
   reset: () => void;
@@ -33,7 +33,7 @@ export interface LessonFormState {
 export function useLessonForm(onGenerated: () => void): LessonFormState {
   const { settings } = useAiSettings();
   const { activeProfile } = useLanguageProfiles();
-  const { form, setForm, reset: resetForm } = usePersistedForm<LessonFormValues>(LESSON_DEFAULTS);
+  const { form, setForm, reset: resetForm, saveError } = usePersistedForm<LessonFormValues>(LESSON_DEFAULTS);
   const request = useRequest(generateLesson);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -56,7 +56,7 @@ export function useLessonForm(onGenerated: () => void): LessonFormState {
     controllerRef.current = controller;
     const lesson = await request.run(settings, { ...form, ...languagePair(activeProfile) }, controller.signal);
     if (!lesson || controller.signal.aborted) return;
-    await saveDocument(LESSON_RESULT_KEY, lesson).catch(() => undefined);
+    await saveResult(LESSON_RESULT_KEY, lesson);
     onGenerated();
   }
 
@@ -64,6 +64,7 @@ export function useLessonForm(onGenerated: () => void): LessonFormState {
     form,
     pending: request.pending,
     error: request.error,
+    saveError,
     update,
     submit,
     reset,
@@ -75,31 +76,33 @@ export function LessonFormFields({ lesson }: { lesson: LessonFormState }) {
 
   return (
     <>
-      <SelectField
-        label="Current level"
-        options={CEFR_LEVEL_OPTIONS}
-        value={form.currentLevel}
-        onChange={(value) => update("currentLevel", value)}
-        allowCustom={false}
-      />
-      <SelectField
-        label="Learning focus"
-        options={LEARNING_FOCUS_OPTIONS}
-        value={form.learningFocus}
-        onChange={(value) => update("learningFocus", value)}
-        allowCustom={false}
-      />
-      <SelectField
-        label="Complexity weight"
-        options={COMPLEXITY_WEIGHT_OPTIONS}
-        value={form.complexityWeight}
-        onChange={(value) => update("complexityWeight", value)}
-        allowCustom={false}
-      />
+      <Field label="Current level">
+        <ChoiceChips
+          options={CEFR_LEVEL_OPTIONS}
+          value={form.currentLevel}
+          onChange={(value) => update("currentLevel", value)}
+          disabled={pending}
+        />
+      </Field>
+      <Field label="Learning focus">
+        <ChoiceChips
+          options={LEARNING_FOCUS_OPTIONS}
+          value={form.learningFocus}
+          onChange={(value) => update("learningFocus", value)}
+          disabled={pending}
+        />
+      </Field>
+      <Field label="Lesson length">
+        <ChoiceChips
+          options={COMPLEXITY_WEIGHT_OPTIONS}
+          value={form.complexityWeight}
+          onChange={(value) => update("complexityWeight", value)}
+          disabled={pending}
+        />
+      </Field>
       <TextField
         label="Last lesson summary (optional)"
         placeholder="Recap of previous concepts…"
-        hint="Helps the lesson build on what you already covered."
         value={form.lastLessonSummary}
         onChangeText={(text) => update("lastLessonSummary", text)}
         editable={!pending}
@@ -110,7 +113,6 @@ export function LessonFormFields({ lesson }: { lesson: LessonFormState }) {
       <TextField
         label="User instructions (optional)"
         placeholder="e.g. Cyberpunk setting, focus on food vocabulary…"
-        hint="Thematic constraints for the lesson."
         value={form.userCustomInstruction}
         onChangeText={(text) => update("userCustomInstruction", text)}
         editable={!pending}
@@ -121,7 +123,7 @@ export function LessonFormFields({ lesson }: { lesson: LessonFormState }) {
       <TextField
         label="Seed (optional)"
         placeholder="Leave blank to auto-generate"
-        hint="Change this to get a different lesson for the same inputs."
+        hint="Change this for a different lesson with the same inputs."
         value={form.seed}
         onChangeText={(text) => update("seed", text)}
         editable={!pending}
@@ -132,13 +134,14 @@ export function LessonFormFields({ lesson }: { lesson: LessonFormState }) {
 }
 
 export function LessonFormFooter({ lesson }: { lesson: LessonFormState }) {
-  const { pending, error, submit } = lesson;
+  const { pending, error, saveError, submit } = lesson;
 
   return (
     <View style={styles.footer}>
       <ErrorText message={error} />
+      <ErrorText message={saveError ? SAVE_FAILED_MESSAGE : null} />
       <ActionButton
-        label={pending ? "Building your lesson…" : "Generate lesson"}
+        label={pending ? "Creating lesson…" : "Create lesson"}
         icon={Sparkles}
         loading={pending}
         onPress={submit}

@@ -3,8 +3,9 @@
 import { loadDocument, saveDocument } from "@/lib/document-store";
 import { DEFAULT_SETTINGS } from "../options";
 import type { ChatMessage, RoleRecord, RoleplaySettings } from "../types";
-import { isRecord, listOf, textOf } from "./text";
+import { isRecord, listOf } from "./text";
 import { normaliseRoles } from "./roles";
+import { readMessage } from "./stop";
 
 export const ROLEPLAY_STORAGE_KEYS = {
   settings: "language-learner.roleplay.settings.v1",
@@ -29,11 +30,8 @@ export function normaliseSettings(saved: unknown): RoleplaySettings {
 
 export function normaliseHistory(saved: unknown): ChatMessage[] {
   return listOf(saved).flatMap((entry): ChatMessage[] => {
-    if (!isRecord(entry)) return [];
-    const content = textOf(entry.content);
-    if (!content) return [];
-    if (entry.role !== "user" && entry.role !== "assistant") return [];
-    return [{ role: entry.role, content }];
+    const message = readMessage(entry);
+    return message ? [message] : [];
   });
 }
 

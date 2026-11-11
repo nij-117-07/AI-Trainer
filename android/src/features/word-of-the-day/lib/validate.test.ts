@@ -17,6 +17,11 @@ describe("optionalText", () => {
     expect(optionalText(" ", "Custom instructions", 1000)).toBeUndefined();
   });
 
+  it("accepts an empty theme and still rejects an over-long one", () => {
+    expect(optionalText("", "Theme", 200)).toBeUndefined();
+    expect(() => optionalText("x".repeat(201), "Theme", 200)).toThrow("Theme must be 200 characters or fewer.");
+  });
+
   it("rejects text longer than the limit", () => {
     expect(() => optionalText("x".repeat(1001), "Custom instructions", 1000)).toThrow();
   });

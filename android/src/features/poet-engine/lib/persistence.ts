@@ -5,6 +5,8 @@ import { isRecord } from "./text";
 export const POET_ENGINE_FORM_KEY = "language-learner.poet-engine.form.v2";
 export const POET_ENGINE_RESULT_KEY = "language-learner.poet-engine.result.v1";
 
+export const SAVE_FAILED_MESSAGE = "Changes couldn't be saved. They'll try again.";
+
 /**
  * Takes each saved field only when its type matches the default, so an old or damaged draft
  * falls back to the default for that field.

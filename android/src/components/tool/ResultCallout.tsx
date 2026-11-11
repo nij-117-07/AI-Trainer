@@ -19,7 +19,7 @@ export function ResultCallout({ icon: Icon, title, tone, children }: ResultCallo
     <View style={[styles.box, { backgroundColor: palette.bg, borderColor: palette.border }]}>
       <View style={styles.header}>
         <Icon size={16} color={palette.fg} />
-        <Text style={[styles.title, { color: palette.fg }]}>{title}</Text>
+        <Text accessibilityRole="header" style={[styles.title, { color: palette.fg }]}>{title}</Text>
       </View>
       {children}
     </View>

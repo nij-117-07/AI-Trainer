@@ -11,12 +11,12 @@ import { spacing } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { languagePair } from "@/features/language-profiles/lib/profiles";
-import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ChoiceChips, ErrorText, Field, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { useRequest } from "@/hooks/useRequest";
-import { saveDocument } from "@/lib/document-store";
 import { generateSentenceOfTheDay } from "../lib/generators";
-import { SENTENCE_RESULT_KEY } from "../lib/persistence";
+import { SAVE_FAILED_MESSAGE, SENTENCE_RESULT_KEY } from "../lib/persistence";
+import { saveResult } from "../lib/result-store";
 import { usePersistedForm } from "../hooks/usePersistedDraft";
 import { COMPLEXITY_LEVEL_OPTIONS, CONTEXT_SETTING_OPTIONS, SENTENCE_DEFAULTS } from "../options";
 import type { SentenceFormValues } from "../types";
@@ -25,6 +25,7 @@ export interface SentenceFormState {
   form: SentenceFormValues;
   pending: boolean;
   error: string | null;
+  saveError: boolean;
   update: <K extends keyof SentenceFormValues>(key: K, value: SentenceFormValues[K]) => void;
   submit: () => Promise<void>;
   reset: () => void;
@@ -33,7 +34,7 @@ export interface SentenceFormState {
 export function useSentenceForm(onGenerated: () => void): SentenceFormState {
   const { settings } = useAiSettings();
   const { activeProfile } = useLanguageProfiles();
-  const { form, setForm, reset: resetForm } = usePersistedForm<SentenceFormValues>(SENTENCE_DEFAULTS);
+  const { form, setForm, reset: resetForm, saveError } = usePersistedForm<SentenceFormValues>(SENTENCE_DEFAULTS);
   const request = useRequest(generateSentenceOfTheDay);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -56,7 +57,7 @@ export function useSentenceForm(onGenerated: () => void): SentenceFormState {
     controllerRef.current = controller;
     const sentence = await request.run(settings, { ...form, ...languagePair(activeProfile) }, controller.signal);
     if (!sentence || controller.signal.aborted) return;
-    await saveDocument(SENTENCE_RESULT_KEY, sentence).catch(() => undefined);
+    await saveResult(SENTENCE_RESULT_KEY, sentence);
     onGenerated();
   }
 
@@ -64,6 +65,7 @@ export function useSentenceForm(onGenerated: () => void): SentenceFormState {
     form,
     pending: request.pending,
     error: request.error,
+    saveError,
     update,
     submit,
     reset,
@@ -76,21 +78,22 @@ export function SentenceFormFields({ sentence }: { sentence: SentenceFormState }
   return (
     <>
       <SelectField
-        label="Context setting"
+        label="Situation"
         options={CONTEXT_SETTING_OPTIONS}
         value={form.contextSetting}
         onChange={(value) => update("contextSetting", value)}
         customPlaceholder="e.g. Medical, Sports, Customer support"
       />
-      <SelectField
-        label="Complexity level"
-        options={COMPLEXITY_LEVEL_OPTIONS}
-        value={form.complexityLevel}
-        onChange={(value) => update("complexityLevel", value)}
-        customPlaceholder="e.g. Child-friendly, Expert"
-      />
+      <Field label="Level">
+        <ChoiceChips
+          options={COMPLEXITY_LEVEL_OPTIONS}
+          value={form.complexityLevel}
+          onChange={(value) => update("complexityLevel", value)}
+          disabled={pending}
+        />
+      </Field>
       <TextField
-        label="User instructions (optional)"
+        label="Instructions (optional)"
         placeholder="e.g. use a kitchen setting, keep it under 10 words…"
         value={form.customInstructions}
         onChangeText={(text) => update("customInstructions", text)}
@@ -104,13 +107,14 @@ export function SentenceFormFields({ sentence }: { sentence: SentenceFormState }
 }
 
 export function SentenceFormFooter({ sentence }: { sentence: SentenceFormState }) {
-  const { pending, error, submit } = sentence;
+  const { pending, error, saveError, submit } = sentence;
 
   return (
     <View style={styles.footer}>
       <ErrorText message={error} />
+      <ErrorText message={saveError ? SAVE_FAILED_MESSAGE : null} />
       <ActionButton
-        label={pending ? "Choosing today's sentence…" : "Get sentence of the day"}
+        label={pending ? "Getting sentence…" : "Get sentence"}
         icon={Sparkles}
         loading={pending}
         onPress={submit}

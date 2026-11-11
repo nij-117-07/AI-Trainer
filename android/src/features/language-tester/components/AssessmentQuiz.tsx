@@ -1,220 +1,309 @@
 // src/features/language-tester/components/AssessmentQuiz.tsx
 /**
- * Multiple-choice assessment. Pick an answer per question, then check all of them at once to
- * see the score and each explanation. "One by one" shows a single question with Previous/Next.
+ * Multiple-choice assessment, one question at a time. Pick an option, check it, read the feedback,
+ * then go on. After the last question, a summary lists what was right and what to review.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Check, RefreshCcw, Trophy, X } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, Panel } from "@/components/tool/FormControls";
-import { CardGrid } from "@/components/tool/CardGrid";
+import { Check, ChevronLeft, ChevronRight, RefreshCcw, Trophy, X, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { ActionButton, ErrorText, Panel, pointerCursor } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
-import { StepNavigator } from "@/components/tool/StepNavigator";
-import { OPTION_KEYS, type AssessmentQuestion, type AssessmentResult, type OptionKey } from "../types";
-import { EmptyNote, FeedbackBox, FormWidth, QuestionHeading, QuizModeBar, ScorePill, type QuizMode } from "./QuizParts";
+import { useToolSlots } from "@/components/tool/tool-slots";
 import { usePersistedRunState } from "@/hooks/usePersistedRunState";
+import { SAVE_FAILED_MESSAGE } from "../lib/persistence";
+import { OPTION_KEYS, type AssessmentResult, type OptionKey } from "../types";
+import { EmptyNote, FormWidth } from "./QuizParts";
 
 const STORAGE_KEY = "language-learner.language-tester.assessment.run.v1";
 
 export function AssessmentQuiz({ result }: { result: AssessmentResult }) {
   const colors = useThemeColors();
-  const [mode, setMode] = useState<QuizMode>("list");
+  const slots = useToolSlots();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [revealed, setRevealed] = useState<Partial<Record<number, boolean>>>({});
   const runId = JSON.stringify(result);
-  const [answers, setAnswers] = usePersistedRunState<Partial<Record<number, OptionKey>>>(
+  const [answers, setAnswers, answersSaveError] = usePersistedRunState<Partial<Record<number, OptionKey>>>(
     `${STORAGE_KEY}.answers`,
     runId,
     {},
   );
-  const [checked, setChecked] = usePersistedRunState(`${STORAGE_KEY}.checked`, runId, false);
+  const [finished, setFinished, finishedSaveError] = usePersistedRunState(`${STORAGE_KEY}.checked`, runId, false);
+  const saveError = answersSaveError || finishedSaveError;
 
   const total = result.questions.length;
-  const answeredCount = Object.keys(answers).length;
-  const score = result.questions.reduce((sum, question, index) => sum + (answers[index] === question.correctAnswer ? 1 : 0), 0);
-  const allAnswered = total > 0 && answeredCount === total;
+  const question = result.questions[activeIndex];
+  const selected = answers[activeIndex];
+  const questionRevealed = finished || revealed[activeIndex] === true;
+  const isCorrect = selected !== undefined && selected === question?.correctAnswer;
+  const isLast = activeIndex >= total - 1;
+  const score = result.questions.reduce((sum, item, index) => sum + (answers[index] === item.correctAnswer ? 1 : 0), 0);
 
-  function choose(index: number, letter: OptionKey) {
-    if (checked) return;
-    setAnswers((current) => ({ ...current, [index]: letter }));
+  function choose(letter: OptionKey) {
+    if (questionRevealed) return;
+    setAnswers((current) => ({ ...current, [activeIndex]: letter }));
+  }
+
+  function check() {
+    setRevealed((current) => ({ ...current, [activeIndex]: true }));
+  }
+
+  function advance() {
+    if (isLast) setFinished(true);
+    else setActiveIndex((index) => index + 1);
+  }
+
+  function move(delta: number) {
+    setActiveIndex((index) => Math.min(total - 1, Math.max(0, index + delta)));
   }
 
   function reset() {
     setAnswers({});
-    setChecked(false);
+    setRevealed({});
+    setFinished(false);
     setActiveIndex(0);
   }
 
-  const cards = result.questions.map((question, index) =>
-    mode === "list" || index === activeIndex ? (
-      <QuestionCard
-        key={index}
-        index={index}
-        question={question}
-        selected={answers[index]}
-        checked={checked}
-        onSelect={(letter) => choose(index, letter)}
-      />
-    ) : null,
-  );
+  const feedbackWord = isCorrect ? "Correct" : selected === undefined ? "Not answered" : "Not quite";
+  const palette = colors.tone[isCorrect ? "emerald" : "rose"];
+
+  const stageLabel =
+    question && !finished ? (
+      <Text style={[typeScale.caption, { color: colors.mutedForeground }]}>
+        Question {activeIndex + 1} of {total}
+      </Text>
+    ) : null;
+
+  const footerAction =
+    question && !finished ? (
+      questionRevealed ? (
+        <ActionButton label={isLast ? "See results" : "Next question"} onPress={advance} />
+      ) : (
+        <ActionButton label="Check answer" disabled={selected === undefined} onPress={check} />
+      )
+    ) : null;
+
+  useEffect(() => {
+    slots?.setHeaderRight(stageLabel);
+    return () => slots?.setHeaderRight(null);
+  });
+
+  useEffect(() => {
+    slots?.setFooter(footerAction);
+    return () => slots?.setFooter(null);
+  });
 
   return (
-    <View style={styles.quiz}>
-      <FormWidth>
+    <FormWidth>
+      {result.assessmentTitle !== "" && (
+        <Text accessibilityRole="header" style={[typeScale.title, { color: colors.foreground }]}>
+          {result.assessmentTitle}
+        </Text>
+      )}
+      {result.levelRationale !== "" && (
+        <Text style={[typeScale.body, { color: colors.mutedForeground }]}>{result.levelRationale}</Text>
+      )}
+      <ListenButton text={result.levelRationale} label="Level rationale" />
+
+      {total === 0 && <EmptyNote message="No questions were returned. Try generating again." />}
+
+      {finished && (
         <Panel>
-          {result.assessmentTitle !== "" && (
-            <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>
-              {result.assessmentTitle}
+          <View style={styles.summaryHead}>
+            <Trophy size={20} color={colors.tone.amber.fg} />
+            <Text accessibilityLiveRegion="polite" style={[typeScale.title, styles.flex, { color: colors.foreground }]}>
+              You got {score} of {total} right.
             </Text>
-          )}
-          {result.levelRationale !== "" && (
-            <Text style={[styles.rationale, { color: colors.mutedForeground }]}>{result.levelRationale}</Text>
-          )}
-          <ListenButton text={result.levelRationale} label="Level rationale" />
+          </View>
+          <View style={styles.review}>
+            {result.questions.map((item, index) => {
+              const correct = answers[index] === item.correctAnswer;
+              const word = correct ? "Correct" : answers[index] === undefined ? "Not answered" : "Review";
+              const tone = correct ? colors.tone.emerald.fg : colors.destructive;
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => setActiveIndex(index)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Question ${index + 1}: ${word}`}
+                  style={({ pressed }) => [
+                    styles.reviewRow,
+                    pointerCursor,
+                    { borderColor: colors.border },
+                    pressed && { backgroundColor: colors.muted },
+                  ]}
+                >
+                  {correct ? <Check size={16} color={tone} /> : <X size={16} color={tone} />}
+                  <Text numberOfLines={1} style={[typeScale.body, styles.flex, { color: colors.foreground }]}>
+                    {index + 1}. {item.questionText}
+                  </Text>
+                  <Text style={[typeScale.label, { color: tone }]}>{word}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <ActionButton label="Retake assessment" icon={RefreshCcw} onPress={reset} />
         </Panel>
-
-        <View style={styles.toolbar}>
-          <QuizModeBar mode={mode} onChange={setMode} />
-          <ScorePill text={checked ? `Score: ${score}/${total}` : `${answeredCount}/${total} answered`} />
-        </View>
-
-        {mode === "step" && total > 0 && (
-          <StepNavigator
-            index={activeIndex}
-            total={total}
-            onPrevious={() => setActiveIndex((index) => Math.max(0, index - 1))}
-            onNext={() => setActiveIndex((index) => Math.min(total - 1, index + 1))}
-          />
-        )}
-
-        {total === 0 && <EmptyNote message="No questions were returned. Try generating again." />}
-      </FormWidth>
-
-      {mode === "list" ? <CardGrid>{cards}</CardGrid> : <FormWidth>{cards}</FormWidth>}
-
-      {total > 0 && (
-        <FormWidth>
-          <Panel>
-            {checked ? (
-              <View accessibilityLiveRegion="polite" style={styles.summary}>
-                <Trophy size={20} color={colors.tone.amber.fg} />
-                <Text style={[styles.summaryText, { color: colors.foreground }]}>
-                  You answered {score} of {total} correctly.
-                </Text>
-              </View>
-            ) : (
-              <Text style={[styles.summaryText, { color: colors.mutedForeground }]}>
-                {allAnswered ? "All answered. Check to see your score." : "Select an answer for each question, then check."}
-              </Text>
-            )}
-            {checked ? (
-              <ActionButton label="Try again" icon={RefreshCcw} variant="outline" onPress={reset} />
-            ) : (
-              <ActionButton label="Check answers" onPress={() => setChecked(true)} />
-            )}
-          </Panel>
-        </FormWidth>
       )}
-    </View>
+
+      <ErrorText message={saveError ? SAVE_FAILED_MESSAGE : null} />
+
+      {question && (
+        <Panel>
+          <View style={styles.nav}>
+            <NavButton icon={ChevronLeft} label="Previous question" disabled={activeIndex === 0} onPress={() => move(-1)} />
+            <NavButton icon={ChevronRight} label="Show next question" disabled={isLast} onPress={() => move(1)} />
+          </View>
+
+          <View style={styles.questionRow}>
+            <Text accessibilityRole="header" style={[typeScale.title, styles.flex, { color: colors.foreground }]}>
+              {question.questionText}
+            </Text>
+            <ListenButton text={question.questionText} label="Question" />
+          </View>
+
+          <View style={styles.options}>
+            {OPTION_KEYS.map((letter) => {
+              const text = question.options[letter];
+              if (!text) return null;
+              const isSelected = selected === letter;
+              const isAnswer = question.correctAnswer === letter;
+              const borderColor = questionRevealed
+                ? isAnswer
+                  ? colors.tone.emerald.fg
+                  : isSelected
+                    ? colors.destructive
+                    : colors.border
+                : isSelected
+                  ? colors.primary
+                  : colors.border;
+              const backgroundColor = questionRevealed && isAnswer
+                ? colors.tone.emerald.bg
+                : !questionRevealed && isSelected
+                  ? colors.tone.sky.bg
+                  : colors.background;
+              return (
+                <Pressable
+                  key={letter}
+                  onPress={() => choose(letter)}
+                  disabled={questionRevealed}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: isSelected, selected: isSelected, disabled: questionRevealed }}
+                  accessibilityLabel={`Option ${letter}: ${text}`}
+                  style={({ pressed }) => [
+                    styles.option,
+                    pointerCursor,
+                    { borderColor, backgroundColor },
+                    pressed && !questionRevealed && { backgroundColor: colors.muted },
+                  ]}
+                >
+                  <View style={[styles.letter, { borderColor }]}>
+                    <Text style={[styles.letterText, { color: colors.foreground }]}>{letter}</Text>
+                  </View>
+                  <Text style={[typeScale.body, styles.flex, { color: colors.foreground }]}>{text}</Text>
+                  {questionRevealed && isAnswer && <Check size={16} color={colors.tone.emerald.fg} />}
+                  {questionRevealed && isSelected && !isAnswer && <X size={16} color={colors.destructive} />}
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {questionRevealed && (
+            <View
+              accessibilityLiveRegion="polite"
+              style={[styles.feedback, { backgroundColor: palette.bg, borderColor: palette.border }]}
+            >
+              <View style={styles.feedbackHead}>
+                {isCorrect ? <Check size={16} color={palette.fg} /> : <X size={16} color={palette.fg} />}
+                <Text style={[typeScale.label, { color: palette.fg }]}>{feedbackWord}</Text>
+              </View>
+              <Text style={[typeScale.body, { color: colors.foreground }]}>
+                Answer: {question.correctAnswer}. {question.options[question.correctAnswer]}
+              </Text>
+              {question.explanation !== "" && (
+                <Text style={[typeScale.body, { color: colors.mutedForeground }]}>{question.explanation}</Text>
+              )}
+              <ListenButton text={question.explanation} label="Explanation" />
+            </View>
+          )}
+
+        </Panel>
+      )}
+    </FormWidth>
   );
 }
 
-interface QuestionCardProps {
-  index: number;
-  question: AssessmentQuestion;
-  selected: OptionKey | undefined;
-  checked: boolean;
-  onSelect: (letter: OptionKey) => void;
-}
-
-function QuestionCard({ index, question, selected, checked, onSelect }: QuestionCardProps) {
+function NavButton({
+  icon: Icon,
+  label,
+  disabled,
+  onPress,
+}: {
+  icon: LucideIcon;
+  label: string;
+  disabled: boolean;
+  onPress: () => void;
+}) {
   const colors = useThemeColors();
-  const answered = selected !== undefined;
-  const isCorrect = selected === question.correctAnswer;
-
   return (
-    <Panel>
-      <QuestionHeading index={index} text={question.questionText} />
-      <ListenButton text={question.questionText} label="Question" />
-      <View style={styles.options}>
-        {OPTION_KEYS.map((letter) => {
-          const text = question.options[letter];
-          if (!text) return null;
-          const isSelected = selected === letter;
-          const isAnswer = question.correctAnswer === letter;
-          const borderColor = checked
-            ? isAnswer
-              ? colors.tone.emerald.fg
-              : isSelected
-                ? colors.destructive
-                : colors.border
-            : isSelected
-              ? colors.primary
-              : colors.border;
-          const backgroundColor = checked && isAnswer
-            ? colors.tone.emerald.bg
-            : !checked && isSelected
-              ? colors.tone.sky.bg
-              : colors.background;
-          return (
-            <Pressable
-              key={letter}
-              onPress={() => onSelect(letter)}
-              disabled={checked}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isSelected, disabled: checked }}
-              accessibilityLabel={`Option ${letter}: ${text}`}
-              style={({ pressed }) => [
-                styles.option,
-                { borderColor, backgroundColor },
-                pressed && !checked && { backgroundColor: colors.muted },
-                checked && !isAnswer && !isSelected && { opacity: 0.6 },
-              ]}
-            >
-              <View style={[styles.letter, { borderColor }]}>
-                <Text style={[styles.letterText, { color: colors.foreground }]}>{letter}</Text>
-              </View>
-              <Text style={[styles.optionText, { color: colors.foreground }]}>{text}</Text>
-              {checked && isAnswer && <Check size={16} color={colors.tone.emerald.fg} />}
-              {checked && isSelected && !isAnswer && <X size={16} color={colors.destructive} />}
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {checked && answered && (
-        <FeedbackBox
-          tone={isCorrect ? "emerald" : "rose"}
-          title={isCorrect ? "Correct" : `Not quite — the answer is ${question.correctAnswer}.`}
-        >
-          {question.explanation !== "" && (
-            <Text style={[styles.explanation, { color: colors.mutedForeground }]}>{question.explanation}</Text>
-          )}
-          <ListenButton text={question.explanation} label="Explanation" />
-        </FeedbackBox>
-      )}
-    </Panel>
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => [
+        styles.navButton,
+        pointerCursor,
+        { borderColor: colors.border, opacity: disabled ? 0.4 : 1 },
+        pressed && { backgroundColor: colors.muted },
+      ]}
+    >
+      <Icon size={20} color={colors.foreground} />
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  quiz: {
-    gap: spacing.lg,
+  flex: {
+    flex: 1,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  rationale: {
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  toolbar: {
+  summaryHead: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  review: {
+    gap: spacing.sm,
+  },
+  reviewRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    minHeight: 48,
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  nav: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: spacing.md,
+    gap: spacing.sm,
+  },
+  navButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  questionRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
   },
   options: {
     gap: spacing.sm,
@@ -223,40 +312,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
+    minHeight: 56,
     borderWidth: 1,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    borderRadius: shape.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
   },
   letter: {
-    width: 26,
-    height: 26,
-    borderRadius: radius.full,
+    width: 28,
+    height: 28,
+    borderRadius: shape.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   letterText: {
-    fontSize: 13,
+    ...typeScale.label,
     fontWeight: "600",
   },
-  optionText: {
-    flex: 1,
-    fontSize: 15,
-    lineHeight: 21,
+  feedback: {
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    padding: spacing.lg,
+    gap: spacing.sm,
   },
-  explanation: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  summary: {
+  feedbackHead: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  summaryText: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: "500",
   },
 });

@@ -1,15 +1,44 @@
 // src/features/language-tester/components/LanguageTesterLinks.tsx
-/** Compact row of links to the other Language Tester pages, shown at the top of the Language Tester page. */
+/** Landing cards for the Language Tester modes. The whole card opens its mode. The current mode is marked and is not a link. */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Bot, Repeat, TextCursorInput, type LucideIcon } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { Bot, ChevronRight, ClipboardCheck, Repeat, TextCursorInput, type LucideIcon } from "lucide-react-native";
+import { cardPadding, shape, spacing, typeScale, useThemeColors, type Tone } from "@/theme";
+import { CardGrid } from "@/components/tool/CardGrid";
+import { pointerCursor } from "@/components/tool/FormControls";
 import { FormWidth } from "./QuizParts";
 
-const LINKS: { title: string; route: string; icon: LucideIcon }[] = [
-  { title: "Fill in the Blank", route: "/language-learner/language-tester/fib", icon: TextCursorInput },
-  { title: "Translation Challenge", route: "/language-learner/language-tester/challenge", icon: Repeat },
-  { title: "Roleplay Coach", route: "/language-learner/language-tester/roleplay", icon: Bot },
+interface LanguageTesterMode {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  tone: Tone;
+  route?: string;
+}
+
+const MODES: LanguageTesterMode[] = [
+  { title: "Assessment", description: "Multiple-choice quiz at your level", icon: ClipboardCheck, tone: "sky" },
+  {
+    title: "Translation challenge",
+    description: "Translate or explain a sentence",
+    icon: Repeat,
+    tone: "amber",
+    route: "/language-learner/language-tester/challenge",
+  },
+  {
+    title: "Fill in the blanks",
+    description: "Choose the missing word",
+    icon: TextCursorInput,
+    tone: "emerald",
+    route: "/language-learner/language-tester/fib",
+  },
+  {
+    title: "Roleplay coach",
+    description: "Practice a conversation",
+    icon: Bot,
+    tone: "rose",
+    route: "/language-learner/language-tester/roleplay",
+  },
 ];
 
 export function LanguageTesterLinks() {
@@ -18,53 +47,63 @@ export function LanguageTesterLinks() {
 
   return (
     <FormWidth>
-      <Text style={[styles.label, { color: colors.mutedForeground }]}>Other practice</Text>
-      <View style={styles.row}>
-        {LINKS.map((link) => {
-          const Icon = link.icon;
+      <CardGrid>
+        {MODES.map((mode) => {
+          const Icon = mode.icon;
+          const palette = colors.tone[mode.tone];
+          const current = mode.route === undefined;
           return (
             <Pressable
-              key={link.route}
-              onPress={() => router.push(link.route as never)}
+              key={mode.title}
+              onPress={() => router.push(mode.route as never)}
+              disabled={current}
               accessibilityRole="link"
-              accessibilityLabel={`Open ${link.title}`}
+              accessibilityLabel={current ? `${mode.title}, current mode` : `Open ${mode.title}`}
+              accessibilityState={{ selected: current, disabled: current }}
               style={({ pressed }) => [
-                styles.link,
-                { borderColor: colors.border, backgroundColor: colors.card },
-                pressed && { opacity: 0.85 },
+                styles.card,
+                pointerCursor,
+                { borderColor: current ? colors.primary : colors.border, backgroundColor: colors.card },
+                pressed && !current && { backgroundColor: colors.muted },
               ]}
             >
-              <Icon size={16} color={colors.primary} />
-              <Text style={[styles.text, { color: colors.foreground }]}>{link.title}</Text>
+              <View style={[styles.tile, { backgroundColor: palette.bg }]}>
+                <Icon size={22} color={palette.fg} />
+              </View>
+              <View style={styles.text}>
+                <Text style={[typeScale.label, styles.title, { color: colors.foreground }]}>{mode.title}</Text>
+                <Text style={[typeScale.body, { color: colors.mutedForeground }]}>{mode.description}</Text>
+              </View>
+              {!current && <ChevronRight size={18} color={colors.mutedForeground} />}
             </Pressable>
           );
         })}
-      </View>
+      </CardGrid>
     </FormWidth>
   );
 }
 
 const styles = StyleSheet.create({
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  link: {
+  card: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    minHeight: 44,
+    gap: spacing.md,
     borderWidth: 1,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
+    borderRadius: shape.lg,
+    padding: cardPadding.compact,
+  },
+  tile: {
+    width: 40,
+    height: 40,
+    borderRadius: shape.md,
+    alignItems: "center",
+    justifyContent: "center",
   },
   text: {
-    fontSize: 14,
-    fontWeight: "500",
+    flex: 1,
+    gap: spacing.xs,
+  },
+  title: {
+    fontWeight: "600",
   },
 });

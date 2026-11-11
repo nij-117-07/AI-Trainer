@@ -6,8 +6,8 @@
 import { useCallback } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
-import { BookOpenCheck, Drama, Sparkles, UserCog } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { BookOpenCheck, Drama, UserCog } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, Panel, TextField, pointerCursor } from "@/components/tool/FormControls";
 import { Section } from "@/components/tool/Section";
 import { SectionTitle } from "@/components/tool/SectionTitle";
@@ -43,10 +43,9 @@ export function RoleplayPersonaFields({ persona }: { persona: PersonaState }) {
 
   return (
     <Section>
-      {savedRoles.roles.length > 0 && (
-        <Panel>
-          <SectionTitle icon={BookOpenCheck} title="Saved personas" />
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>Tap a saved persona to use its prompt.</Text>
+      <Panel>
+        <SectionTitle icon={BookOpenCheck} title="Saved personas" />
+        {savedRoles.roles.length > 0 && (
           <View style={styles.chips}>
             {savedRoles.roles.map((role) => {
               const selected = role.prompt === settings.systemPrompt;
@@ -55,6 +54,7 @@ export function RoleplayPersonaFields({ persona }: { persona: PersonaState }) {
                   key={role.name}
                   onPress={() => updateSettings({ systemPrompt: role.prompt })}
                   accessibilityRole="button"
+                  accessibilityLabel={role.name}
                   accessibilityState={{ selected }}
                   style={[
                     styles.chip,
@@ -72,20 +72,22 @@ export function RoleplayPersonaFields({ persona }: { persona: PersonaState }) {
               );
             })}
           </View>
-        </Panel>
-      )}
-
-      <Panel>
-        <SectionTitle icon={Sparkles} title="Write with AI" />
-        <SystemPromptAssistant assistant={assistant} />
+        )}
+        <ActionButton
+          label="Manage saved personas"
+          icon={UserCog}
+          variant="outline"
+          onPress={() => router.push("/language-learner/roleplay/roles")}
+        />
       </Panel>
+
+      <SystemPromptAssistant assistant={assistant} />
 
       <Panel>
         <SectionTitle icon={Drama} title="Persona" />
         <TextField
           label="System prompt"
           placeholder="e.g. You are a grumpy Parisian waiter."
-          hint="The persona the chatbot will embody."
           value={settings.systemPrompt}
           onChangeText={(text) => updateSettings({ systemPrompt: text })}
           maxLength={SYSTEM_PROMPT_MAX}
@@ -95,7 +97,6 @@ export function RoleplayPersonaFields({ persona }: { persona: PersonaState }) {
         <TextField
           label="User instructions (optional)"
           placeholder="e.g. Be sarcastic but helpful."
-          hint="Constraints for each turn."
           value={settings.additionalInstructions}
           onChangeText={(text) => updateSettings({ additionalInstructions: text })}
           maxLength={ADDITIONAL_INSTRUCTIONS_MAX}
@@ -105,16 +106,9 @@ export function RoleplayPersonaFields({ persona }: { persona: PersonaState }) {
         <TextField
           label="Session seed (optional)"
           placeholder="Leave blank to auto-generate"
-          hint="Keeps the character consistent across turns."
           value={settings.seed}
           onChangeText={(text) => updateSettings({ seed: text })}
           maxLength={SEED_MAX}
-        />
-        <ActionButton
-          label="Manage saved personas"
-          icon={UserCog}
-          variant="outline"
-          onPress={() => router.push("/language-learner/roleplay/roles")}
         />
       </Panel>
     </Section>
@@ -129,11 +123,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing["2xl"],
   },
   loadingText: {
-    fontSize: 14,
-  },
-  hint: {
-    fontSize: 13,
-    lineHeight: 19,
+    ...typeScale.body,
   },
   chips: {
     flexDirection: "row",
@@ -142,14 +132,12 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    minHeight: 44,
+    minHeight: touchTarget,
     justifyContent: "center",
   },
   chipText: {
-    fontSize: 14,
-    fontWeight: "500",
+    ...typeScale.label,
   },
 });

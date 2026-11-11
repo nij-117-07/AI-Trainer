@@ -5,7 +5,7 @@
  */
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, TextInput, View, type TextInputKeyPressEvent } from "react-native";
 import { ArrowUp, Mic, Square } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { pointerCursor } from "@/components/tool/FormControls";
 
 export interface VoiceControls {
@@ -124,22 +124,22 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     gap: spacing.sm,
     borderWidth: 1,
-    borderRadius: radius["2xl"],
+    borderRadius: shape.lg,
     paddingLeft: spacing.lg,
     paddingRight: spacing.xs,
     paddingVertical: spacing.xs,
   },
   input: {
     flex: 1,
-    minHeight: 44,
+    minHeight: touchTarget,
     maxHeight: 160,
-    fontSize: 16,
+    ...typeScale.bodyLarge,
     paddingVertical: spacing.md,
   },
   round: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   hint: {
-    fontSize: 12,
+    ...typeScale.caption,
     textAlign: "center",
   },
 });

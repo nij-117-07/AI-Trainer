@@ -6,7 +6,7 @@ import Slider from "@react-native-community/slider";
 import { SlidersHorizontal } from "lucide-react-native";
 import { Disclosure } from "@/components/tool/Disclosure";
 import { ActionButton, ErrorText, Field, TextField } from "@/components/tool/FormControls";
-import { spacing, useThemeColors } from "@/theme";
+import { spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { PERSONA_LIMITS, draftFromPersona, EMPTY_PERSONA_DRAFT, parseStarterText, validatePersonaDraft } from "../lib/persona-model";
 import type { Persona, PersonaDraft } from "../types";
 
@@ -65,7 +65,7 @@ export function PersonaEditor({ persona, onSave, onCancel }: PersonaEditorProps)
 
       <View style={styles.row}>
         <TextField
-          label="Avatar"
+          label="Avatar (optional)"
           value={draft.avatar}
           onChangeText={(value) => patch("avatar", value)}
           maxLength={PERSONA_LIMITS.avatarChars}
@@ -78,12 +78,13 @@ export function PersonaEditor({ persona, onSave, onCancel }: PersonaEditorProps)
             onChangeText={(value) => patch("name", value)}
             placeholder="Maths tutor"
             maxLength={PERSONA_LIMITS.nameChars}
+            style={styles.singleLine}
           />
         </View>
       </View>
 
       <TextField
-        label="Description"
+        label="Description (optional)"
         hint="Shown in the persona list and on an empty chat."
         value={draft.description}
         onChangeText={(value) => patch("description", value)}
@@ -93,7 +94,7 @@ export function PersonaEditor({ persona, onSave, onCancel }: PersonaEditorProps)
       />
 
       <TextField
-        label="System prompt"
+        label="System prompt (optional)"
         hint="Sent as the system message before every reply. This sets how the persona behaves."
         value={draft.systemPrompt}
         onChangeText={(value) => patch("systemPrompt", value)}
@@ -103,7 +104,7 @@ export function PersonaEditor({ persona, onSave, onCancel }: PersonaEditorProps)
       />
 
       <TextField
-        label="Starter prompts"
+        label="Starter prompts (optional)"
         hint="One per line, up to four. Shown on an empty chat."
         value={starterText}
         onChangeText={(value) => {
@@ -116,13 +117,14 @@ export function PersonaEditor({ persona, onSave, onCancel }: PersonaEditorProps)
 
       <Disclosure title="Advanced settings" icon={SlidersHorizontal} summary={advancedSummary} defaultOpen={advancedChanged}>
         <TextField
-          label="Model"
+          label="Model (optional)"
           hint="Leave empty to use the chat model from AI settings."
           value={draft.model}
           onChangeText={(value) => patch("model", value)}
           placeholder="Chat model from AI settings"
           autoCapitalize="none"
           autoCorrect={false}
+          style={styles.singleLine}
         />
 
         <SliderField
@@ -146,7 +148,7 @@ export function PersonaEditor({ persona, onSave, onCancel }: PersonaEditorProps)
         />
 
         <TextField
-          label="Max tokens"
+          label="Max tokens (optional)"
           hint="Longest reply in tokens. 0 uses the provider default."
           value={maxTokensText}
           onChangeText={(value) => {
@@ -155,6 +157,7 @@ export function PersonaEditor({ persona, onSave, onCancel }: PersonaEditorProps)
           }}
           keyboardType="number-pad"
           placeholder="0"
+          style={styles.singleLine}
         />
       </Disclosure>
 
@@ -217,8 +220,7 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
   },
   heading: {
-    fontSize: 20,
-    fontWeight: "700",
+    ...typeScale.headline,
   },
   row: {
     flexDirection: "row",
@@ -227,15 +229,19 @@ const styles = StyleSheet.create({
   grow: {
     flex: 1,
   },
+  singleLine: {
+    minHeight: 56,
+  },
   avatarInput: {
     width: 72,
+    minHeight: 56,
     textAlign: "center",
   },
   promptInput: {
     minHeight: 160,
   },
   slider: {
-    height: 44,
+    height: touchTarget,
   },
   buttons: {
     flexDirection: "row",

@@ -11,12 +11,11 @@ import { spacing } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useLanguageProfiles } from "@/features/language-profiles/providers/LanguageProfilesProvider";
 import { languagePair } from "@/features/language-profiles/lib/profiles";
-import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
-import { SelectField } from "@/components/tool/SelectField";
+import { ActionButton, ChoiceChips, ErrorText, Field, TextField } from "@/components/tool/FormControls";
 import { useRequest } from "@/hooks/useRequest";
-import { saveDocument } from "@/lib/document-store";
 import { generateWordOfTheDay } from "../lib/generators";
-import { WORD_OF_THE_DAY_RESULT_KEY } from "../lib/persistence";
+import { SAVE_FAILED_MESSAGE, WORD_OF_THE_DAY_RESULT_KEY } from "../lib/persistence";
+import { saveResult } from "../lib/result-store";
 import { PROFICIENCY_OPTIONS, WORD_OF_THE_DAY_DEFAULTS } from "../options";
 import { usePersistedForm } from "../hooks/usePersistedDraft";
 import type { WordOfTheDayFormValues } from "../types";
@@ -25,6 +24,7 @@ export interface WordOfTheDayFormState {
   form: WordOfTheDayFormValues;
   pending: boolean;
   error: string | null;
+  saveError: boolean;
   update: <K extends keyof WordOfTheDayFormValues>(key: K, value: WordOfTheDayFormValues[K]) => void;
   submit: () => Promise<void>;
   reset: () => void;
@@ -33,7 +33,9 @@ export interface WordOfTheDayFormState {
 export function useWordOfTheDayForm(onGenerated: () => void): WordOfTheDayFormState {
   const { settings } = useAiSettings();
   const { activeProfile } = useLanguageProfiles();
-  const { form, setForm, reset: resetForm } = usePersistedForm<WordOfTheDayFormValues>(WORD_OF_THE_DAY_DEFAULTS);
+  const { form, setForm, reset: resetForm, saveError } = usePersistedForm<WordOfTheDayFormValues>(
+    WORD_OF_THE_DAY_DEFAULTS,
+  );
   const request = useRequest(generateWordOfTheDay);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -56,7 +58,7 @@ export function useWordOfTheDayForm(onGenerated: () => void): WordOfTheDayFormSt
     controllerRef.current = controller;
     const word = await request.run(settings, { ...form, ...languagePair(activeProfile) }, controller.signal);
     if (!word || controller.signal.aborted) return;
-    await saveDocument(WORD_OF_THE_DAY_RESULT_KEY, word).catch(() => undefined);
+    await saveResult(WORD_OF_THE_DAY_RESULT_KEY, word);
     onGenerated();
   }
 
@@ -64,6 +66,7 @@ export function useWordOfTheDayForm(onGenerated: () => void): WordOfTheDayFormSt
     form,
     pending: request.pending,
     error: request.error,
+    saveError,
     update,
     submit,
     reset,
@@ -75,23 +78,25 @@ export function WordOfTheDayFormFields({ word }: { word: WordOfTheDayFormState }
 
   return (
     <>
-      <SelectField
-        label="Word type"
-        options={PROFICIENCY_OPTIONS}
-        value={form.userProficiency}
-        onChange={(value) => update("userProficiency", value)}
-        customPlaceholder="e.g. Idiomatic, Regional, Technical"
-      />
+      <Field label="Level">
+        <ChoiceChips
+          options={PROFICIENCY_OPTIONS}
+          value={form.userProficiency}
+          onChange={(value) => update("userProficiency", value)}
+          disabled={pending}
+        />
+      </Field>
       <TextField
-        label="Theme"
-        placeholder="e.g. Nature, Technology, General"
+        label="Theme (optional)"
+        hint="Leave empty for a random everyday word."
+        placeholder="e.g. weather, cooking, travel"
         value={form.thematicFocus}
         onChangeText={(text) => update("thematicFocus", text)}
         editable={!pending}
         maxLength={200}
       />
       <TextField
-        label="User instructions (optional)"
+        label="Instructions (optional)"
         placeholder="e.g. untranslatable words only…"
         value={form.customInstructions}
         onChangeText={(text) => update("customInstructions", text)}
@@ -105,13 +110,14 @@ export function WordOfTheDayFormFields({ word }: { word: WordOfTheDayFormState }
 }
 
 export function WordOfTheDayFormFooter({ word }: { word: WordOfTheDayFormState }) {
-  const { pending, error, submit } = word;
+  const { pending, error, saveError, submit } = word;
 
   return (
     <View style={styles.footer}>
       <ErrorText message={error} />
+      <ErrorText message={saveError ? SAVE_FAILED_MESSAGE : null} />
       <ActionButton
-        label={pending ? "Choosing today's word…" : "Get Word of the Day"}
+        label={pending ? "Getting word…" : "Get word"}
         icon={Sparkles}
         loading={pending}
         onPress={submit}

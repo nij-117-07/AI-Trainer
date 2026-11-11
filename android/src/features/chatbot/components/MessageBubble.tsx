@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { setStringAsync } from "expo-clipboard";
 import { Check, Copy, RotateCw, Square, Volume2 } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { MarkdownText } from "@/components/tool/MarkdownText";
 import { pointerCursor } from "@/components/tool/FormControls";
 import type { ChatMessage, Persona } from "../types";
 import { PersonaAvatar } from "./PersonaAvatar";
+
+const SLOW_REPLY_MS = 10000;
 
 export interface SpeechControls {
   ready: boolean;
@@ -30,12 +32,22 @@ interface MessageBubbleProps {
 export function MessageBubble({ message, persona, isLast, canRegenerate, onRegenerate, speech }: MessageBubbleProps) {
   const colors = useThemeColors();
   const [copied, setCopied] = useState(false);
+  const [slow, setSlow] = useState(false);
+  const streaming = message.status === "streaming";
+  const hasText = message.content.trim() !== "";
+  const waiting = streaming && !hasText;
 
   useEffect(() => {
     if (!copied) return;
     const timer = setTimeout(() => setCopied(false), 1500);
     return () => clearTimeout(timer);
   }, [copied]);
+
+  useEffect(() => {
+    if (!waiting) return;
+    const timer = setTimeout(() => setSlow(true), SLOW_REPLY_MS);
+    return () => clearTimeout(timer);
+  }, [waiting]);
 
   if (message.role === "user") {
     return (
@@ -49,11 +61,10 @@ export function MessageBubble({ message, persona, isLast, canRegenerate, onRegen
     );
   }
 
-  const streaming = message.status === "streaming";
-  const hasText = message.content.trim() !== "";
   const listenable = speech.ready && message.status === "done" && hasText;
   const loading = speech.loadingId === message.id;
   const playing = speech.activeId === message.id && !loading;
+  const canRetry = isLast && canRegenerate;
 
   return (
     <View style={styles.assistantRow}>
@@ -61,19 +72,32 @@ export function MessageBubble({ message, persona, isLast, canRegenerate, onRegen
       <View style={styles.assistantBody} accessibilityLiveRegion={streaming ? "none" : "polite"}>
         <Text style={[styles.name, { color: colors.mutedForeground }]}>{persona.name}</Text>
 
-        {hasText ? (
+        {waiting ? (
+          <View style={styles.thinking}>
+            <ActivityIndicator size="small" color={colors.mutedForeground} />
+            <Text style={[styles.caption, { color: colors.mutedForeground }]}>{slow ? "Still working…" : "Thinking"}</Text>
+          </View>
+        ) : hasText ? (
           <MarkdownText content={message.content} />
-        ) : streaming ? (
-          <ActivityIndicator color={colors.mutedForeground} accessibilityLabel="Writing reply" />
         ) : null}
         {streaming && hasText ? (
           <ActivityIndicator size="small" color={colors.mutedForeground} accessibilityLabel="Writing reply" />
+        ) : null}
+
+        {message.status === "stopped" ? (
+          <Text accessibilityLiveRegion="polite" style={[styles.caption, { color: colors.mutedForeground }]}>
+            Stopped. This answer is incomplete.
+          </Text>
         ) : null}
 
         {message.status === "error" && message.error ? (
           <Text accessibilityRole="alert" style={[styles.error, { color: colors.destructive }]}>
             {message.error}
           </Text>
+        ) : null}
+
+        {message.status === "error" && canRetry ? (
+          <TextButton label="Try again" onPress={onRegenerate} outlined />
         ) : null}
 
         {!streaming ? (
@@ -105,10 +129,10 @@ export function MessageBubble({ message, persona, isLast, canRegenerate, onRegen
                 )}
               </ActionIcon>
             ) : null}
-            {isLast && canRegenerate ? (
-              <ActionIcon label={message.status === "error" ? "Try again" : "Regenerate reply"} onPress={onRegenerate}>
+            {canRetry && (message.status === "done" || message.status === "stopped") ? (
+              <TextButton label="Regenerate" onPress={onRegenerate}>
                 <RotateCw size={16} color={colors.mutedForeground} />
-              </ActionIcon>
+              </TextButton>
             ) : null}
           </View>
         ) : null}
@@ -130,6 +154,36 @@ function ActionIcon({ label, onPress, children }: { label: string; onPress: () =
   );
 }
 
+function TextButton({
+  label,
+  onPress,
+  outlined = false,
+  children,
+}: {
+  label: string;
+  onPress: () => void;
+  outlined?: boolean;
+  children?: React.ReactNode;
+}) {
+  const colors = useThemeColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [
+        styles.textButton,
+        outlined && { borderWidth: 1, borderColor: colors.border },
+        pointerCursor,
+        pressed && styles.pressed,
+      ]}
+    >
+      {children}
+      <Text style={[styles.textButtonLabel, { color: outlined ? colors.foreground : colors.mutedForeground }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   userRow: {
     flexDirection: "row",
@@ -137,13 +191,12 @@ const styles = StyleSheet.create({
   },
   userBubble: {
     maxWidth: "85%",
-    borderRadius: radius["2xl"],
+    borderRadius: shape.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
   userText: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...typeScale.body,
   },
   assistantRow: {
     flexDirection: "row",
@@ -154,23 +207,45 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   name: {
-    fontSize: 13,
+    ...typeScale.caption,
     fontWeight: "600",
   },
+  thinking: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: touchTarget,
+  },
+  caption: {
+    ...typeScale.caption,
+  },
   error: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...typeScale.label,
   },
   actions: {
     flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     marginLeft: -spacing.sm,
   },
   actionIcon: {
-    width: 44,
-    height: 44,
+    width: touchTarget,
+    height: touchTarget,
     alignItems: "center",
     justifyContent: "center",
+  },
+  textButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: spacing.xs,
+    minHeight: touchTarget,
+    paddingHorizontal: spacing.md,
+    borderRadius: shape.full,
+  },
+  textButtonLabel: {
+    ...typeScale.label,
+    fontWeight: "600",
   },
   pressed: {
     opacity: 0.6,

@@ -3,7 +3,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Languages } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { useLanguageProfiles } from "../providers/LanguageProfilesProvider";
 import { describePair } from "../lib/profiles";
 
@@ -16,8 +16,8 @@ export function ActiveLanguageNotice() {
     <View style={[styles.row, { backgroundColor: colors.muted, borderColor: colors.border }]}>
       <Languages size={18} color={colors.foreground} />
       <View style={styles.text}>
-        <Text style={[styles.label, { color: colors.mutedForeground }]}>Language profile · {activeProfile.name}</Text>
-        <Text style={[styles.pair, { color: colors.foreground }]}>{describePair(activeProfile)}</Text>
+        <Text style={[typeScale.caption, { color: colors.mutedForeground }]}>Language profile · {activeProfile.name}</Text>
+        <Text style={[typeScale.label, styles.pair, { color: colors.foreground }]}>{describePair(activeProfile)}</Text>
       </View>
       <Pressable
         onPress={() => router.push("/language-learner/profiles")}
@@ -25,7 +25,7 @@ export function ActiveLanguageNotice() {
         accessibilityLabel="Change language profile"
         style={({ pressed }) => [styles.change, { borderColor: colors.border }, pressed && { opacity: 0.85 }]}
       >
-        <Text style={[styles.changeText, { color: colors.foreground }]}>Change</Text>
+        <Text style={[typeScale.label, styles.changeText, { color: colors.foreground }]}>Change</Text>
       </Pressable>
     </View>
   );
@@ -37,30 +37,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: shape.lg,
     padding: spacing.md,
   },
   text: {
     flex: 1,
-    gap: 2,
-  },
-  label: {
-    fontSize: 12,
+    gap: spacing.xs,
   },
   pair: {
-    fontSize: 15,
     fontWeight: "600",
   },
   change: {
     borderWidth: 1,
-    borderRadius: radius.full,
+    borderRadius: shape.full,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    minHeight: 44,
+    minHeight: touchTarget,
     justifyContent: "center",
   },
   changeText: {
-    fontSize: 13,
     fontWeight: "600",
   },
 });

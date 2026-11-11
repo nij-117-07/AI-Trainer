@@ -1,28 +1,35 @@
 // src/features/roleplay/components/RoleplayRolesView.tsx
 /**
- * Role manager for the roleplay chat. Lists the saved personas and lets you create, edit, or
- * delete them. Saving a name that already exists updates that persona's prompt.
+ * Saved personas. Tapping a row starts a chat with that persona. The edit form sits below the list in
+ * a disclosure, and opens when a row's edit button is tapped. Saving a name that already exists
+ * updates that persona's prompt.
  */
-import { useCallback } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "expo-router";
-import { BookOpenCheck, Pencil, Plus, RefreshCcw, Save, Trash2, UserCog } from "lucide-react-native";
-import { radius, spacing, useThemeColors } from "@/theme";
-import { ActionButton, ErrorText, Panel, TextField, pointerCursor } from "@/components/tool/FormControls";
-import { CardGrid } from "@/components/tool/CardGrid";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { ChevronRight, Pencil, Plus, RefreshCcw, Save, Trash2, UserCog, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
+import { ActionButton, ErrorText, TextField, pointerCursor } from "@/components/tool/FormControls";
+import { Disclosure } from "@/components/tool/Disclosure";
+import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
-import { SectionTitle } from "@/components/tool/SectionTitle";
+import { UndoSnackbar } from "@/components/tool/UndoSnackbar";
 import { useRoleplayRoles } from "../hooks/useRoleplayRoles";
 import { useSystemPromptAssistant } from "../hooks/useSystemPromptAssistant";
 import { ROLE_NAME_MAX, ROLE_PROMPT_MAX } from "../options";
+import { loadSettings, saveSettings } from "../lib/persistence";
+import { scenarioOf } from "../lib/text";
 import type { RoleRecord } from "../types";
 import { SystemPromptAssistant } from "./SystemPromptAssistant";
 
 export function RoleplayRolesView() {
   const colors = useThemeColors();
+  const router = useRouter();
   const roles = useRoleplayRoles();
-  const { reload, setForm } = roles;
+  const { reload, setForm, undoRemoval, commitRemoval } = roles;
   const assistant = useSystemPromptAssistant((prompt) => setForm((current) => ({ ...current, prompt })));
+  const [formOpen, setFormOpen] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -30,20 +37,72 @@ export function RoleplayRolesView() {
     }, [reload]),
   );
 
-  function confirmDelete(role: RoleRecord) {
-    Alert.alert("Delete this persona?", `"${role.name}" will be removed. This cannot be undone.`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => void roles.remove(role.name) },
-    ]);
+  async function startChat(role: RoleRecord) {
+    setStartError(null);
+    try {
+      const current = await loadSettings();
+      await saveSettings({ ...current, systemPrompt: role.prompt });
+      router.navigate("/language-learner/roleplay");
+    } catch {
+      setStartError("Couldn't open this persona. Try again.");
+    }
+  }
+
+  function editRole(role: RoleRecord) {
+    roles.edit(role);
+    setFormOpen(true);
+  }
+
+  function newRole() {
+    roles.startNew();
+    setFormOpen(true);
   }
 
   return (
     <Section>
-      <Panel>
-        <SectionTitle
-          icon={roles.editing ? Pencil : Plus}
-          title={roles.editing ? `Editing "${roles.form.name}"` : "New persona"}
+      <ErrorText message={startError} />
+
+      {roles.loadError ? (
+        <>
+          <ErrorText message={roles.loadError} />
+          <ActionButton label="Retry loading" icon={RefreshCcw} variant="outline" onPress={() => void reload()} />
+        </>
+      ) : !roles.loaded ? (
+        <ActivityIndicator color={colors.primary} />
+      ) : roles.roles.length === 0 ? (
+        <>
+          <EmptyHint icon={UserCog} title="No saved personas" hint="Save a persona here to reuse it in a chat." />
+          <ActionButton label="New persona" icon={Plus} onPress={newRole} />
+        </>
+      ) : (
+        <View style={[styles.list, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {roles.roles.map((role, index) => (
+            <RoleRow
+              key={role.name}
+              role={role}
+              divider={index > 0}
+              onStart={() => void startChat(role)}
+              onEdit={() => editRole(role)}
+              onDelete={() => roles.remove(role.name)}
+            />
+          ))}
+        </View>
+      )}
+
+      {roles.removed !== null ? (
+        <UndoSnackbar
+          message={`Deleted role ${roles.removed}`}
+          onUndo={undoRemoval}
+          onDismiss={commitRemoval}
         />
+      ) : null}
+
+      <Disclosure
+        title={roles.editing ? `Editing "${roles.form.name}"` : "New persona"}
+        icon={roles.editing ? Pencil : Plus}
+        open={formOpen}
+        onToggle={setFormOpen}
+      >
         <TextField
           label="Name"
           placeholder="e.g. grumpy_waiter"
@@ -54,7 +113,7 @@ export function RoleplayRolesView() {
         <SystemPromptAssistant assistant={assistant} />
         <TextField
           label="Prompt"
-          placeholder="The persona system prompt, e.g. 'You are a grumpy Parisian waiter.'"
+          placeholder="e.g. You are a grumpy Parisian waiter."
           value={roles.form.prompt}
           onChangeText={(prompt) => roles.setForm((current) => ({ ...current, prompt }))}
           maxLength={ROLE_PROMPT_MAX}
@@ -70,123 +129,114 @@ export function RoleplayRolesView() {
           icon={Save}
           onPress={() => void roles.save()}
         />
-        {roles.editing && <ActionButton label="New persona" icon={Plus} variant="outline" onPress={roles.startNew} />}
-      </Panel>
-
-      <Panel>
-        <SectionTitle icon={BookOpenCheck} title="Saved personas" />
-        {roles.loadError ? (
-          <>
-            <ErrorText message={roles.loadError} />
-            <ActionButton label="Retry loading" icon={RefreshCcw} variant="outline" onPress={() => void reload()} />
-          </>
-        ) : roles.roles.length === 0 ? (
-          <Text accessibilityLiveRegion="polite" style={[styles.empty, { color: colors.mutedForeground }]}>
-            {roles.loaded ? "No personas saved yet. Use the form to create your first one." : "Loading personas…"}
-          </Text>
-        ) : (
-          <CardGrid>
-            {roles.roles.map((role) => (
-              <RoleCard
-                key={role.name}
-                role={role}
-                onEdit={() => roles.edit(role)}
-                onDelete={() => confirmDelete(role)}
-              />
-            ))}
-          </CardGrid>
-        )}
-      </Panel>
+        {roles.editing && <ActionButton label="New persona" icon={Plus} variant="outline" onPress={newRole} />}
+      </Disclosure>
     </Section>
   );
 }
 
-function RoleCard({ role, onEdit, onDelete }: { role: RoleRecord; onEdit: () => void; onDelete: () => void }) {
+function RoleRow({
+  role,
+  divider,
+  onStart,
+  onEdit,
+  onDelete,
+}: {
+  role: RoleRecord;
+  divider: boolean;
+  onStart: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const colors = useThemeColors();
   return (
-    <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
-      <View style={styles.nameRow}>
-        <UserCog size={16} color={colors.mutedForeground} />
-        <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>
-          {role.name}
-        </Text>
-      </View>
-      <View style={styles.actions}>
-        <Pressable
-          onPress={onEdit}
-          accessibilityRole="button"
-          accessibilityLabel={`Edit ${role.name}`}
-          style={({ pressed }) => [
-            styles.smallButton,
-            pointerCursor,
-            { borderColor: colors.border },
-            pressed && { backgroundColor: colors.muted },
-          ]}
-        >
-          <Pencil size={14} color={colors.foreground} />
-          <Text style={[styles.smallText, { color: colors.foreground }]}>Edit</Text>
-        </Pressable>
-        <Pressable
-          onPress={onDelete}
-          accessibilityRole="button"
-          accessibilityLabel={`Delete ${role.name}`}
-          style={({ pressed }) => [
-            styles.smallButton,
-            pointerCursor,
-            { borderColor: colors.destructive },
-            pressed && { backgroundColor: colors.muted },
-          ]}
-        >
-          <Trash2 size={14} color={colors.destructive} />
-          <Text style={[styles.smallText, { color: colors.destructive }]}>Delete</Text>
-        </Pressable>
-      </View>
+    <View style={[styles.row, divider && { borderTopWidth: 1, borderTopColor: colors.border }]}>
+      <Pressable
+        onPress={onStart}
+        accessibilityRole="button"
+        accessibilityLabel={`Start chat with ${role.name}`}
+        style={({ pressed }) => [styles.rowMain, pointerCursor, pressed && { backgroundColor: colors.muted }]}
+      >
+        <View style={styles.rowText}>
+          <Text numberOfLines={1} style={[styles.name, { color: colors.foreground }]}>
+            {role.name}
+          </Text>
+          <Text numberOfLines={1} style={[styles.scenario, { color: colors.mutedForeground }]}>
+            {scenarioOf(role.prompt)}
+          </Text>
+        </View>
+        <ChevronRight size={20} color={colors.mutedForeground} />
+      </Pressable>
+      <RowIconButton icon={Pencil} label={`Edit ${role.name}`} color={colors.foreground} onPress={onEdit} />
+      <RowIconButton icon={Trash2} label={`Delete ${role.name}`} color={colors.destructive} onPress={onDelete} />
     </View>
+  );
+}
+
+function RowIconButton({
+  icon: Icon,
+  label,
+  color,
+  onPress,
+}: {
+  icon: LucideIcon;
+  label: string;
+  color: string;
+  onPress: () => void;
+}) {
+  const colors = useThemeColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [styles.iconButton, pointerCursor, pressed && { backgroundColor: colors.muted }]}
+    >
+      <Icon size={20} color={color} />
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   success: {
-    fontSize: 13,
+    ...typeScale.caption,
   },
-  empty: {
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  card: {
+  list: {
     borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    gap: spacing.md,
+    borderRadius: shape.lg,
+    overflow: "hidden",
   },
-  nameRow: {
+  row: {
+    minHeight: 72,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.xs,
+  },
+  rowMain: {
+    flex: 1,
+    minHeight: 72,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  rowText: {
+    flex: 1,
+    gap: spacing.xs,
   },
   name: {
-    flexShrink: 1,
-    fontSize: 15,
-    fontWeight: "500",
-    fontFamily: "monospace",
+    ...typeScale.label,
+    fontWeight: "600",
   },
-  actions: {
-    flexDirection: "row",
-    gap: spacing.sm,
+  scenario: {
+    ...typeScale.caption,
   },
-  smallButton: {
-    flex: 1,
-    flexDirection: "row",
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
     alignItems: "center",
     justifyContent: "center",
-    gap: spacing.xs,
-    minHeight: 44,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-  },
-  smallText: {
-    fontSize: 14,
-    fontWeight: "600",
   },
 });

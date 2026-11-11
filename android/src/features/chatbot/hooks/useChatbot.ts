@@ -9,6 +9,7 @@ import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvid
 import { requestReply } from "../lib/completion";
 import { loadMessages, loadThreads, removeMessages, saveMessages, saveThreads } from "../lib/chat-store";
 import { buildRequestMessages } from "../lib/request";
+import { replyOutcome } from "../lib/reply-outcome";
 import { createMessage, createThread, sortThreads, threadsForPersona, titleFrom } from "../lib/thread-model";
 import type { ChatMessage, ChatThread, Persona } from "../types";
 import { useChatbotConfig } from "./useChatbotConfig";
@@ -35,8 +36,10 @@ export function useChatbot() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastReplyId, setLastReplyId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const threadsRef = useRef<ChatThread[]>([]);
   const messagesRef = useRef<ChatMessage[]>([]);
+  const pendingDeleteRef = useRef<string | null>(null);
   const busyRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -82,10 +85,11 @@ export function useChatbot() {
   const personaId = config.personas.some((p) => p.id === activePersonaId) ? activePersonaId : defaultPersonaId;
   const activePersona = config.personas.find((p) => p.id === personaId) ?? null;
   const personaThreads = useMemo(
-    () => (activePersona ? threadsForPersona(threads, activePersona.id) : []),
-    [threads, activePersona],
+    () => (activePersona ? threadsForPersona(threads, activePersona.id).filter((t) => t.id !== pendingDeleteId) : []),
+    [threads, activePersona, pendingDeleteId],
   );
   const activeThread = threads.find((t) => t.id === activeThreadId) ?? null;
+  const pendingDelete = threads.find((t) => t.id === pendingDeleteId) ?? null;
 
   useEffect(() => {
     if (!threadsLoaded || busyRef.current || !activeThreadId) return;
@@ -101,15 +105,38 @@ export function useChatbot() {
     setError(null);
   }, [setMessages]);
 
+  const removeThread = useCallback(
+    async (id: string) => {
+      try {
+        await commitThreads(threadsRef.current.filter((t) => t.id !== id));
+        await removeMessages(id);
+      } catch {
+        setError("That chat could not be deleted.");
+      }
+    },
+    [commitThreads],
+  );
+
+  const commitDelete = useCallback(async () => {
+    const id = pendingDeleteRef.current;
+    if (!id) return;
+    pendingDeleteRef.current = null;
+    setPendingDeleteId(null);
+    await removeThread(id);
+  }, [removeThread]);
+
+  useEffect(() => () => void commitDelete(), [commitDelete]);
+
   const selectPersona = useCallback(
     (id: string) => {
       if (busyRef.current) return;
+      void commitDelete();
       setActivePersonaId(id);
       setActiveThreadId(null);
       setMessages([]);
       setError(null);
     },
-    [setMessages],
+    [commitDelete, setMessages],
   );
 
   const openThread = useCallback(
@@ -127,23 +154,26 @@ export function useChatbot() {
     [setMessages],
   );
 
+  /** Hides a chat until the undo snackbar is dismissed; the stored chat is removed only then. */
   const deleteThread = useCallback(
-    async (id: string) => {
-      if (busyRef.current) return;
+    (id: string) => {
+      if (busyRef.current || pendingDeleteRef.current === id) return;
       setError(null);
-      try {
-        await commitThreads(threadsRef.current.filter((t) => t.id !== id));
-        await removeMessages(id);
-        if (activeThreadId === id) {
-          setActiveThreadId(null);
-          setMessages([]);
-        }
-      } catch {
-        setError("That chat could not be deleted.");
+      void commitDelete();
+      pendingDeleteRef.current = id;
+      setPendingDeleteId(id);
+      if (activeThreadId === id) {
+        setActiveThreadId(null);
+        setMessages([]);
       }
     },
-    [activeThreadId, commitThreads, setMessages],
+    [activeThreadId, commitDelete, setMessages],
   );
+
+  const undoDelete = useCallback(() => {
+    pendingDeleteRef.current = null;
+    setPendingDeleteId(null);
+  }, []);
 
   const runTurn = useCallback(
     async (thread: ChatThread, history: ChatMessage[], persona: Persona) => {
@@ -158,6 +188,7 @@ export function useChatbot() {
 
       let reply = "";
       let failure: string | null = null;
+      let completed = false;
       try {
         if (!threadsRef.current.some((t) => t.id === thread.id)) {
           await commitThreads([...threadsRef.current, thread]);
@@ -179,21 +210,14 @@ export function useChatbot() {
           },
         });
         reply = content;
+        completed = true;
       } catch (cause) {
         if (!controller.signal.aborted) {
           failure = cause instanceof Error ? cause.message : "The reply failed. Try again.";
         }
       }
 
-      const outcome: Pick<ChatMessage, "status" | "content" | "error"> = failure
-        ? { status: "error", content: reply, error: failure }
-        : reply.trim()
-          ? { status: "done", content: reply, error: null }
-          : {
-              status: "error",
-              content: "",
-              error: controller.signal.aborted ? "Stopped before a reply arrived." : "The model returned an empty reply.",
-            };
+      const outcome = replyOutcome({ reply, failure, stopped: controller.signal.aborted && !completed });
 
       const finished = messagesRef.current.map((m) => (m.id === assistant.id ? { ...m, ...outcome } : m));
       abortRef.current = null;
@@ -263,10 +287,13 @@ export function useChatbot() {
     draft,
     setDraft,
     sending,
+    pendingDelete,
     selectPersona,
     startNewChat,
     openThread,
     deleteThread,
+    undoDelete,
+    commitDelete,
     send,
     regenerate,
     stop,

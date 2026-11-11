@@ -29,7 +29,7 @@ export async function generateWordOfTheDay(
       targetLanguage: requireText(values.targetLanguage, "Target language", 100),
       nativeLanguage: requireText(values.nativeLanguage, "Native language", 100),
       userProficiency: requireText(values.userProficiency, "Word type", 100),
-      thematicFocus: requireText(values.thematicFocus, "Theme", 200),
+      thematicFocus: optionalText(values.thematicFocus, "Theme", 200),
       dailySeed: dailySeed(now),
       userCustomInstructions: optionalText(values.customInstructions, "Custom instructions", 1000),
     },

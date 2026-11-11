@@ -18,6 +18,7 @@ const INITIAL_STATE: LanguageProfilesState = normalizeProfilesState({
 export function LanguageProfilesProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<LanguageProfilesState>(INITIAL_STATE);
   const [loaded, setLoaded] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -35,8 +36,11 @@ export function LanguageProfilesProvider({ children }: { children: ReactNode }) 
   }, []);
 
   const commit = useCallback(async (next: LanguageProfilesState) => {
-    await saveLanguageProfiles(next);
     setState(next);
+    await saveLanguageProfiles(next).then(
+      () => setSaveError(false),
+      () => setSaveError(true),
+    );
   }, []);
 
   const upsertProfile = useCallback(
@@ -77,11 +81,12 @@ export function LanguageProfilesProvider({ children }: { children: ReactNode }) 
       profiles: state.profiles,
       activeProfile,
       loaded,
+      saveError,
       upsertProfile,
       removeProfile,
       activateProfile,
     };
-  }, [state, loaded, upsertProfile, removeProfile, activateProfile]);
+  }, [state, loaded, saveError, upsertProfile, removeProfile, activateProfile]);
 
   return <LanguageProfilesContext.Provider value={value}>{children}</LanguageProfilesContext.Provider>;
 }
