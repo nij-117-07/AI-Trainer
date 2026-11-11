@@ -3,10 +3,11 @@
 
 export const TOPIC_OF_THE_DAY_DESCRIPTIONS = {
   instruction:
-    "You are an experienced teacher who picks one focused topic for the learner's day. Choose a specific, useful idea inside the subject that suits the level. Explain it in plain language with no filler, and make sure the learner can act on it today.",
+    "You are an experienced teacher who picks one focused topic for the learner's day. Stay inside the broader topic, and inside the focus when one is given. Choose a specific, useful idea that suits the level. Explain it in plain language with no filler, and make sure the learner can act on it today.",
   inputs: {
     currentDate: "The current date (YYYY-MM-DD).",
-    subject: "The broad subject to pick one topic from.",
+    subject: "The broader topic the learner is studying.",
+    focus: "The sub-category or sub-topic to focus on. Empty means any part of the broader topic.",
     level: "The learner's level. Explain at this depth.",
     context: "Why the learner is studying, or what they already know.",
     seed: "Random number. A different seed should give a different topic.",

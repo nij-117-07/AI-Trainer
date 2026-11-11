@@ -1,23 +1,23 @@
 // src/features/topic-of-the-day/components/TopicOfTheDayForm.tsx
 /**
- * Topic of the Day form, shown on its own page. The fields fill the page body; the button is pinned
- * in the footer. A successful generate saves the topic and calls onGenerated, which returns to the
- * Topic of the Day page.
+ * Topic form, shown on its own page for one broader topic. The fields fill the page body; the
+ * button is pinned in the footer. A successful generate saves the topic under its broader topic and
+ * calls onGenerated, which returns to that broader topic's page.
  */
-import { useEffect, useRef } from "react";
-import { StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import { CalendarDays } from "lucide-react-native";
-import { spacing } from "@/theme";
+import { radius, spacing, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
-import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ErrorText, Field, TextField } from "@/components/tool/FormControls";
 import { SelectField } from "@/components/tool/SelectField";
 import { useRequest } from "@/hooks/useRequest";
-import { saveDocument } from "@/lib/document-store";
 import { generateTopicOfTheDay } from "../lib/generators";
-import { TOPIC_OF_THE_DAY_RESULT_KEY } from "../lib/persistence";
+import { addTopic, newId } from "../lib/library";
+import { changeTopicLibrary } from "../lib/persistence";
 import { LEVEL_OPTIONS, TOPIC_OF_THE_DAY_DEFAULTS, TOPIC_OF_THE_DAY_LIMITS } from "../options";
 import { usePersistedForm } from "../hooks/usePersistedDraft";
-import type { TopicOfTheDayFormValues } from "../types";
+import type { BroadTopic, TopicOfTheDayFormValues } from "../types";
 
 export interface TopicOfTheDayFormState {
   form: TopicOfTheDayFormValues;
@@ -28,10 +28,11 @@ export interface TopicOfTheDayFormState {
   reset: () => void;
 }
 
-export function useTopicOfTheDayForm(onGenerated: () => void): TopicOfTheDayFormState {
+export function useTopicOfTheDayForm(broad: BroadTopic | undefined, onGenerated: () => void): TopicOfTheDayFormState {
   const { settings } = useAiSettings();
   const { form, setForm, reset: resetForm } = usePersistedForm<TopicOfTheDayFormValues>(TOPIC_OF_THE_DAY_DEFAULTS);
   const request = useRequest(generateTopicOfTheDay);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => controllerRef.current?.abort(), []);
@@ -45,40 +46,57 @@ export function useTopicOfTheDayForm(onGenerated: () => void): TopicOfTheDayForm
     controllerRef.current = null;
     resetForm();
     request.reset();
+    setSaveError(null);
   }
 
   async function submit() {
+    if (!broad) return;
     controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
-    const topic = await request.run(settings, form, controller.signal);
-    if (!topic || controller.signal.aborted) return;
-    await saveDocument(TOPIC_OF_THE_DAY_RESULT_KEY, topic).catch(() => undefined);
+    setSaveError(null);
+    const content = await request.run(settings, broad.name, form, controller.signal);
+    if (!content || controller.signal.aborted) return;
+    try {
+      const focus = form.focus.trim();
+      await changeTopicLibrary((library) =>
+        addTopic(library, { ...content, id: newId("topic"), broadId: broad.id, focus, createdAt: Date.now() }),
+      );
+    } catch {
+      setSaveError("Could not save the topic. Please try again.");
+      return;
+    }
     onGenerated();
   }
 
   return {
     form,
     pending: request.pending,
-    error: request.error,
+    error: request.error ?? saveError,
     update,
     submit,
     reset,
   };
 }
 
-export function TopicOfTheDayFormFields({ topic }: { topic: TopicOfTheDayFormState }) {
+export function TopicOfTheDayFormFields({ topic, broad }: { topic: TopicOfTheDayFormState; broad: BroadTopic | undefined }) {
+  const colors = useThemeColors();
   const { form, pending, update } = topic;
 
   return (
     <>
+      <Field label="Broader topic">
+        <View style={[styles.broad, { borderColor: colors.border, backgroundColor: colors.card }]}>
+          <Text style={[styles.broadText, { color: colors.foreground }]}>{broad?.name ?? ""}</Text>
+        </View>
+      </Field>
       <TextField
-        label="Subject"
-        placeholder="e.g. Photosynthesis, Supply and demand, Git branching"
-        value={form.subject}
-        onChangeText={(text) => update("subject", text)}
+        label="Focus (optional)"
+        placeholder="e.g. Cell division, Recursion, Budgeting for beginners"
+        value={form.focus}
+        onChangeText={(text) => update("focus", text)}
         editable={!pending}
-        maxLength={TOPIC_OF_THE_DAY_LIMITS.subject}
+        maxLength={TOPIC_OF_THE_DAY_LIMITS.focus}
       />
       <SelectField
         label="Level"
@@ -128,5 +146,14 @@ export function TopicOfTheDayFormFooter({ topic }: { topic: TopicOfTheDayFormSta
 const styles = StyleSheet.create({
   footer: {
     gap: spacing.md,
+  },
+  broad: {
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  broadText: {
+    fontSize: 16,
   },
 });

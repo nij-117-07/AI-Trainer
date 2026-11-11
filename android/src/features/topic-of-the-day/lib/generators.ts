@@ -1,7 +1,7 @@
 // src/features/topic-of-the-day/lib/generators.ts
 /**
- * Topic of the Day generator. Validates the form, fills the date and a random seed, calls the
- * model through Ax, and normalises the reply. Each call picks a new topic.
+ * Topic of the Day generator. Validates the input, fills the date and a random seed, calls the
+ * model through Ax, and normalises the reply. Each call picks a new topic inside the broader topic.
  */
 import { ax } from "@ax-llm/ax";
 import type { AiSettings } from "@/features/ai-settings/types";
@@ -18,6 +18,7 @@ const SEED_MAX = 100000;
 
 export async function generateTopicOfTheDay(
   settings: AiSettings,
+  broadTopic: string,
   values: TopicOfTheDayFormValues,
   signal?: AbortSignal,
 ): Promise<TopicOfTheDay> {
@@ -28,7 +29,8 @@ export async function generateTopicOfTheDay(
     llm,
     {
       currentDate: dailyDate(now),
-      subject: requireText(values.subject, "Subject", TOPIC_OF_THE_DAY_LIMITS.subject),
+      subject: requireText(broadTopic, "Broader topic", TOPIC_OF_THE_DAY_LIMITS.broadTopic),
+      focus: optionalText(values.focus, "Focus", TOPIC_OF_THE_DAY_LIMITS.focus),
       level: requireText(values.level, "Level", TOPIC_OF_THE_DAY_LIMITS.level),
       context: optionalText(values.context, "Context", TOPIC_OF_THE_DAY_LIMITS.context),
       seed: String(Math.floor(Math.random() * SEED_MAX) + 1),

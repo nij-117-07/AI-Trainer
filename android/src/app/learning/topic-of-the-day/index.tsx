@@ -1,33 +1,62 @@
 // src/app/learning/topic-of-the-day/index.tsx
+import { Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { CalendarDays } from "lucide-react-native";
+import { Layers, Plus } from "lucide-react-native";
 import { ActionButton } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
-import { TopicOfTheDayView } from "@/features/topic-of-the-day/components/TopicOfTheDayView";
-import { usePersistedTopic } from "@/features/topic-of-the-day/hooks/usePersistedDraft";
+import { BroadTopicRow } from "@/features/topic-of-the-day/components/BroadTopicRow";
+import { showSaveError, useTopicLibrary } from "@/features/topic-of-the-day/hooks/usePersistedDraft";
+import { deleteBroadTopic, topicsFor } from "@/features/topic-of-the-day/lib/library";
+import type { BroadTopic } from "@/features/topic-of-the-day/types";
 
 export default function TopicOfTheDayRoute() {
   const router = useRouter();
-  const topic = usePersistedTopic();
+  const { library, loaded, change } = useTopicLibrary();
+
+  function confirmDelete(broad: BroadTopic) {
+    const count = topicsFor(library, broad.id).length;
+    const topicCount = count === 1 ? "1 topic" : `${count} topics`;
+    Alert.alert("Delete this broader topic?", `"${broad.name}" and its ${topicCount} will be removed. This can't be undone.`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => void change((current) => deleteBroadTopic(current, broad.id)).catch(showSaveError),
+      },
+    ]);
+  }
 
   return (
     <ToolScreen
       title="Topic of the Day"
       footer={
-        <ActionButton label="New topic" icon={CalendarDays} onPress={() => router.push("/learning/topic-of-the-day/new")} />
+        <ActionButton
+          label="Add broader topic"
+          icon={Plus}
+          onPress={() => router.push("/learning/topic-of-the-day/broad-form")}
+        />
       }
     >
       <Section>
-        {topic ? (
-          <TopicOfTheDayView topic={topic} />
-        ) : (
+        {loaded && library.broadTopics.length === 0 ? (
           <EmptyHint
-            icon={CalendarDays}
-            title="No topic yet"
-            hint="Tap New topic below, enter a subject and level, then generate."
+            icon={Layers}
+            title="No broader topics yet"
+            hint="Tap Add broader topic below, for example Biology or Machine learning."
           />
+        ) : (
+          library.broadTopics.map((broad) => (
+            <BroadTopicRow
+              key={broad.id}
+              broad={broad}
+              count={topicsFor(library, broad.id).length}
+              onOpen={() => router.push(`/learning/topic-of-the-day/${broad.id}`)}
+              onEdit={() => router.push({ pathname: "/learning/topic-of-the-day/broad-form", params: { id: broad.id } })}
+              onDelete={() => confirmDelete(broad)}
+            />
+          ))
         )}
       </Section>
     </ToolScreen>

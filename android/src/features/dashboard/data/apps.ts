@@ -156,7 +156,7 @@ export const APPS: AppCard[] = [
   {
     key: "topic-of-the-day",
     title: "Topic of the Day",
-    description: "Get one focused topic with key ideas, a worked example, and a small task you can finish today.",
+    description: "Keep a list of broader topics and get a focused daily topic inside each one, with a small task for today.",
     route: "/learning/topic-of-the-day",
     icon: CalendarDays,
     group: "learning",

@@ -9,6 +9,7 @@ export const topicOfTheDaySignature = f()
   .description(topic.instruction)
   .input("currentDate", f.string(topic.inputs.currentDate))
   .input("subject", f.string(topic.inputs.subject))
+  .input("focus", f.string(topic.inputs.focus).optional())
   .input(
     "level",
     f.string(`${topic.inputs.level} Preset options: Beginner, Intermediate, Advanced, Professional, Expert. Any other level is also accepted.`),

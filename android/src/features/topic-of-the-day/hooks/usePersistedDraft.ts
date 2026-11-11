@@ -1,11 +1,12 @@
 // src/features/topic-of-the-day/hooks/usePersistedDraft.ts
-/** Keeps the Topic of the Day form on the device, and the last topic for the page to reload on focus. */
+/** Keeps the topic form on the device, and loads the topic library each time its page is focused. */
 import { useCallback, useEffect, useState } from "react";
+import { Alert } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { loadDocument, saveDocument } from "@/lib/document-store";
-import { isRecord } from "../lib/text";
-import { TOPIC_OF_THE_DAY_FORM_KEY, TOPIC_OF_THE_DAY_RESULT_KEY, mergeSavedForm } from "../lib/persistence";
-import type { TopicOfTheDay } from "../types";
+import { EMPTY_TOPIC_LIBRARY } from "../lib/library";
+import { TOPIC_OF_THE_DAY_FORM_KEY, changeTopicLibrary, loadTopicLibrary, mergeSavedForm } from "../lib/persistence";
+import type { TopicLibrary } from "../types";
 
 export function usePersistedForm<TForm extends object>(defaults: TForm) {
   const [form, setForm] = useState<TForm>(defaults);
@@ -38,15 +39,18 @@ export function usePersistedForm<TForm extends object>(defaults: TForm) {
   return { form, setForm, reset };
 }
 
-export function usePersistedTopic(): TopicOfTheDay | null {
-  const [topic, setTopic] = useState<TopicOfTheDay | null>(null);
+export function useTopicLibrary() {
+  const [library, setLibrary] = useState<TopicLibrary>(EMPTY_TOPIC_LIBRARY);
+  const [loaded, setLoaded] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      loadDocument<unknown>(TOPIC_OF_THE_DAY_RESULT_KEY, null)
-        .then((saved) => {
-          if (active) setTopic(isRecord(saved) ? (saved as unknown as TopicOfTheDay) : null);
+      loadTopicLibrary()
+        .then((next) => {
+          if (!active) return;
+          setLibrary(next);
+          setLoaded(true);
         })
         .catch(() => undefined);
       return () => {
@@ -55,5 +59,14 @@ export function usePersistedTopic(): TopicOfTheDay | null {
     }, []),
   );
 
-  return topic;
+  const change = useCallback(async (edit: (current: TopicLibrary) => TopicLibrary) => {
+    const next = await changeTopicLibrary(edit);
+    setLibrary(next);
+  }, []);
+
+  return { library, loaded, change };
+}
+
+export function showSaveError() {
+  Alert.alert("Could not save", "Please try again.");
 }
