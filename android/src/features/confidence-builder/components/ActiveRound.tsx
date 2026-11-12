@@ -8,7 +8,7 @@ import { CircleCheck, Flag, Trash2 } from "lucide-react-native";
 import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { ActionButton, ErrorText, Field, pointerCursor, TextField } from "@/components/tool/FormControls";
 import { SectionTitle } from "@/components/tool/SectionTitle";
-import type { ConfidenceBuilderState } from "../hooks/useConfidenceBuilder";
+import type { ConfidenceLogState } from "../hooks/useConfidenceLog";
 import { ratingOptions } from "../options";
 import { REFLECTION_MAX } from "../lib/validate";
 import type { ActiveRound as Round, Rating } from "../types";
@@ -21,7 +21,7 @@ export function roundStage(round: Round): RoundStage {
   return round.doneAt === null ? "doing" : "reflect";
 }
 
-export function ActiveRoundBody({ state, round }: { state: ConfidenceBuilderState; round: Round }) {
+export function ActiveRoundBody({ state, round }: { state: ConfidenceLogState; round: Round }) {
   const colors = useThemeColors();
   const stage = roundStage(round);
 
@@ -74,7 +74,7 @@ export function ActiveRoundBody({ state, round }: { state: ConfidenceBuilderStat
   );
 }
 
-export function ActiveRoundFooter({ state, round }: { state: ConfidenceBuilderState; round: Round }) {
+export function ActiveRoundFooter({ state, round }: { state: ConfidenceLogState; round: Round }) {
   const stage = roundStage(round);
 
   return (

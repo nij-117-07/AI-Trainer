@@ -1,12 +1,11 @@
 // src/features/confidence-builder/lib/normalise.test.ts
 import type { ConfidenceFormValues } from "../types";
-import { toConfidenceDraft, toConfidenceTaskResult } from "./normalise";
+import { toConfidenceSet, toConfidenceTaskResult } from "./normalise";
 
 const defaults: ConfidenceFormValues = {
   focus: "speak-up",
   situation: "",
   comfort: "low",
-  numTasks: 3,
   instructions: "",
 };
 
@@ -26,13 +25,24 @@ describe("toConfidenceTaskResult", () => {
   });
 });
 
-describe("toConfidenceDraft", () => {
-  it("falls back to defaults for a corrupt form and drops an empty result", () => {
-    const draft = toConfidenceDraft(
-      { form: { focus: "shouting", comfort: "none", numTasks: 40, situation: 5 }, result: { tasks: [] } },
+describe("toConfidenceSet", () => {
+  it("falls back to defaults for a corrupt form and keeps the saved tasks", () => {
+    const set = toConfidenceSet(
+      {
+        id: "set-1",
+        form: { focus: "shouting", comfort: "none", situation: 5, numTasks: 40 },
+        result: { tasks: [{ title: "Ask one question" }] },
+        updatedAt: "2026-11-01T10:00:00.000Z",
+      },
       defaults,
     );
-    expect(draft.form).toEqual({ ...defaults, numTasks: 5 });
-    expect(draft.result).toBeNull();
+    expect(set?.id).toBe("set-1");
+    expect(set?.form).toEqual(defaults);
+    expect(set?.result.tasks.map((task) => task.title)).toEqual(["Ask one question"]);
+    expect(set?.createdAt).toBe("2026-11-01T10:00:00.000Z");
+  });
+
+  it("drops an entry without an id", () => {
+    expect(toConfidenceSet({ form: defaults }, defaults)).toBeNull();
   });
 });

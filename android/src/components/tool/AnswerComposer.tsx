@@ -1,6 +1,8 @@
 // src/components/tool/AnswerComposer.tsx
 /** Answer box pinned to a screen footer: text input, submit button, and voice input. */
+import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import type { LucideIcon } from "lucide-react-native";
 import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { appendTranscript } from "@/features/chatbot/lib/voice-text";
 import { ErrorText } from "./FormControls";
@@ -14,6 +16,8 @@ interface AnswerComposerProps {
   pending: boolean;
   error: string | null;
   submitLabel: string;
+  /** Shows the submit as an icon-only button, with submitLabel as its accessible name. */
+  submitIcon?: LucideIcon;
   /** Shown beside the spinner while pending, for example "Checking…". */
   pendingLabel?: string;
   /** Lets an empty message submit, for modes where the text is optional. */
@@ -31,6 +35,7 @@ export function AnswerComposer({
   pending,
   error,
   submitLabel,
+  submitIcon: SubmitIcon,
   pendingLabel,
   allowEmpty = false,
   onChangeText,
@@ -38,11 +43,13 @@ export function AnswerComposer({
   onSubmit,
 }: AnswerComposerProps) {
   const colors = useThemeColors();
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const canSubmit = !pending && (allowEmpty || value.trim().length > 0);
+  const submitTone = canSubmit || pending ? colors.primaryForeground : colors.mutedForeground;
 
   return (
     <View style={styles.wrap}>
-      <ErrorText message={error} />
+      <ErrorText message={error ?? voiceError} />
 
       <View style={styles.row}>
         <TextInput
@@ -57,6 +64,12 @@ export function AnswerComposer({
           accessibilityLabel={label}
           style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
         />
+        <VoiceInputRow
+          compact
+          disabled={pending}
+          onError={setVoiceError}
+          onTranscript={(text) => onChangeText(appendTranscript(value, text))}
+        />
         <Pressable
           onPress={() => {
             if (canSubmit) onSubmit();
@@ -66,19 +79,27 @@ export function AnswerComposer({
           accessibilityLabel={submitLabel}
           accessibilityState={{ disabled: !canSubmit, busy: pending }}
           style={({ pressed }) => [
-            styles.submit,
+            SubmitIcon ? styles.iconSubmit : styles.submit,
             { backgroundColor: canSubmit || pending ? colors.primary : colors.muted },
             pressed && canSubmit && { opacity: 0.85 },
           ]}
         >
-          {pending ? <ActivityIndicator color={colors.primaryForeground} /> : null}
-          <Text style={[styles.submitText, { color: canSubmit || pending ? colors.primaryForeground : colors.mutedForeground }]}>
-            {pending ? pendingLabel ?? submitLabel : submitLabel}
-          </Text>
+          {SubmitIcon ? (
+            pending ? (
+              <ActivityIndicator color={colors.primaryForeground} />
+            ) : (
+              <SubmitIcon size={20} color={submitTone} />
+            )
+          ) : (
+            <>
+              {pending ? <ActivityIndicator color={colors.primaryForeground} /> : null}
+              <Text style={[styles.submitText, { color: submitTone }]}>
+                {pending ? pendingLabel ?? submitLabel : submitLabel}
+              </Text>
+            </>
+          )}
         </Pressable>
       </View>
-
-      <VoiceInputRow disabled={pending} onTranscript={(text) => onChangeText(appendTranscript(value, text))} />
     </View>
   );
 }
@@ -109,6 +130,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.lg,
+  },
+  iconSubmit: {
+    width: touchTarget,
+    height: touchTarget,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
   submitText: {
     ...typeScale.label,

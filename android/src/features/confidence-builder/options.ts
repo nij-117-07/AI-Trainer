@@ -1,10 +1,21 @@
 // src/features/confidence-builder/options.ts
 /** Choices for the Confidence Builder. Each value is sent to the model as written. */
-import type { ComfortLevel, ConfidenceFocus, Rating } from "./types";
+import type { ComfortLevel, ConfidenceFocus, ConfidenceFormValues, Rating } from "./types";
 
 export interface ChoiceItem<T extends string | number = string> {
   value: T;
   label: string;
+}
+
+export const CONFIDENCE_DEFAULTS: ConfidenceFormValues = {
+  focus: "speak-up",
+  situation: "",
+  comfort: "low",
+  instructions: "",
+};
+
+export function focusLabelOf(focus: ConfidenceFocus): string {
+  return focusOptions.find((option) => option.value === focus)?.label ?? focus;
 }
 
 export const focusOptions: ChoiceItem<ConfidenceFocus>[] = [

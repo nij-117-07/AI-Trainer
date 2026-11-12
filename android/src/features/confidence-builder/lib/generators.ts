@@ -6,7 +6,7 @@ import { createLlm } from "@/features/ai-settings/lib/llm";
 import type { ConfidenceFormValues, ConfidenceTaskResult } from "../types";
 import { confidenceTaskSignature } from "./signatures";
 import { toConfidenceTaskResult } from "./normalise";
-import { clampCount, INSTRUCTIONS_MAX, requireText, SITUATION_MAX } from "./validate";
+import { INSTRUCTIONS_MAX, requireText, SITUATION_MAX } from "./validate";
 
 const TEMPERATURE = 0.6;
 
@@ -20,7 +20,6 @@ export async function generateConfidenceTasks(
     focusArea: values.focus,
     situation: situation === "" ? "None" : requireText(situation, "Situation", SITUATION_MAX),
     comfortLevel: values.comfort,
-    numTasks: clampCount(values.numTasks),
     customInstructions: instructions === "" ? "None" : requireText(instructions, "Instructions", INSTRUCTIONS_MAX),
   };
   const llm = createLlm(settings);

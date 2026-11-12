@@ -4,6 +4,7 @@
  * the colour and icon show it on screen. Each recording is transcribed with the voice model in AI
  * settings and handed to onTranscript, so the caller can append it to what is already typed.
  */
+import { useEffect } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { Mic, Square } from "lucide-react-native";
 import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
@@ -12,16 +13,22 @@ import { useVoiceInput } from "@/features/chatbot/hooks/useVoiceInput";
 interface VoiceInputRowProps {
   onTranscript: (text: string) => void;
   disabled?: boolean;
+  /** Shows only the mic button, for placing it beside a text input. Errors go to onError. */
+  compact?: boolean;
+  onError?: (message: string | null) => void;
 }
 
-export function VoiceInputRow({ onTranscript, disabled = false }: VoiceInputRowProps) {
+export function VoiceInputRow({ onTranscript, disabled = false, compact = false, onError }: VoiceInputRowProps) {
   const colors = useThemeColors();
   const voice = useVoiceInput(onTranscript);
   const locked = disabled || voice.transcribing;
 
-  return (
-    <View style={styles.wrap}>
-      <Pressable
+  useEffect(() => {
+    if (compact) onError?.(voice.error ?? null);
+  }, [compact, voice.error, onError]);
+
+  const button = (
+    <Pressable
         onPress={() => void voice.toggle()}
         disabled={locked}
         accessibilityRole="button"
@@ -43,6 +50,13 @@ export function VoiceInputRow({ onTranscript, disabled = false }: VoiceInputRowP
           <Mic size={22} color={voice.ready ? colors.foreground : colors.mutedForeground} />
         )}
       </Pressable>
+  );
+
+  if (compact) return button;
+
+  return (
+    <View style={styles.wrap}>
+      {button}
       {voice.error ? (
         <Text accessibilityRole="alert" style={[styles.error, { color: colors.destructive }]}>
           {voice.error}

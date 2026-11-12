@@ -1,6 +1,6 @@
 // src/features/debate/components/DebatePersonas.tsx
 /**
- * The two personas in a closed dropdown. Inside, Pro and Con sit side by side; tapping a column
+ * The two personas, shown in the debate sidebar. Pro and Con sit side by side; tapping a column
  * shows that persona's details below.
  */
 import { useState } from "react";

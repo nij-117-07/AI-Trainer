@@ -1,103 +1,41 @@
 // src/features/debate/components/DebateBoard.tsx
 /**
- * The debate on the practice page. The body holds the status and "Get verdict", the verdict once
- * judged, the personas dropdown, the transcript (a box with its own scroll), and the breakdown of
- * the last AI turn. The turn form is the page footer (DebateTurnFooter).
+ * The debate chat. The transcript fills the space between the header and the footer, with Pro on
+ * the left and Con on the right. A verdict, once judged, sits above it. The topic is in the header,
+ * the personas and the last AI turn are in the sidebar, and the turn form is the footer.
  */
 import { useEffect, useRef } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from "react-native";
-import { Crosshair, Gavel, MessageSquare, MessageSquareQuote, Swords } from "lucide-react-native";
-import { useRouter } from "expo-router";
+import { ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from "react-native";
+import { MessageSquare } from "lucide-react-native";
 import { shape, spacing, typeScale, useThemeColors } from "@/theme";
-import { ActionButton, Panel } from "@/components/tool/FormControls";
-import { Disclosure } from "@/components/tool/Disclosure";
+import { Panel } from "@/components/tool/FormControls";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
-import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
-import { TagList } from "@/components/tool/TagList";
-import { parseLogEntry } from "../lib/session";
+import { parseLogEntry, type LogEntry } from "../lib/session";
 import { textList } from "../lib/text";
-import type { DebateSession, DebateTurn } from "../types";
+import type { DebateSession } from "../types";
 import type { DebateSessionState } from "../hooks/useDebateSession";
-import { DebatePersonas } from "./DebatePersonas";
 import { DebateVerdictCard } from "./DebateVerdictCard";
 
-const TRANSCRIPT_MAX_HEIGHT = 320;
+const VERDICT_MAX_HEIGHT = 280;
 
 export function DebateBoard({ game, session }: { game: DebateSessionState; session: DebateSession }) {
-  const colors = useThemeColors();
-  const router = useRouter();
-  const active = !session.complete;
-  const { busy } = game;
-  const statements = session.history.length;
-
-  function confirmJudge() {
-    Alert.alert(
-      "End the debate?",
-      "The judge scores the statements so far. You can't add more statements after the verdict.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Get verdict", onPress: () => void game.endAndJudge() },
-      ],
-    );
-  }
+  const status = game.judging ? "Judging the debate…" : game.busy ? "AI is working…" : null;
 
   return (
-    <>
-      <Panel>
-        <View style={styles.stack}>
-          <View style={styles.headerRow}>
-            <View style={[styles.pill, { borderColor: colors.border }]}>
-              <Text style={[styles.pillText, { color: colors.foreground }]}>{active ? "Debating" : "Judged"}</Text>
-            </View>
-            <Text style={[styles.count, { color: colors.mutedForeground }]}>
-              {statements} {statements === 1 ? "statement" : "statements"}
-            </Text>
-          </View>
-          <Text accessibilityRole="header" style={[styles.topic, { color: colors.foreground }]}>
-            {session.topic}
-          </Text>
-          {busy && (
-            <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
-              {game.judging ? "Judging the debate…" : "AI is working…"}
-            </Text>
-          )}
-          {active && (
-            <ActionButton
-              label={game.judging ? "Judging…" : "Get verdict"}
-              icon={Gavel}
-              variant="outline"
-              loading={game.judging}
-              disabled={busy || statements === 0}
-              onPress={confirmJudge}
-            />
-          )}
-        </View>
-      </Panel>
-
-      {session.verdict && <DebateVerdictCard verdict={session.verdict} />}
-
-      <DebatePersonas game={game} session={session} />
-
-      <Transcript log={textList(session.log)} />
-
-      {session.lastTurn && active && <AiTurnBreakdown turn={session.lastTurn} />}
-
-      {active && (
-        <ActionButton
-          label="Start a new debate"
-          icon={Swords}
-          variant="outline"
-          disabled={busy}
-          onPress={() => router.push("/practice/debate/new")}
-        />
+    <View style={styles.board}>
+      {session.verdict && (
+        <ScrollView style={{ maxHeight: VERDICT_MAX_HEIGHT }} nestedScrollEnabled>
+          <DebateVerdictCard verdict={session.verdict} />
+        </ScrollView>
       )}
-    </>
+      <Transcript log={textList(session.log)} status={status} />
+    </View>
   );
 }
 
-function Transcript({ log }: { log: string[] }) {
+function Transcript({ log, status }: { log: string[]; status: string | null }) {
   const colors = useThemeColors();
   const scroll = useRef<ScrollViewInstance>(null);
   const entries = log.map(parseLogEntry).filter((entry) => entry.side !== null);
@@ -107,27 +45,22 @@ function Transcript({ log }: { log: string[] }) {
   }, [log.length]);
 
   return (
-    <Panel>
-      <SectionTitle icon={MessageSquare} title="Transcript" />
+    <Panel style={styles.chat}>
+      <View style={styles.chatHeader}>
+        <SectionTitle icon={MessageSquare} title="Transcript" />
+        {status ? (
+          <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
+            {status}
+          </Text>
+        ) : null}
+      </View>
       {entries.length === 0 ? (
         <Text style={[styles.body, { color: colors.mutedForeground }]}>No statements yet.</Text>
       ) : (
-        <ScrollView ref={scroll} style={{ maxHeight: TRANSCRIPT_MAX_HEIGHT }} nestedScrollEnabled>
+        <ScrollView ref={scroll} style={styles.chatScroll} nestedScrollEnabled>
           <View style={styles.transcript}>
             {entries.map((entry, index) => (
-              <View key={index} style={[styles.entry, { borderColor: colors.border }]}>
-                <View style={styles.speaker}>
-                  <View style={[styles.badge, { borderColor: colors.border }]}>
-                    <Text style={[styles.badgeText, { color: colors.foreground }]}>
-                      {entry.side === "pro" ? "Pro" : "Con"}
-                    </Text>
-                  </View>
-                  <Text numberOfLines={1} style={[styles.speakerName, { color: colors.mutedForeground }]}>
-                    {entry.speaker}
-                  </Text>
-                </View>
-                <MarkdownText content={entry.text} />
-              </View>
+              <Statement key={index} entry={entry} />
             ))}
           </View>
         </ScrollView>
@@ -136,69 +69,64 @@ function Transcript({ log }: { log: string[] }) {
   );
 }
 
-function AiTurnBreakdown({ turn }: { turn: DebateTurn }) {
+function Statement({ entry }: { entry: LogEntry }) {
   const colors = useThemeColors();
-  return (
-    <Disclosure title="Last AI turn" icon={Crosshair} summary={turn.coreClaim}>
-      <Detail title="Opponent analysis" text={turn.opponentAnalysis} />
-      <Detail title="Reasoning & evidence" text={turn.reasoningAndEvidence} />
-      <TagList items={textList(turn.rhetoricalDevices)} />
-      <ResultCallout icon={MessageSquareQuote} title="Closing question" tone="sky">
-        <Text style={[styles.body, { color: colors.foreground }]}>{turn.closingQuestion}</Text>
-        <ListenButton text={turn.closingQuestion} label="Closing question" />
-      </ResultCallout>
-    </Disclosure>
-  );
-}
+  const pro = entry.side === "pro";
 
-function Detail({ title, text }: { title: string; text: string }) {
-  const colors = useThemeColors();
   return (
-    <View style={styles.detail}>
-      <Text style={[styles.label, { color: colors.mutedForeground }]}>{title}</Text>
-      <Text style={[styles.body, { color: colors.foreground }]}>{text}</Text>
+    <View style={[styles.statement, pro ? styles.alignStart : styles.alignEnd]}>
+      <View style={[styles.speaker, { flexDirection: pro ? "row" : "row-reverse" }]}>
+        <View style={[styles.badge, { borderColor: colors.border }]}>
+          <Text style={[styles.badgeText, { color: colors.foreground }]}>{pro ? "Pro" : "Con"}</Text>
+        </View>
+        <Text numberOfLines={1} style={[styles.speakerName, { color: colors.mutedForeground }]}>
+          {entry.speaker}
+        </Text>
+      </View>
+      <View style={[styles.bubble, { backgroundColor: pro ? colors.muted : colors.card, borderColor: colors.border }]}>
+        <MarkdownText content={entry.text} />
+        <View style={styles.listen}>
+          <ListenButton text={entry.text} label={`${pro ? "Pro" : "Con"} statement`} />
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  stack: {
+  board: {
+    flex: 1,
+    minHeight: 0,
     gap: spacing.md,
   },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
+  chat: {
+    flex: 1,
+    minHeight: 0,
+    gap: spacing.md,
   },
-  pill: {
-    borderWidth: 1,
-    borderRadius: shape.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+  chatHeader: {
+    gap: spacing.xs,
   },
-  pillText: {
-    ...typeScale.label,
-    fontWeight: "600",
-  },
-  count: {
-    ...typeScale.label,
+  chatScroll: {
+    flex: 1,
   },
   status: {
     ...typeScale.label,
   },
-  topic: {
-    ...typeScale.title,
-  },
   transcript: {
     gap: spacing.md,
   },
-  entry: {
-    borderTopWidth: 1,
-    paddingTop: spacing.md,
-    gap: spacing.sm,
+  statement: {
+    maxWidth: "88%",
+    gap: spacing.xs,
+  },
+  alignStart: {
+    alignSelf: "flex-start",
+  },
+  alignEnd: {
+    alignSelf: "flex-end",
   },
   speaker: {
-    flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
   },
@@ -216,12 +144,14 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     ...typeScale.label,
   },
-  detail: {
+  bubble: {
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    padding: spacing.md,
     gap: spacing.xs,
   },
-  label: {
-    ...typeScale.label,
-    fontWeight: "600",
+  listen: {
+    alignSelf: "flex-end",
   },
   body: {
     ...typeScale.body,

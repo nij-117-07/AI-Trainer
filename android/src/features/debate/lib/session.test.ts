@@ -1,5 +1,5 @@
 // src/features/debate/lib/session.test.ts
-import { appendStatement, buildJudgeInput, buildTurnInput, createSession, historyText, parseLogEntry } from "./session";
+import { appendStatement, buildJudgeInput, buildTurnInput, createSession, historyText, lastSpeakerOf, nextSideOf, parseLogEntry } from "./session";
 import type { PersonaProfile } from "../types";
 
 const PRO: PersonaProfile = {
@@ -31,6 +31,27 @@ describe("createSession and appendStatement", () => {
       { role: "user", content: "Cost is too high." },
     ]);
     expect(second.log[second.log.length - 1]).toBe("**CON (Bram)**: Cost is too high.");
+  });
+});
+
+describe("nextSideOf and lastSpeakerOf", () => {
+  const setup = { archetype: "", style: "", intensity: 5, influences: "", topic: "UBI", customConstraints: "", opener: "con" as const };
+
+  it("uses the chosen opener before anyone has spoken", () => {
+    const session = { ...createSession("UBI", PRO, CON), setup };
+    expect(lastSpeakerOf(session)).toBeNull();
+    expect(nextSideOf(session)).toBe("con");
+  });
+
+  it("defaults to pro for sessions with no saved setup", () => {
+    expect(nextSideOf(createSession("UBI", PRO, CON))).toBe("pro");
+  });
+
+  it("replies with the other side after each statement", () => {
+    const pro = appendStatement(createSession("UBI", PRO, CON), "pro", "Everyone needs a floor.", null);
+    expect(lastSpeakerOf(pro)).toEqual({ side: "pro", name: "Ada" });
+    expect(nextSideOf(pro)).toBe("con");
+    expect(nextSideOf(appendStatement(pro, "con", "Too costly.", null))).toBe("pro");
   });
 });
 

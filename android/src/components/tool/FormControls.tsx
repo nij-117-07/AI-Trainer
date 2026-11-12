@@ -3,7 +3,17 @@
  * Shared form and layout controls for the Testing Portal tabs.
  */
 import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps, type ViewStyle } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type StyleProp,
+  type TextInputProps,
+  type ViewStyle,
+} from "react-native";
 import { CircleAlert, type LucideIcon } from "lucide-react-native";
 import { cardPadding, radius, shape, spacing, touchTarget, typeScale, useLayout, useThemeColors } from "@/theme";
 import { appendTranscript } from "@/features/chatbot/lib/voice-text";
@@ -12,11 +22,13 @@ import { VoiceInputRow } from "./VoiceInputRow";
 /** Shows a hand pointer on web. Ignored on native. */
 export const pointerCursor = { cursor: "pointer" } as ViewStyle;
 
-export function Panel({ children }: { children: ReactNode }) {
+export function Panel({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   const colors = useThemeColors();
   const { size } = useLayout();
   const padding = size === "phone" ? cardPadding.compact : cardPadding.medium;
-  return <View style={[styles.panel, { backgroundColor: colors.card, borderColor: colors.border, padding }]}>{children}</View>;
+  return (
+    <View style={[styles.panel, { backgroundColor: colors.card, borderColor: colors.border, padding }, style]}>{children}</View>
+  );
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {

@@ -264,6 +264,15 @@ export const APPS: AppCard[] = [
     tone: "amber",
   },
   {
+    key: "pareto-topics",
+    title: "80/20 Topics",
+    description: "Find the handful of topics that cover most of the day-to-day work in a field, with key ideas and what can wait.",
+    route: "/learning/pareto-topics",
+    icon: Target,
+    group: "learning",
+    tone: "sky",
+  },
+  {
     key: "resource-suggestor",
     title: "Resource Suggestor",
     description: "Find books, courses, and articles that fit the topic and your level.",

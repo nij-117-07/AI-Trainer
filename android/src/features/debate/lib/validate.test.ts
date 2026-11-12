@@ -9,6 +9,7 @@ const VALID: PersonaFormValues = {
   influences: "Keynes,  Game Theory, ",
   topic: "Universal Basic Income",
   customConstraints: "",
+  opener: "pro",
 };
 
 describe("requireText", () => {

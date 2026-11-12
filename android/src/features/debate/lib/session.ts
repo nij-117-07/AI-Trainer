@@ -66,6 +66,22 @@ export function parseLogEntry(entry: string): LogEntry {
   return { side: match[1] === "PRO" ? "pro" : "con", speaker: match[2], text: match[3] };
 }
 
+/** The side and name of the most recent statement, or null before anyone has spoken. */
+export function lastSpeakerOf(session: DebateSession): { side: DebateSide; name: string } | null {
+  for (let i = session.log.length - 1; i >= 0; i--) {
+    const entry = parseLogEntry(session.log[i]);
+    if (entry.side !== null) return { side: entry.side, name: entry.speaker };
+  }
+  return null;
+}
+
+/** Turns alternate: the first statement comes from the chosen opener, then each reply is the other side. */
+export function nextSideOf(session: DebateSession): DebateSide {
+  const last = lastSpeakerOf(session);
+  if (last) return last.side === "pro" ? "con" : "pro";
+  return session.setup?.opener ?? "pro";
+}
+
 export function historyText(history: HistoryEntry[]): string {
   if (history.length === 0) return "No exchanges yet.";
   return history.map((entry) => `${entry.role}: ${entry.content}`).join("\n");

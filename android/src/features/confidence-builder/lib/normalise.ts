@@ -6,22 +6,14 @@
 import { isRecord, listOf, textOf } from "@/features/guides/lib/text";
 import type {
   ActiveRound,
-  ConfidenceDraft,
   ConfidenceEntry,
   ConfidenceFormValues,
   ConfidenceLog,
+  ConfidenceSet,
   ConfidenceTask,
   ConfidenceTaskResult,
 } from "../types";
-import {
-  clampCount,
-  INSTRUCTIONS_MAX,
-  isComfort,
-  isFocus,
-  isRating,
-  REFLECTION_MAX,
-  SITUATION_MAX,
-} from "./validate";
+import { INSTRUCTIONS_MAX, isComfort, isFocus, isRating, REFLECTION_MAX, SITUATION_MAX } from "./validate";
 
 function textList(value: unknown): string[] {
   return listOf(value).map(textOf).filter((item) => item !== "");
@@ -56,18 +48,23 @@ export function toConfidenceForm(raw: unknown, defaults: ConfidenceFormValues): 
     focus: isFocus(record.focus) ? record.focus : defaults.focus,
     situation: typeof record.situation === "string" ? record.situation.slice(0, SITUATION_MAX) : defaults.situation,
     comfort: isComfort(record.comfort) ? record.comfort : defaults.comfort,
-    numTasks: clampCount(record.numTasks, defaults.numTasks),
     instructions:
       typeof record.instructions === "string" ? record.instructions.slice(0, INSTRUCTIONS_MAX) : defaults.instructions,
   };
 }
 
-export function toConfidenceDraft(raw: unknown, defaults: ConfidenceFormValues): ConfidenceDraft {
+/** Returns null when the stored item has no id, so broken entries are dropped from the list. */
+export function toConfidenceSet(raw: unknown, defaults: ConfidenceFormValues): ConfidenceSet | null {
   const record = isRecord(raw) ? raw : {};
-  const result = isRecord(record.result) ? toConfidenceTaskResult(record.result) : null;
+  const id = textOf(record.id);
+  if (id === "") return null;
+  const updatedAt = timestampOf(record.updatedAt) ?? new Date().toISOString();
   return {
+    id,
     form: toConfidenceForm(record.form, defaults),
-    result: result && result.tasks.length > 0 ? result : null,
+    result: toConfidenceTaskResult(record.result),
+    createdAt: timestampOf(record.createdAt) ?? updatedAt,
+    updatedAt,
   };
 }
 

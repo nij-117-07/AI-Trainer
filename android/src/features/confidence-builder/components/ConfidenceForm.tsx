@@ -1,15 +1,14 @@
 // src/features/confidence-builder/components/ConfidenceForm.tsx
-/** Setup page: what to build confidence in, in the body. Create tasks is the footer action. */
+/** New task set page: what to build confidence in, in the body. Create tasks is the footer action. */
 import { StyleSheet, View } from "react-native";
-import { ArrowLeft, Sparkles } from "lucide-react-native";
+import { Sparkles } from "lucide-react-native";
 import { spacing } from "@/theme";
 import { ActionButton, ChoiceChips, ErrorText, Field, TextField } from "@/components/tool/FormControls";
-import { CountSlider } from "@/components/tool/CountSlider";
-import type { ConfidenceBuilderState } from "../hooks/useConfidenceBuilder";
+import type { ConfidenceCreateState } from "../hooks/useConfidenceCreate";
 import { comfortOptions, focusOptions } from "../options";
-import { INSTRUCTIONS_MAX, MAX_TASKS, SITUATION_MAX } from "../lib/validate";
+import { INSTRUCTIONS_MAX, SITUATION_MAX } from "../lib/validate";
 
-export function ConfidenceFormBody({ state }: { state: ConfidenceBuilderState }) {
+export function ConfidenceFormBody({ state }: { state: ConfidenceCreateState }) {
   const { form, pending, update } = state;
 
   return (
@@ -28,13 +27,6 @@ export function ConfidenceFormBody({ state }: { state: ConfidenceBuilderState })
         editable={!pending}
         maxLength={SITUATION_MAX}
       />
-      <CountSlider
-        label="Number of tasks"
-        min={1}
-        max={MAX_TASKS}
-        value={form.numTasks}
-        onChange={(value) => update("numTasks", value)}
-      />
       <TextField
         label="Instructions (optional)"
         placeholder="e.g. Keep tasks at home or online"
@@ -49,22 +41,18 @@ export function ConfidenceFormBody({ state }: { state: ConfidenceBuilderState })
   );
 }
 
-export function ConfidenceFormFooter({ state, onBack }: { state: ConfidenceBuilderState; onBack?: () => void }) {
-  const { pending, error, saveError, generate } = state;
+export function ConfidenceFormFooter({ state }: { state: ConfidenceCreateState }) {
+  const { pending, error, generate } = state;
 
   return (
     <View style={styles.footer}>
       <ErrorText message={error} />
-      <ErrorText message={saveError} />
       <ActionButton
         label={pending ? "Creating tasks…" : "Create tasks"}
         icon={Sparkles}
         loading={pending}
         onPress={generate}
       />
-      {onBack ? (
-        <ActionButton label="Back to tasks" icon={ArrowLeft} variant="outline" disabled={pending} onPress={onBack} />
-      ) : null}
     </View>
   );
 }

@@ -11,7 +11,6 @@ export const confidenceTaskSignature = f()
   .input("focusArea", f.string(builder.inputs.focusArea))
   .input("situation", f.string(builder.inputs.situation))
   .input("comfortLevel", f.string(builder.inputs.comfortLevel))
-  .input("numTasks", f.number(builder.inputs.numTasks))
   .input("customInstructions", f.string(builder.inputs.customInstructions))
   .output(
     "tasks",

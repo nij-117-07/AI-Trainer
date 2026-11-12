@@ -11,7 +11,7 @@ import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvid
 import { loadDocument, saveDocument } from "@/lib/document-store";
 import { createPersonas, judgeDebate, takeTurn } from "../lib/generators";
 import { DEBATE_STORAGE_KEYS, restoreSession } from "../lib/persistence";
-import { appendStatement, buildJudgeInput, buildTurnInput } from "../lib/session";
+import { appendStatement, buildJudgeInput, buildTurnInput, lastSpeakerOf, nextSideOf } from "../lib/session";
 import { buildPersonaInput, requireText } from "../lib/validate";
 import { LIMITS } from "../options";
 import type {
@@ -27,19 +27,13 @@ import type {
 import { useAbortableTask } from "./useAbortableTask";
 
 export interface TurnDraft {
-  side: DebateSide;
   mode: TurnMode;
   text: string;
   strategy: TurnStrategy;
   evidence: string;
 }
 
-const EMPTY_DRAFT: TurnDraft = { side: "pro", mode: "type", text: "", strategy: "counter", evidence: "" };
-
-/** Turns alternate: after a statement, the next one is the other side's. */
-function otherSide(side: DebateSide): DebateSide {
-  return side === "pro" ? "con" : "pro";
-}
+const EMPTY_DRAFT: TurnDraft = { mode: "type", text: "", strategy: "counter", evidence: "" };
 
 function messageOf(err: unknown): string {
   return err instanceof Error ? err.message : "Something went wrong. Please try again.";
@@ -79,6 +73,8 @@ export function useDebateSession() {
 
   const busy = turn.pending || judge.pending || regen.pending;
   const error = localError ?? turn.error ?? regen.error ?? judge.error;
+  const side: DebateSide = session ? nextSideOf(session) : "pro";
+  const lastSpeaker = session ? lastSpeakerOf(session) : null;
 
   function changeDraft<K extends keyof TurnDraft>(key: K, value: TurnDraft[K]) {
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -87,7 +83,7 @@ export function useDebateSession() {
   async function addTurn() {
     const snapshot = session;
     if (!snapshot || busy) return;
-    const { side, mode, text, strategy, evidence } = draft;
+    const { mode, text, strategy, evidence } = draft;
     setLocalError(null);
     if (mode === "type") {
       let statement: string;
@@ -98,7 +94,7 @@ export function useDebateSession() {
         return;
       }
       setSession((prev) => (prev ? appendStatement(prev, side, statement, null) : prev));
-      setDraft((prev) => ({ ...prev, side: otherSide(side), text: "" }));
+      setDraft((prev) => ({ ...prev, text: "" }));
       return;
     }
     let input: TurnInput;
@@ -111,7 +107,7 @@ export function useDebateSession() {
     const response = await turn.run(settings, input);
     if (!response) return;
     setSession((prev) => (prev ? appendStatement(prev, side, response.spokenArgument, response) : prev));
-    setDraft((prev) => ({ ...prev, side: otherSide(side), text: "", evidence: "" }));
+    setDraft((prev) => ({ ...prev, text: "", evidence: "" }));
   }
 
   async function regeneratePersona(side: DebateSide) {
@@ -170,6 +166,8 @@ export function useDebateSession() {
     loaded,
     session,
     draft,
+    side,
+    lastSpeaker,
     changeDraft,
     busy,
     regenerating: regen.pending,

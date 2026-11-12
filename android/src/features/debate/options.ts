@@ -1,6 +1,6 @@
 // src/features/debate/options.ts
 /** Dropdown presets, chip choices, and input limits for the Debate Engine. */
-import { STANCE_VALUES, STRATEGY_VALUES, type DebateSide, type TurnMode, type TurnStrategy } from "./types";
+import { STANCE_VALUES, STRATEGY_VALUES, type DebateSide, type TurnStrategy } from "./types";
 
 export interface DebateChoice<T extends string> {
   value: T;
@@ -10,11 +10,6 @@ export interface DebateChoice<T extends string> {
 export const SIDE_CHOICES: DebateChoice<DebateSide>[] = [
   { value: "pro", label: "Pro" },
   { value: "con", label: "Con" },
-];
-
-export const MODE_CHOICES: DebateChoice<TurnMode>[] = [
-  { value: "type", label: "Type it myself" },
-  { value: "ai", label: "Generate with AI" },
 ];
 
 export const STRATEGY_OPTIONS: DebateChoice<TurnStrategy>[] = STRATEGY_VALUES.map((value) => ({

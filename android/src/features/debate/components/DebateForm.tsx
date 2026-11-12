@@ -6,10 +6,10 @@
 import { StyleSheet, View } from "react-native";
 import { Swords } from "lucide-react-native";
 import { spacing } from "@/theme";
-import { ActionButton, ErrorText, TextField } from "@/components/tool/FormControls";
+import { ActionButton, ChoiceChips, ErrorText, Field, TextField } from "@/components/tool/FormControls";
 import { CountSlider } from "@/components/tool/CountSlider";
 import type { DebateSetupState } from "../hooks/useDebateSetup";
-import { LIMITS } from "../options";
+import { LIMITS, SIDE_CHOICES } from "../options";
 
 export function DebateFormFields({ setup }: { setup: DebateSetupState }) {
   const { form, pending, update } = setup;
@@ -55,6 +55,9 @@ export function DebateFormFields({ setup }: { setup: DebateSetupState }) {
         editable={!pending}
         maxLength={LIMITS.topic}
       />
+      <Field label="Who opens the debate?">
+        <ChoiceChips options={SIDE_CHOICES} value={form.opener} onChange={(value) => update("opener", value)} />
+      </Field>
       <TextField
         label="Custom constraints (optional)"
         placeholder="e.g. Never uses emojis"

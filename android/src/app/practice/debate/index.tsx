@@ -1,13 +1,12 @@
 // src/app/practice/debate/index.tsx
-import { Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { Swords } from "lucide-react-native";
 import { ActionButton } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
-import { ResetButton } from "@/components/tool/ResetButton";
-import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { DebateBoard } from "@/features/debate/components/DebateBoard";
+import { DebateHeaderActions } from "@/features/debate/components/DebateHeaderActions";
+import { DebateSidebar } from "@/features/debate/components/DebateSidebar";
 import { DebateTurnFooter } from "@/features/debate/components/DebateTurnFooter";
 import { useDebateSession } from "@/features/debate/hooks/useDebateSession";
 
@@ -17,17 +16,13 @@ export default function DebateRoute() {
   const session = game.session;
   const active = session !== null && !session.complete;
 
-  function confirmReset() {
-    Alert.alert("Reset this debate?", "The transcript, personas, and verdict will be cleared. This can't be undone.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Reset", style: "destructive", onPress: game.resetDebate },
-    ]);
-  }
-
   return (
     <ToolScreen
       title="Debate Engine"
-      headerRight={session ? <ResetButton accessibilityLabel="Reset debate" onPress={confirmReset} /> : undefined}
+      subtitle={session?.topic}
+      sidebar={session ? <DebateSidebar game={game} session={session} /> : undefined}
+      headerRight={session ? <DebateHeaderActions game={game} session={session} /> : undefined}
+      fill
       footer={
         active ? (
           <DebateTurnFooter game={game} />
@@ -36,19 +31,13 @@ export default function DebateRoute() {
         )
       }
     >
-      <Section>
-        {session ? (
-          <DebateBoard game={game} session={session} />
-        ) : (
-          game.loaded && (
-            <EmptyHint
-              icon={Swords}
-              title="No debate yet"
-              hint="Build two personas and a topic, then argue against the AI."
-            />
-          )
-        )}
-      </Section>
+      {session ? (
+        <DebateBoard game={game} session={session} />
+      ) : (
+        game.loaded && (
+          <EmptyHint icon={Swords} title="No debate yet" hint="Build two personas and a topic, then argue against the AI." />
+        )
+      )}
     </ToolScreen>
   );
 }

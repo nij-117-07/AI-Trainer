@@ -9,7 +9,6 @@ export interface ConfidenceFormValues {
   focus: ConfidenceFocus;
   situation: string;
   comfort: ComfortLevel;
-  numTasks: number;
   instructions: string;
 }
 
@@ -52,9 +51,13 @@ export interface ConfidenceLog {
   active: ActiveRound | null;
 }
 
-export interface ConfidenceDraft {
+/** One saved set of tasks. Each set keeps the form it was made from, so Create more tasks reuses it. */
+export interface ConfidenceSet {
+  id: string;
   form: ConfidenceFormValues;
-  result: ConfidenceTaskResult | null;
+  result: ConfidenceTaskResult;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ConfidenceSummary {

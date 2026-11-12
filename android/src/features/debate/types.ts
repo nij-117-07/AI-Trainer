@@ -19,6 +19,8 @@ export interface PersonaFormValues {
   influences: string;
   topic: string;
   customConstraints: string;
+  /** Which side makes the first statement. */
+  opener: DebateSide;
 }
 
 /** Validated persona request for one side, as sent to the persona architect. */

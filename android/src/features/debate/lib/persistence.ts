@@ -1,6 +1,6 @@
 // src/features/debate/lib/persistence.ts
 /** Storage keys, defaults, and restore helpers for the Debate Engine's saved form and session. */
-import type { DebateSession, PersonaFormValues } from "../types";
+import { SIDE_VALUES, type DebateSession, type PersonaFormValues } from "../types";
 import { isRecord, recordOf } from "./text";
 
 export const DEBATE_STORAGE_KEYS = {
@@ -15,12 +15,15 @@ export const FORM_DEFAULTS: PersonaFormValues = {
   influences: "",
   topic: "",
   customConstraints: "",
+  opener: "pro",
 };
 
 /** Takes each saved field only when its type matches the default, so a damaged draft falls back per field. */
 export function restoreForm(raw: unknown): PersonaFormValues {
   const saved = recordOf(raw);
+  const opener = SIDE_VALUES.find((side) => side === saved.opener) ?? FORM_DEFAULTS.opener;
   return {
+    opener,
     archetype: typeof saved.archetype === "string" ? saved.archetype : FORM_DEFAULTS.archetype,
     style: typeof saved.style === "string" ? saved.style : FORM_DEFAULTS.style,
     intensity: typeof saved.intensity === "number" ? saved.intensity : FORM_DEFAULTS.intensity,
