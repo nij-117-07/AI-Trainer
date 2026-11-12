@@ -6,7 +6,7 @@
  */
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ArrowRight, BookOpen, Lightbulb } from "lucide-react-native";
+import { ArrowRight, BookOpen, Lightbulb, ShieldCheck } from "lucide-react-native";
 import { shape, spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { useRequest } from "@/hooks/useRequest";
@@ -86,9 +86,12 @@ export function TheoreticalQuestionCard({
           <Text style={[styles.badgeNumber, { color: colors.foreground }]}>{index + 1}</Text>
         </View>
         <View style={styles.headerBody}>
-          <Text selectable accessibilityRole="header" style={[styles.questionText, { color: colors.foreground }]}>
-            {question.questionText}
-          </Text>
+          <View style={styles.questionRow}>
+            <Text selectable accessibilityRole="header" style={[styles.questionText, { color: colors.foreground }]}>
+              {question.questionText}
+            </Text>
+            <ListenButton text={question.questionText} label="Question" />
+          </View>
           {question.focusArea ? (
             <Text style={[styles.meta, { color: colors.mutedForeground }]}>{question.focusArea}</Text>
           ) : null}
@@ -121,6 +124,8 @@ export function TheoreticalQuestionCard({
           pending={grade.pending}
           error={grade.error}
           submitLabel={saved.grade ? "Resubmit answer" : "Grade answer"}
+          submitIcon={ShieldCheck}
+          submitPlacement="below"
           allowEmpty={image !== null}
           onChangeText={(text) => onChange({ answer: text })}
           onSubmit={handleGrade}
@@ -196,7 +201,13 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.sm,
   },
+  questionRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
   questionText: {
+    flex: 1,
     ...typeScale.title,
   },
   meta: {

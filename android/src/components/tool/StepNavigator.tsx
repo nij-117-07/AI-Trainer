@@ -10,9 +10,10 @@ interface StepNavigatorProps {
   total: number;
   onPrevious: () => void;
   onNext: () => void;
+  iconOnly?: boolean;
 }
 
-export function StepNavigator({ index, total, onPrevious, onNext }: StepNavigatorProps) {
+export function StepNavigator({ index, total, onPrevious, onNext, iconOnly = false }: StepNavigatorProps) {
   const colors = useThemeColors();
   const isFirst = index === 0;
   const isLast = index >= total - 1;
@@ -25,10 +26,10 @@ export function StepNavigator({ index, total, onPrevious, onNext }: StepNavigato
           disabled={isFirst}
           accessibilityRole="button"
           accessibilityLabel="Previous question"
-          style={[styles.button, { borderColor: colors.border, opacity: isFirst ? 0.4 : 1 }]}
+          style={[styles.button, iconOnly && styles.iconButton, { borderColor: colors.border, opacity: isFirst ? 0.4 : 1 }]}
         >
-          <ChevronLeft size={16} color={colors.foreground} />
-          <Text style={[styles.buttonText, { color: colors.foreground }]}>Previous</Text>
+          <ChevronLeft size={18} color={colors.foreground} />
+          {!iconOnly && <Text style={[styles.buttonText, { color: colors.foreground }]}>Previous</Text>}
         </Pressable>
         <Text style={[styles.count, { color: colors.mutedForeground }]}>
           Question {index + 1} of {total}
@@ -38,10 +39,10 @@ export function StepNavigator({ index, total, onPrevious, onNext }: StepNavigato
           disabled={isLast}
           accessibilityRole="button"
           accessibilityLabel="Next question"
-          style={[styles.button, { borderColor: colors.border, opacity: isLast ? 0.4 : 1 }]}
+          style={[styles.button, iconOnly && styles.iconButton, { borderColor: colors.border, opacity: isLast ? 0.4 : 1 }]}
         >
-          <Text style={[styles.buttonText, { color: colors.foreground }]}>Next</Text>
-          <ChevronRight size={16} color={colors.foreground} />
+          {!iconOnly && <Text style={[styles.buttonText, { color: colors.foreground }]}>Next</Text>}
+          <ChevronRight size={18} color={colors.foreground} />
         </Pressable>
       </View>
       <View style={[styles.track, { backgroundColor: colors.muted }]}>
@@ -67,6 +68,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     minHeight: 44,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    justifyContent: "center",
   },
   buttonText: {
     fontSize: 14,

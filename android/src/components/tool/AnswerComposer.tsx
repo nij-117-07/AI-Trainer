@@ -16,8 +16,12 @@ interface AnswerComposerProps {
   pending: boolean;
   error: string | null;
   submitLabel: string;
-  /** Shows the submit as an icon-only button, with submitLabel as its accessible name. */
+  /**
+   * With "inline" (default) the submit is icon-only. With "below" it sits on its own full-width row
+   * under the input and shows the icon beside submitLabel.
+   */
   submitIcon?: LucideIcon;
+  submitPlacement?: "inline" | "below";
   /** Shown beside the spinner while pending, for example "Checking…". */
   pendingLabel?: string;
   /** Lets an empty message submit, for modes where the text is optional. */
@@ -36,6 +40,7 @@ export function AnswerComposer({
   error,
   submitLabel,
   submitIcon: SubmitIcon,
+  submitPlacement = "inline",
   pendingLabel,
   allowEmpty = false,
   onChangeText,
@@ -46,6 +51,43 @@ export function AnswerComposer({
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const canSubmit = !pending && (allowEmpty || value.trim().length > 0);
   const submitTone = canSubmit || pending ? colors.primaryForeground : colors.mutedForeground;
+  const iconOnly = SubmitIcon !== undefined && submitPlacement === "inline";
+
+  const submit = (
+    <Pressable
+      onPress={() => {
+        if (canSubmit) onSubmit();
+      }}
+      disabled={!canSubmit}
+      accessibilityRole="button"
+      accessibilityLabel={submitLabel}
+      accessibilityState={{ disabled: !canSubmit, busy: pending }}
+      style={({ pressed }) => [
+        iconOnly ? styles.iconSubmit : submitPlacement === "below" ? styles.belowSubmit : styles.submit,
+        { backgroundColor: canSubmit || pending ? colors.primary : colors.muted },
+        pressed && canSubmit && { opacity: 0.85 },
+      ]}
+    >
+      {iconOnly ? (
+        pending ? (
+          <ActivityIndicator color={colors.primaryForeground} />
+        ) : (
+          <SubmitIcon size={20} color={submitTone} />
+        )
+      ) : (
+        <>
+          {pending ? (
+            <ActivityIndicator color={colors.primaryForeground} />
+          ) : SubmitIcon ? (
+            <SubmitIcon size={18} color={submitTone} />
+          ) : null}
+          <Text style={[styles.submitText, { color: submitTone }]}>
+            {pending ? pendingLabel ?? submitLabel : submitLabel}
+          </Text>
+        </>
+      )}
+    </Pressable>
+  );
 
   return (
     <View style={styles.wrap}>
@@ -70,36 +112,9 @@ export function AnswerComposer({
           onError={setVoiceError}
           onTranscript={(text) => onChangeText(appendTranscript(value, text))}
         />
-        <Pressable
-          onPress={() => {
-            if (canSubmit) onSubmit();
-          }}
-          disabled={!canSubmit}
-          accessibilityRole="button"
-          accessibilityLabel={submitLabel}
-          accessibilityState={{ disabled: !canSubmit, busy: pending }}
-          style={({ pressed }) => [
-            SubmitIcon ? styles.iconSubmit : styles.submit,
-            { backgroundColor: canSubmit || pending ? colors.primary : colors.muted },
-            pressed && canSubmit && { opacity: 0.85 },
-          ]}
-        >
-          {SubmitIcon ? (
-            pending ? (
-              <ActivityIndicator color={colors.primaryForeground} />
-            ) : (
-              <SubmitIcon size={20} color={submitTone} />
-            )
-          ) : (
-            <>
-              {pending ? <ActivityIndicator color={colors.primaryForeground} /> : null}
-              <Text style={[styles.submitText, { color: submitTone }]}>
-                {pending ? pendingLabel ?? submitLabel : submitLabel}
-              </Text>
-            </>
-          )}
-        </Pressable>
+        {submitPlacement === "inline" && submit}
       </View>
+      {submitPlacement === "below" && submit}
     </View>
   );
 }
@@ -129,6 +144,15 @@ const styles = StyleSheet.create({
     borderRadius: shape.lg,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: spacing.lg,
+  },
+  belowSubmit: {
+    minHeight: touchTarget,
+    borderRadius: shape.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
     paddingHorizontal: spacing.lg,
   },
   iconSubmit: {

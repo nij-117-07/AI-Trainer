@@ -60,6 +60,7 @@ export function McqQuiz({ questions, contextSetting, answers, onSelect, onRetry 
 
       {isStep && (
         <StepNavigator
+          iconOnly
           index={activeIndex}
           total={total}
           onPrevious={() => setActiveIndex((index) => Math.max(0, index - 1))}

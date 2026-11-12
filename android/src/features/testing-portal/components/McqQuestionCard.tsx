@@ -37,8 +37,8 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
           <Text style={[styles.badgeText, { color: colors.foreground }]}>{index + 1}</Text>
         </View>
         <Text style={[styles.question, { color: colors.foreground }]}>{question.questionText}</Text>
+        <ListenButton text={question.questionText} label="Question" />
       </View>
-      <ListenButton text={question.questionText} label="Question" />
 
       <View style={styles.options} accessibilityLiveRegion="polite">
         {OPTION_KEYS.map((key) => {
@@ -65,19 +65,13 @@ export function McqQuestionCard({ index, question, selected, onSelect, contextSe
               </View>
               <View style={styles.optionBody}>
                 <Text style={[styles.optionText, { color: colors.foreground }]}>{question.options[key]}</Text>
-                {verdict && (
-                  <View style={styles.verdict}>
-                    {isCorrectOption ? (
-                      <CircleCheck size={18} color={colors.primary} />
-                    ) : (
-                      <CircleX size={18} color={colors.destructive} />
-                    )}
-                    <Text style={[styles.verdictText, { color: isCorrectOption ? colors.foreground : colors.destructive }]}>
-                      {verdict}
-                    </Text>
-                  </View>
-                )}
               </View>
+              {verdict &&
+                (isCorrectOption ? (
+                  <CircleCheck size={22} color={colors.primary} />
+                ) : (
+                  <CircleX size={22} color={colors.destructive} />
+                ))}
             </Pressable>
           );
         })}
@@ -110,7 +104,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   badge: {
     width: 26,
@@ -134,7 +128,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    minHeight: 56,
+    minHeight: 52,
     borderWidth: 1,
     borderRadius: shape.md,
     paddingHorizontal: spacing.md,
@@ -154,19 +148,9 @@ const styles = StyleSheet.create({
   },
   optionBody: {
     flex: 1,
-    gap: spacing.xs,
   },
   optionText: {
     ...typeScale.body,
-  },
-  verdict: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  verdictText: {
-    ...typeScale.label,
-    fontWeight: "600",
   },
   recheck: {
     borderTopWidth: 1,
