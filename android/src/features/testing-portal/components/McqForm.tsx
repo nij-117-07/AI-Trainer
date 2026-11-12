@@ -22,7 +22,7 @@ export function McqFormFields({ setup }: { setup: McqSetupState }) {
     <>
       {existingCount > 0 && (
         <Text style={[styles.note, { color: colors.mutedForeground }]}>
-          Adds to your {existingCount} saved questions. Start over from the MCQs page.
+          Adds to the {existingCount} questions in this session. Start over from the MCQs page.
         </Text>
       )}
       <TextField

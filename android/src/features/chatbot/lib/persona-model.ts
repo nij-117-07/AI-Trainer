@@ -10,6 +10,7 @@ export const PERSONA_LIMITS = {
   starterCount: 4,
   starterChars: 120,
   maxTokens: 32000,
+  ideaChars: 500,
 } as const;
 
 export const DEFAULT_AVATAR = "🤖";

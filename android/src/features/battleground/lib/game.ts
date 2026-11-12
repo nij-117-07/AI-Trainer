@@ -49,6 +49,7 @@ export function createSession(
     rulesOfEngagement: setup.rulesOfEngagement,
     roundNumber: 1,
     currentChallenge: firstChallenge,
+    rounds: [],
     roundScores: [],
     isActive: true,
     terminationReason: "",
@@ -79,6 +80,9 @@ function terminationText(evaluation: BattleEvaluation, userHealth: number, oppon
 
 export function finishRound(session: BattleSession, answer: string, round: RoundResult): BattleSession {
   const { evaluation, outcome, nextChallenge } = round;
+  const rounds = session.currentChallenge
+    ? [...session.rounds, { challenge: session.currentChallenge, answer, evaluation }]
+    : session.rounds;
   return {
     ...session,
     userHealth: outcome.userHealth,
@@ -86,6 +90,7 @@ export function finishRound(session: BattleSession, answer: string, round: Round
     opponentLearningLog: nextChallenge?.updatedLearningLog ?? session.opponentLearningLog,
     roundNumber: nextChallenge ? session.roundNumber + 1 : session.roundNumber,
     currentChallenge: nextChallenge,
+    rounds,
     roundScores: [...session.roundScores, evaluation.score],
     isActive: !outcome.terminated,
     terminationReason: outcome.terminated ? outcome.terminationReason : "",

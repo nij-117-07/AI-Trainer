@@ -73,6 +73,13 @@ export interface BattleEvaluation {
   terminationReason: string;
 }
 
+/** One resolved round: the briefing the user answered, their move, and how it was adjudicated. */
+export interface BattleRound {
+  challenge: BattleChallenge;
+  answer: string;
+  evaluation: BattleEvaluation;
+}
+
 /** Client-side state of one battleground run, persisted between visits. */
 export interface BattleSession {
   topic: string;
@@ -92,6 +99,8 @@ export interface BattleSession {
   rulesOfEngagement: string[];
   roundNumber: number;
   currentChallenge: BattleChallenge | null;
+  /** Resolved rounds in order. Sessions saved before this field existed load with an empty list. */
+  rounds: BattleRound[];
   roundScores: number[];
   isActive: boolean;
   terminationReason: string;

@@ -1,6 +1,6 @@
 // src/features/battleground/lib/persistence.ts
 /** Storage keys and saved-state checks for the Battleground Simulator. */
-import type { BattleSession } from "../types";
+import type { BattleRound, BattleSession } from "../types";
 import { isRecord } from "./text";
 
 export const BATTLE_STORAGE_KEYS = {
@@ -33,5 +33,7 @@ export function asSavedSession(value: unknown): BattleSession | null {
     Array.isArray(value.roundScores) &&
     isRecord(value.userProfile) &&
     isRecord(value.opponentProfile);
-  return valid ? (value as unknown as BattleSession) : null;
+  if (!valid) return null;
+  const session = value as unknown as BattleSession;
+  return { ...session, rounds: Array.isArray(value.rounds) ? (value.rounds as BattleRound[]) : [] };
 }

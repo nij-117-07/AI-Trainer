@@ -1,17 +1,18 @@
 // src/features/testing-portal/hooks/useMcqSetup.ts
 /**
  * The MCQ form on the New MCQs page. The form is kept on the device. A generate appends the new
- * questions to the saved list, then calls onGenerated. The saved list is read at submit time, so
- * nothing is lost if the user generates more than once.
+ * questions to the open session, then calls onGenerated. The session's saved list is read at submit
+ * time, so nothing is lost if the user generates more than once. The first generate in a session
+ * names it after the topic.
  */
 import { useEffect, useState } from "react";
 import { useAiSettings } from "@/features/ai-settings/providers/AiSettingsProvider";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useRequest } from "@/hooks/useRequest";
-import { saveDocument } from "@/lib/document-store";
 import { generateMcqs } from "../lib/generators";
 import { loadMcqResult, MCQ_STORAGE_KEYS } from "../lib/persistence";
 import { PAST_QUESTIONS_LIMIT } from "../lib/past-questions";
+import { ensureActiveMcqSession, loadActiveMcqResult, saveMcqSessionResult } from "../lib/mcq-sessions";
 import { MCQ_FORM_DEFAULTS } from "../options";
 import type { McqFormValues } from "../types";
 
@@ -23,7 +24,7 @@ export function useMcqSetup(onGenerated: () => void) {
 
   useEffect(() => {
     let active = true;
-    loadMcqResult().then((result) => {
+    loadActiveMcqResult().then((result) => {
       if (active) setSaved({ count: result.questions.length, history: result.history });
     });
     return () => {
@@ -36,14 +37,20 @@ export function useMcqSetup(onGenerated: () => void) {
   }
 
   async function submit() {
-    const current = await loadMcqResult();
+    const sessionId = await ensureActiveMcqSession();
+    const current = await loadMcqResult(sessionId);
     const questions = await generate.run(settings, { ...form, pastQuestions: current.history.join("\n") });
     if (!questions) return;
-    await saveDocument(MCQ_STORAGE_KEYS.result, {
-      questions: [...current.questions, ...questions],
-      history: [...current.history, ...questions.map((question) => question.questionText)].slice(-PAST_QUESTIONS_LIMIT),
-      contextSetting: form.contextSetting.trim(),
-    }).catch(() => undefined);
+    const topic = form.topic.trim();
+    await saveMcqSessionResult(
+      sessionId,
+      {
+        questions: [...current.questions, ...questions],
+        history: [...current.history, ...questions.map((question) => question.questionText)].slice(-PAST_QUESTIONS_LIMIT),
+        contextSetting: form.contextSetting.trim(),
+      },
+      current.questions.length === 0 && topic ? topic : undefined,
+    ).catch(() => undefined);
     onGenerated();
   }
 

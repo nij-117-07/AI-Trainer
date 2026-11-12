@@ -26,7 +26,7 @@ export function TheoreticalFormFields({ setup }: { setup: TheoreticalSetupState 
     <>
       {existingCount > 0 && (
         <Text style={[styles.note, { color: colors.mutedForeground }]}>
-          Adds to your {existingCount} saved questions.
+          Adds to the {existingCount} questions in this session.
         </Text>
       )}
       <TextField

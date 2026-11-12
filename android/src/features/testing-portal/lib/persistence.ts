@@ -17,15 +17,39 @@ import { PAST_QUESTIONS_LIMIT } from "./past-questions";
 
 export const MCQ_STORAGE_KEYS = {
   form: "practice.testing-portal.mcq.form.v1",
+  sessions: "practice.testing-portal.mcq.sessions.v1",
+} as const;
+
+/** Single-list storage from before sessions existed. It is moved into a session on first load. */
+export const MCQ_LEGACY_KEYS = {
   result: "practice.testing-portal.mcq.result.v1",
   answers: "practice.testing-portal.mcq.answers.v1",
 } as const;
 
+export function mcqSessionKeys(sessionId: string) {
+  return {
+    result: `practice.testing-portal.mcq.session.${sessionId}.result.v1`,
+    answers: `practice.testing-portal.mcq.session.${sessionId}.answers.v1`,
+  };
+}
+
 export const THEORETICAL_STORAGE_KEYS = {
   form: "practice.testing-portal.theoretical.form.v1",
+  sessions: "practice.testing-portal.theoretical.sessions.v1",
+} as const;
+
+/** Single-list storage from before sessions existed. It is moved into a session on first load. */
+export const THEORETICAL_LEGACY_KEYS = {
   result: "practice.testing-portal.theoretical.result.v1",
   answers: "practice.testing-portal.theoretical.answers.v1",
 } as const;
+
+export function theoreticalSessionKeys(sessionId: string) {
+  return {
+    result: `practice.testing-portal.theoretical.session.${sessionId}.result.v1`,
+    answers: `practice.testing-portal.theoretical.session.${sessionId}.answers.v1`,
+  };
+}
 
 export const ANSWER_STORAGE_KEYS = {
   form: "practice.testing-portal.answer.form.v1",
@@ -79,8 +103,45 @@ export function sanitizeMcqResult(saved: unknown): McqResult {
   return { questions, history, contextSetting };
 }
 
-export async function loadMcqResult(): Promise<McqResult> {
-  const saved = await loadDocument<unknown>(MCQ_STORAGE_KEYS.result, null).catch(() => null);
+export interface McqSessionSummary {
+  id: string;
+  title: string;
+  questionCount: number;
+  updatedAt: number;
+}
+
+export interface McqSessionIndex {
+  activeId: string | null;
+  sessions: McqSessionSummary[];
+}
+
+export const EMPTY_MCQ_SESSIONS: McqSessionIndex = { activeId: null, sessions: [] };
+
+export function sanitizeMcqSessionIndex(saved: unknown): McqSessionIndex {
+  if (!isRecord(saved) || !Array.isArray(saved.sessions)) return EMPTY_MCQ_SESSIONS;
+  const sessions: McqSessionSummary[] = [];
+  for (const item of saved.sessions) {
+    if (!isRecord(item)) continue;
+    const id = textOf(item.id);
+    if (!id || sessions.some((session) => session.id === id)) continue;
+    const questionCount = Math.floor(Number(item.questionCount));
+    const updatedAt = Number(item.updatedAt);
+    sessions.push({
+      id,
+      title: textOf(item.title) || "Untitled session",
+      questionCount: Number.isFinite(questionCount) && questionCount > 0 ? questionCount : 0,
+      updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0,
+    });
+  }
+  const activeId =
+    typeof saved.activeId === "string" && sessions.some((session) => session.id === saved.activeId)
+      ? saved.activeId
+      : (sessions[0]?.id ?? null);
+  return { activeId, sessions };
+}
+
+export async function loadMcqResult(sessionId: string): Promise<McqResult> {
+  const saved = await loadDocument<unknown>(mcqSessionKeys(sessionId).result, null).catch(() => null);
   return sanitizeMcqResult(saved);
 }
 
@@ -102,8 +163,8 @@ export function sanitizeMcqAnswers(saved: unknown): McqAnswers {
   return answers;
 }
 
-export async function loadMcqAnswers(): Promise<McqAnswers> {
-  const saved = await loadDocument<unknown>(MCQ_STORAGE_KEYS.answers, null).catch(() => null);
+export async function loadMcqAnswers(sessionId: string): Promise<McqAnswers> {
+  const saved = await loadDocument<unknown>(mcqSessionKeys(sessionId).answers, null).catch(() => null);
   return sanitizeMcqAnswers(saved);
 }
 
@@ -152,8 +213,45 @@ export function sanitizeTheoreticalResult(saved: unknown): TheoreticalResult {
   };
 }
 
-export async function loadTheoreticalResult(): Promise<TheoreticalResult> {
-  const saved = await loadDocument<unknown>(THEORETICAL_STORAGE_KEYS.result, null).catch(() => null);
+export interface TheoreticalSessionSummary {
+  id: string;
+  title: string;
+  questionCount: number;
+  updatedAt: number;
+}
+
+export interface TheoreticalSessionIndex {
+  activeId: string | null;
+  sessions: TheoreticalSessionSummary[];
+}
+
+export const EMPTY_THEORETICAL_SESSIONS: TheoreticalSessionIndex = { activeId: null, sessions: [] };
+
+export function sanitizeTheoreticalSessionIndex(saved: unknown): TheoreticalSessionIndex {
+  if (!isRecord(saved) || !Array.isArray(saved.sessions)) return EMPTY_THEORETICAL_SESSIONS;
+  const sessions: TheoreticalSessionSummary[] = [];
+  for (const item of saved.sessions) {
+    if (!isRecord(item)) continue;
+    const id = textOf(item.id);
+    if (!id || sessions.some((session) => session.id === id)) continue;
+    const questionCount = Math.floor(Number(item.questionCount));
+    const updatedAt = Number(item.updatedAt);
+    sessions.push({
+      id,
+      title: textOf(item.title) || "Untitled session",
+      questionCount: Number.isFinite(questionCount) && questionCount > 0 ? questionCount : 0,
+      updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0,
+    });
+  }
+  const activeId =
+    typeof saved.activeId === "string" && sessions.some((session) => session.id === saved.activeId)
+      ? saved.activeId
+      : (sessions[0]?.id ?? null);
+  return { activeId, sessions };
+}
+
+export async function loadTheoreticalResult(sessionId: string): Promise<TheoreticalResult> {
+  const saved = await loadDocument<unknown>(theoreticalSessionKeys(sessionId).result, null).catch(() => null);
   return sanitizeTheoreticalResult(saved);
 }
 
@@ -192,8 +290,8 @@ export function sanitizeTheoreticalAnswers(saved: unknown): TheoreticalAnswers {
   return answers;
 }
 
-export async function loadTheoreticalAnswers(): Promise<TheoreticalAnswers> {
-  const saved = await loadDocument<unknown>(THEORETICAL_STORAGE_KEYS.answers, null).catch(() => null);
+export async function loadTheoreticalAnswers(sessionId: string): Promise<TheoreticalAnswers> {
+  const saved = await loadDocument<unknown>(theoreticalSessionKeys(sessionId).answers, null).catch(() => null);
   return sanitizeTheoreticalAnswers(saved);
 }
 

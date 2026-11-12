@@ -8,7 +8,9 @@ import { Disclosure } from "@/components/tool/Disclosure";
 import { ActionButton, ErrorText, Field, TextField } from "@/components/tool/FormControls";
 import { spacing, touchTarget, typeScale, useThemeColors } from "@/theme";
 import { PERSONA_LIMITS, draftFromPersona, EMPTY_PERSONA_DRAFT, parseStarterText, validatePersonaDraft } from "../lib/persona-model";
+import { usePersonaAssistant } from "../hooks/usePersonaAssistant";
 import type { Persona, PersonaDraft } from "../types";
+import { PersonaAssistant } from "./PersonaAssistant";
 
 interface PersonaEditorProps {
   persona: Persona | null;
@@ -23,6 +25,11 @@ export function PersonaEditor({ persona, onSave, onCancel }: PersonaEditorProps)
   const [maxTokensText, setMaxTokensText] = useState(String(draft.maxTokens));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const assistant = usePersonaAssistant((generated) => {
+    setDraft((prev) => ({ ...prev, ...generated }));
+    setStarterText(generated.starters.join("\n"));
+    setError(null);
+  });
 
   const advancedChanged =
     draft.model.trim() !== "" ||
@@ -62,6 +69,8 @@ export function PersonaEditor({ persona, onSave, onCancel }: PersonaEditorProps)
       <Text accessibilityRole="header" style={[styles.heading, { color: colors.foreground }]}>
         {persona ? "Edit persona" : "New persona"}
       </Text>
+
+      <PersonaAssistant assistant={assistant} />
 
       <View style={styles.row}>
         <TextField

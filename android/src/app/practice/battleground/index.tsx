@@ -4,9 +4,9 @@ import { Swords } from "lucide-react-native";
 import { ActionButton } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ResetButton } from "@/components/tool/ResetButton";
-import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { BattleBoard, BattleMoveFooter } from "@/features/battleground/components/BattleBoard";
+import { BattleSidebar } from "@/features/battleground/components/BattleSidebar";
 import { useBattleSession } from "@/features/battleground/hooks/useBattleSession";
 
 export default function BattlegroundRoute() {
@@ -18,7 +18,10 @@ export default function BattlegroundRoute() {
   return (
     <ToolScreen
       title="Battleground Simulator"
+      subtitle={session ? `${session.topic} · Round ${session.roundNumber}` : undefined}
+      sidebar={session ? <BattleSidebar session={session} /> : undefined}
       headerRight={session ? <ResetButton accessibilityLabel="Reset battle" onPress={battle.reset} /> : undefined}
+      fill
       footer={
         active ? (
           <BattleMoveFooter battle={battle} />
@@ -27,19 +30,13 @@ export default function BattlegroundRoute() {
         )
       }
     >
-      <Section>
-        {session ? (
-          <BattleBoard session={session} pending={battle.pending} />
-        ) : (
-          battle.loaded && (
-            <EmptyHint
-              icon={Swords}
-              title="No battle yet"
-              hint="Pick a topic and difficulty to face an AI opponent."
-            />
-          )
-        )}
-      </Section>
+      {session ? (
+        <BattleBoard session={session} pending={battle.pending} />
+      ) : (
+        battle.loaded && (
+          <EmptyHint icon={Swords} title="No battle yet" hint="Pick a topic and difficulty to face an AI opponent." />
+        )
+      )}
     </ToolScreen>
   );
 }

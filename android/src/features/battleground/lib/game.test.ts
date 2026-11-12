@@ -114,6 +114,17 @@ describe("finishRound", () => {
     expect(updated.isActive).toBe(true);
   });
 
+  it("records each resolved round with its briefing, answer, and evaluation", () => {
+    const session = createSession("Ransomware", "medium", setup, challenge);
+    const evaluated = evaluation({ score: 0.8 });
+    const updated = finishRound(session, "Isolate the host", {
+      evaluation: evaluated,
+      outcome: resolveRound(session, evaluated),
+      nextChallenge: challenge,
+    });
+    expect(updated.rounds).toEqual([{ challenge, answer: "Isolate the host", evaluation: evaluated }]);
+  });
+
   it("closes the session without a next challenge", () => {
     const session = createSession("Ransomware", "medium", setup, challenge);
     const finalEval = evaluation({ isTerminated: true, terminationReason: "Done." });

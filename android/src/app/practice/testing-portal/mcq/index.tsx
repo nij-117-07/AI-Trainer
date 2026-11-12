@@ -1,7 +1,9 @@
 // src/app/practice/testing-portal/mcq/index.tsx
+import { StyleSheet, Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
-import { ListChecks, Sparkles } from "lucide-react-native";
-import { ActionButton } from "@/components/tool/FormControls";
+import { Layers, ListChecks, Sparkles, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, touchTarget, useThemeColors } from "@/theme";
+import { ActionButton, pointerCursor } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { ResetButton } from "@/components/tool/ResetButton";
 import { Section } from "@/components/tool/Section";
@@ -18,8 +20,13 @@ export default function McqRoute() {
 
   return (
     <ToolScreen
-      title="MCQs"
-      headerRight={hasQuestions ? <ResetButton accessibilityLabel="Clear all questions" onPress={mcq.clear} /> : undefined}
+      title={mcq.title || "MCQs"}
+      headerRight={
+        <View style={styles.headerActions}>
+          <HeaderIconButton icon={Layers} label="Sessions" onPress={() => router.push("/practice/testing-portal/mcq/sessions")} />
+          {hasQuestions && <ResetButton accessibilityLabel="Clear all questions" onPress={mcq.clear} />}
+        </View>
+      }
       footer={
         <ActionButton
           label={hasQuestions ? "Generate more questions" : "Generate questions"}
@@ -51,3 +58,37 @@ export default function McqRoute() {
     </ToolScreen>
   );
 }
+
+function HeaderIconButton({ icon: Icon, label, onPress }: { icon: LucideIcon; label: string; onPress: () => void }) {
+  const colors = useThemeColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [
+        styles.iconButton,
+        pointerCursor,
+        { borderColor: colors.border },
+        pressed && { backgroundColor: colors.muted },
+      ]}
+    >
+      <Icon size={20} color={colors.foreground} />
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  headerActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  iconButton: {
+    width: touchTarget,
+    height: touchTarget,
+    borderWidth: 1,
+    borderRadius: shape.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

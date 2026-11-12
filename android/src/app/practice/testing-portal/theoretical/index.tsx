@@ -1,9 +1,9 @@
 // src/app/practice/testing-portal/theoretical/index.tsx
-import { Alert, Pressable, StyleSheet } from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
-import { BookOpen, Sparkles, Trash2 } from "lucide-react-native";
-import { shape, touchTarget, useThemeColors } from "@/theme";
-import { ActionButton } from "@/components/tool/FormControls";
+import { BookOpen, Layers, Sparkles, Trash2, type LucideIcon } from "lucide-react-native";
+import { shape, spacing, touchTarget, useThemeColors } from "@/theme";
+import { ActionButton, pointerCursor } from "@/components/tool/FormControls";
 import { EmptyHint } from "@/components/tool/EmptyHint";
 import { Section } from "@/components/tool/Section";
 import { ToolScreen } from "@/components/tool/ToolScreen";
@@ -18,7 +18,7 @@ export default function TheoreticalRoute() {
   const hasQuestions = questions.length > 0;
 
   function confirmClear() {
-    Alert.alert("Clear all questions?", "Your answers, grades, and model answers will be removed.", [
+    Alert.alert("Clear all questions?", "The questions, answers, grades, and model answers in this session will be removed.", [
       { text: "Cancel", style: "cancel" },
       { text: "Clear all", style: "destructive", onPress: theoretical.clear },
     ]);
@@ -26,8 +26,13 @@ export default function TheoreticalRoute() {
 
   return (
     <ToolScreen
-      title="Theoretical"
-      headerRight={hasQuestions ? <ClearAllButton onPress={confirmClear} /> : undefined}
+      title={theoretical.title || "Theoretical"}
+      headerRight={
+        <View style={styles.headerActions}>
+          <HeaderIconButton icon={Layers} label="Sessions" onPress={() => router.push("/practice/testing-portal/theoretical/sessions")} />
+          {hasQuestions && <HeaderIconButton icon={Trash2} label="Clear all questions" onPress={confirmClear} />}
+        </View>
+      }
       footer={
         <ActionButton
           label={hasQuestions ? "Generate more questions" : "Generate questions"}
@@ -57,26 +62,31 @@ export default function TheoreticalRoute() {
   );
 }
 
-function ClearAllButton({ onPress }: { onPress: () => void }) {
+function HeaderIconButton({ icon: Icon, label, onPress }: { icon: LucideIcon; label: string; onPress: () => void }) {
   const colors = useThemeColors();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel="Clear all questions"
+      accessibilityLabel={label}
       style={({ pressed }) => [
-        styles.clearButton,
+        styles.iconButton,
+        pointerCursor,
         { borderColor: colors.border },
         pressed && { backgroundColor: colors.muted },
       ]}
     >
-      <Trash2 size={20} color={colors.foreground} />
+      <Icon size={20} color={colors.foreground} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  clearButton: {
+  headerActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  iconButton: {
     width: touchTarget,
     height: touchTarget,
     borderWidth: 1,

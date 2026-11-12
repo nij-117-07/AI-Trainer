@@ -1,174 +1,69 @@
 // src/features/battleground/components/BattleBoard.tsx
 /**
- * The battle on the practice page: health meters, the mission, the current tactical challenge, the
- * round adjudication, and the conclusion once the mission ends. The move box is the page footer
- * (BattleMoveFooter).
+ * The battle log. Each round reads as a chat: the opponent's briefing on the left, the move on the
+ * right, and the adjudication under it. The current briefing is the last entry. The log fills the
+ * space between the header and the footer. The move box is the page footer (BattleMoveFooter), and
+ * the status, your forces, the opponent, and the mission are in the sidebar (BattleSidebar).
  */
-import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { useRouter } from "expo-router";
-import { CircleCheck, CircleX, Crosshair, FileText, Flag, Minus, Swords, type LucideIcon } from "lucide-react-native";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from "react-native";
+import { CircleCheck, CircleX, Crosshair, FileText, Flag, Minus, Send, Swords, type LucideIcon } from "lucide-react-native";
 import { shape, spacing, typeScale, useThemeColors } from "@/theme";
-import { ActionButton, Panel } from "@/components/tool/FormControls";
 import { AnswerComposer } from "@/components/tool/AnswerComposer";
 import { Disclosure } from "@/components/tool/Disclosure";
 import { ListenButton } from "@/components/tool/ListenButton";
 import { MarkdownText } from "@/components/tool/MarkdownText";
+import { Panel } from "@/components/tool/FormControls";
 import { ResultCallout } from "@/components/tool/ResultCallout";
 import { SectionTitle } from "@/components/tool/SectionTitle";
 import { TagList } from "@/components/tool/TagList";
-import { useToolScroll } from "@/components/tool/ToolScrollContext";
 import type { BattleSessionState } from "../hooks/useBattleSession";
 import { averageScore } from "../lib/game";
 import { textList } from "../lib/text";
-import type { BattleEvaluation, BattleSession } from "../types";
+import type { BattleChallenge, BattleEvaluation, BattleRound, BattleSession } from "../types";
+import { Pill, ProgressTrack } from "./BattleParts";
 
 export function BattleBoard({ session, pending }: { session: BattleSession; pending: boolean }) {
   const colors = useThemeColors();
-  const router = useRouter();
-  const scroll = useToolScroll();
+  const scroll = useRef<ScrollViewInstance>(null);
   const challenge = session.currentChallenge;
-  const average = averageScore(session.roundScores) * 100;
-  const evaluation = session.lastEvaluation;
-  const rules = textList(session.rulesOfEngagement);
-  const constraints = challenge ? textList(challenge.constraints) : [];
-  const reference = challenge?.referenceMaterial ?? {};
-  const referenceCount = Object.keys(reference).length;
-  const verdict = evaluation ? roundVerdict(evaluation) : null;
+  const showChallenge = session.isActive && challenge !== null;
+  const average = Math.round(averageScore(session.roundScores) * 100);
 
   useEffect(() => {
-    scroll?.current?.scrollToEnd({ animated: true });
-  }, [session.roundScores.length, scroll]);
+    scroll.current?.scrollToEnd({ animated: true });
+  }, [session.rounds.length, session.isActive]);
 
   return (
-    <View style={styles.board}>
-      <Panel>
-        <View style={styles.statusRow}>
-          <View style={styles.statusPills}>
-            <Pill label={`Round ${session.roundNumber}`} filled />
-            <Pill label={session.difficulty} />
-          </View>
-          <Text style={[styles.strong, { color: colors.foreground }]}>Avg score: {average.toFixed(0)}%</Text>
-        </View>
-        <View style={styles.healthRow}>
-          <HealthBar label="Your health" value={session.userHealth} />
-          <HealthBar label="Opponent health" value={session.opponentHealth} />
-        </View>
-        {pending && (
-          <Text accessibilityLiveRegion="polite" style={[styles.label, { color: colors.mutedForeground }]}>
+    <Panel style={styles.chat}>
+      <View style={styles.chatHeader}>
+        <SectionTitle icon={Swords} title="Battle log" />
+        {pending ? (
+          <Text accessibilityLiveRegion="polite" style={[styles.status, { color: colors.mutedForeground }]}>
             Adjudicating your move…
           </Text>
-        )}
-      </Panel>
-
-      {!session.isActive && (
-        <ResultCallout icon={Flag} title="Mission concluded" tone="amber">
-          <Text style={[styles.body, { color: colors.foreground }]}>{session.terminationReason}</Text>
-          <Text style={[styles.strong, { color: colors.foreground }]}>Final average score: {average.toFixed(1)}%</Text>
-        </ResultCallout>
-      )}
-
-      <Panel>
-        <SectionTitle icon={FileText} title="Mission" />
-        <Text style={[styles.body, { color: colors.foreground }]}>{session.missionObjective}</Text>
-        <ListenButton text={session.missionObjective} label="Mission" />
-        {rules.length > 0 && <TagList items={rules} />}
-      </Panel>
-
-      {challenge && session.isActive && (
-        <Panel>
-          <View style={styles.challengeHeader}>
-            <SectionTitle icon={Crosshair} title="Tactical challenge" />
-            <Pill label={challenge.tacticType || "unspecified"} />
-          </View>
-          {challenge.briefing !== "" && <MarkdownText content={challenge.briefing} />}
-          <ListenButton text={challenge.briefing} label="Briefing" />
-          {challenge.tacticalSituation !== "" && (
-            <Text style={[styles.body, { color: colors.foreground }]}>
-              <Text style={[styles.strong, { color: colors.mutedForeground }]}>Situation: </Text>
-              {challenge.tacticalSituation}
-            </Text>
+        ) : null}
+      </View>
+      <ScrollView ref={scroll} style={styles.chatScroll} nestedScrollEnabled>
+        <View style={styles.log}>
+          {session.rounds.map((round, index) => (
+            <RoundEntry key={index} round={round} number={index + 1} />
+          ))}
+          {showChallenge && challenge && (
+            <ChallengeEntry challenge={challenge} number={session.roundNumber} collapsed={false} />
           )}
-          {challenge.challenge !== "" && (
-            <ResultCallout icon={Swords} title="Your objective" tone="sky">
-              <Text style={[styles.body, { color: colors.foreground }]}>{challenge.challenge}</Text>
+          {!session.isActive && (
+            <ResultCallout icon={Flag} title="Mission concluded" tone="amber">
+              <Text style={[styles.body, { color: colors.foreground }]}>{session.terminationReason}</Text>
+              <Text style={[styles.strong, { color: colors.foreground }]}>Final average score: {average}%</Text>
             </ResultCallout>
           )}
-          {challenge.question !== "" && (
-            <Text style={[styles.italic, { color: colors.foreground }]}>{challenge.question}</Text>
+          {session.rounds.length === 0 && !showChallenge && (
+            <Text style={[styles.body, { color: colors.mutedForeground }]}>No moves yet.</Text>
           )}
-          <ListenButton text={challenge.question} label="Question" />
-          {constraints.length > 0 && <TagList items={constraints} />}
-          {challenge.environmentChange !== "" && challenge.environmentChange !== "No significant changes." && (
-            <Text style={[styles.label, { color: colors.mutedForeground }]}>{challenge.environmentChange}</Text>
-          )}
-        </Panel>
-      )}
-
-      {challenge && session.isActive && referenceCount > 0 && (
-        <Disclosure
-          title="Reference material"
-          icon={FileText}
-          summary={`${referenceCount} ${referenceCount === 1 ? "item" : "items"}`}
-        >
-          <MarkdownText content={formatReference(reference)} />
-        </Disclosure>
-      )}
-
-      {evaluation && verdict && (
-        <Disclosure
-          title="Round adjudication"
-          icon={Crosshair}
-          summary={`${Math.round(evaluation.score * 100)}% · You ${signed(evaluation.hpDeltaUser)} HP · Opponent ${signed(evaluation.hpDeltaOpponent)} HP`}
-          defaultOpen
-        >
-          <View style={styles.verdictRow}>
-            <verdict.Icon size={18} color={verdict.tone === "bad" ? colors.destructive : colors.foreground} />
-            <Text accessibilityLiveRegion="polite" style={[styles.strong, { color: colors.foreground }]}>
-              {verdict.text}
-            </Text>
-          </View>
-          <View
-            accessibilityRole="progressbar"
-            accessibilityLabel="Round score"
-            accessibilityValue={{ min: 0, max: 100, now: Math.round(Math.min(100, evaluation.score * 100)) }}
-            style={[styles.track, { backgroundColor: colors.muted }]}
-          >
-            <View
-              style={[
-                styles.fill,
-                { backgroundColor: colors.primary, width: `${Math.min(100, evaluation.score * 100)}%` },
-              ]}
-            />
-          </View>
-          {evaluation.feedback !== "" && <MarkdownText content={evaluation.feedback} />}
-          <ListenButton text={evaluation.feedback} label="Feedback" />
-          {evaluation.narrative !== "" && (
-            <Text style={[styles.italic, { color: colors.mutedForeground }]}>{evaluation.narrative}</Text>
-          )}
-          <TagList
-            items={[
-              `You: ${signed(evaluation.hpDeltaUser)} HP`,
-              `Opponent: ${signed(evaluation.hpDeltaOpponent)} HP`,
-              ...Object.entries(evaluation.resourceImpact).map(([resource, delta]) => `${resource}: ${signed(delta)}`),
-            ]}
-          />
-          {evaluation.battlefieldShift !== "" && (
-            <Text style={[styles.label, { color: colors.mutedForeground }]}>{evaluation.battlefieldShift}</Text>
-          )}
-        </Disclosure>
-      )}
-
-      {session.isActive && (
-        <ActionButton
-          label="Start a different battle"
-          icon={Swords}
-          variant="outline"
-          disabled={pending}
-          onPress={() => router.push("/practice/battleground/new")}
-        />
-      )}
-    </View>
+        </View>
+      </ScrollView>
+    </Panel>
   );
 }
 
@@ -190,43 +85,127 @@ export function BattleMoveFooter({ battle }: { battle: BattleSessionState }) {
       pending={battle.pending}
       error={battle.error}
       submitLabel="Submit move"
+      submitIcon={Send}
       onChangeText={setAnswer}
       onSubmit={() => void submit()}
     />
   );
 }
 
-function HealthBar({ label, value }: { label: string; value: number }) {
+function RoundEntry({ round, number }: { round: BattleRound; number: number }) {
   const colors = useThemeColors();
-  const width = Math.max(0, Math.min(100, value));
   return (
-    <View style={styles.health}>
-      <View style={styles.healthLabel}>
-        <Text style={[styles.strong, { color: colors.foreground }]}>{label}</Text>
-        <Text style={[styles.label, { color: colors.mutedForeground }]}>{value} HP</Text>
-      </View>
-      <View
-        accessibilityRole="progressbar"
-        accessibilityLabel={label}
-        accessibilityValue={{ min: 0, max: 100, now: width, text: `${value} HP` }}
-        style={[styles.track, { backgroundColor: colors.muted }]}
-      >
-        <View style={[styles.fill, { backgroundColor: colors.primary, width: `${width}%` }]} />
-      </View>
+    <View style={styles.round}>
+      <ChallengeEntry challenge={round.challenge} number={number} collapsed />
+      <Message align="end" label="You">
+        <Text style={[styles.body, { color: colors.primaryForeground }]}>{round.answer}</Text>
+      </Message>
+      <AdjudicationCard evaluation={round.evaluation} />
     </View>
   );
 }
 
-function Pill({ label, filled = false }: { label: string; filled?: boolean }) {
+function ChallengeEntry({ challenge, number, collapsed }: { challenge: BattleChallenge; number: number; collapsed: boolean }) {
   const colors = useThemeColors();
+  const question = challenge.question.trim();
+  const spoken = [challenge.briefing, question].filter((part) => part !== "").join("\n\n");
+  const details = textList(challenge.constraints);
+  const reference = Object.keys(challenge.referenceMaterial).length;
+
+  const body = (
+    <View style={styles.bubbleBody}>
+      <Pill label={challenge.tacticType || "unspecified"} />
+      {challenge.briefing !== "" && <MarkdownText content={challenge.briefing} />}
+      {challenge.challenge !== "" && (
+        <Text style={[styles.body, { color: colors.foreground }]}>
+          <Text style={styles.strong}>Objective: </Text>
+          {challenge.challenge}
+        </Text>
+      )}
+      {question !== "" && <Text style={[styles.italic, { color: colors.foreground }]}>{question}</Text>}
+      {challenge.tacticalSituation !== "" && (
+        <Text style={[styles.label, { color: colors.mutedForeground }]}>Situation: {challenge.tacticalSituation}</Text>
+      )}
+      {details.length > 0 && <TagList items={details} />}
+      {challenge.environmentChange !== "" && challenge.environmentChange !== "No significant changes." && (
+        <Text style={[styles.label, { color: colors.mutedForeground }]}>{challenge.environmentChange}</Text>
+      )}
+      {reference > 0 && <MarkdownText content={formatReference(challenge.referenceMaterial)} />}
+      <View style={styles.listenRow}>
+        <ListenButton text={spoken} label={`Round ${number} briefing`} />
+      </View>
+    </View>
+  );
+
   return (
-    <View
-      style={[
-        styles.pill,
-        { borderColor: filled ? colors.primary : colors.border, backgroundColor: filled ? colors.primary : colors.card },
-      ]}
-    >
-      <Text style={[styles.pillText, { color: filled ? colors.primaryForeground : colors.foreground }]}>{label}</Text>
+    <Message align="start" label={`Opponent · Round ${number}`}>
+      {collapsed ? (
+        <Disclosure title="Briefing" icon={FileText} summary={question || challenge.challenge || "Open the briefing"}>
+          {body}
+        </Disclosure>
+      ) : (
+        body
+      )}
+    </Message>
+  );
+}
+
+function AdjudicationCard({ evaluation }: { evaluation: BattleEvaluation }) {
+  const colors = useThemeColors();
+  const verdict = roundVerdict(evaluation);
+  const percent = Math.round(Math.min(100, evaluation.score * 100));
+  const resources = Object.entries(evaluation.resourceImpact).map(([resource, delta]) => `${resource}: ${signed(delta)}`);
+  const hasDetails = evaluation.narrative !== "" || evaluation.battlefieldShift !== "" || resources.length > 0;
+
+  return (
+    <View style={[styles.adjudication, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={styles.verdictRow}>
+        <verdict.Icon size={18} color={verdict.tone === "bad" ? colors.destructive : colors.foreground} />
+        <Text accessibilityLiveRegion="polite" style={[styles.strong, { color: colors.foreground }]}>
+          {verdict.text} · {percent}%
+        </Text>
+      </View>
+      <ProgressTrack label="Round score" value={percent} text={`${percent}%`} />
+      <Text style={[styles.label, { color: colors.mutedForeground }]}>
+        You {signed(evaluation.hpDeltaUser)} HP · Opponent {signed(evaluation.hpDeltaOpponent)} HP
+      </Text>
+      {evaluation.feedback !== "" && (
+        <>
+          <MarkdownText content={evaluation.feedback} />
+          <View style={styles.listenRow}>
+            <ListenButton text={evaluation.feedback} label="Feedback" />
+          </View>
+        </>
+      )}
+      {hasDetails && (
+        <Disclosure title="Details" icon={Crosshair} summary="Narrative, battlefield, and resources">
+          {evaluation.narrative !== "" && <Text style={[styles.italic, { color: colors.mutedForeground }]}>{evaluation.narrative}</Text>}
+          {evaluation.battlefieldShift !== "" && (
+            <Text style={[styles.label, { color: colors.mutedForeground }]}>{evaluation.battlefieldShift}</Text>
+          )}
+          {resources.length > 0 && <TagList items={resources} />}
+        </Disclosure>
+      )}
+    </View>
+  );
+}
+
+/** A chat bubble: your moves on the right in the primary colour, the opponent's briefings on the left. */
+function Message({ align, label, children }: { align: "start" | "end"; label: string; children: ReactNode }) {
+  const colors = useThemeColors();
+  const mine = align === "end";
+
+  return (
+    <View style={[styles.message, mine ? styles.alignEnd : styles.alignStart]}>
+      <Text style={[styles.label, { color: colors.mutedForeground }]}>{label}</Text>
+      <View
+        style={[
+          styles.bubble,
+          { backgroundColor: mine ? colors.primary : colors.muted, borderColor: mine ? colors.primary : colors.border },
+        ]}
+      >
+        {children}
+      </View>
     </View>
   );
 }
@@ -253,47 +232,48 @@ function signed(value: number): string {
 }
 
 const styles = StyleSheet.create({
-  board: {
-    gap: spacing.lg,
-  },
-  statusRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "space-between",
+  chat: {
+    flex: 1,
+    minHeight: 0,
     gap: spacing.md,
   },
-  statusPills: {
-    flexDirection: "row",
-    gap: spacing.sm,
+  chatHeader: {
+    gap: spacing.xs,
   },
-  healthRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+  chatScroll: {
+    flex: 1,
+  },
+  log: {
     gap: spacing.lg,
   },
-  health: {
-    flex: 1,
-    minWidth: 140,
+  round: {
+    gap: spacing.md,
+  },
+  message: {
+    maxWidth: "92%",
+    gap: spacing.xs,
+  },
+  alignStart: {
+    alignSelf: "flex-start",
+  },
+  alignEnd: {
+    alignSelf: "flex-end",
+  },
+  bubble: {
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    padding: spacing.md,
+  },
+  bubbleBody: {
     gap: spacing.sm,
   },
-  healthLabel: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  listenRow: {
+    alignSelf: "flex-end",
   },
-  track: {
-    height: 8,
-    borderRadius: shape.full,
-    overflow: "hidden",
-  },
-  fill: {
-    height: "100%",
-    borderRadius: shape.full,
-  },
-  challengeHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  adjudication: {
+    borderWidth: 1,
+    borderRadius: shape.lg,
+    padding: spacing.md,
     gap: spacing.sm,
   },
   verdictRow: {
@@ -301,16 +281,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
   },
-  pill: {
-    borderWidth: 1,
-    borderRadius: shape.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  pillText: {
+  status: {
     ...typeScale.label,
-    fontWeight: "600",
-    textTransform: "capitalize",
   },
   body: {
     ...typeScale.body,
@@ -325,6 +297,5 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typeScale.label,
-    fontWeight: "400",
   },
 });
